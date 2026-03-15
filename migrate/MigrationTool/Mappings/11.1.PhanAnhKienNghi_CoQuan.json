@@ -1,0 +1,38 @@
+{
+  "SitePath": "/KND/HoiDap",
+  "SourceListName": "Cơ quan tiếp nhận",
+  "TargetTableName": "PhanAnhKienNghi_CoQuan",
+  "MigrationOption": "migrate",
+  "MappingsList": [
+    {
+      "Source": {
+        "FieldName": "ID",
+        "FieldType": "int"
+      },
+      "Target": {
+        "FieldName": "ID",
+        "FieldType": "int"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Title",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "TenCoQuan",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "MoTa",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "MoTa",
+        "FieldType": "text"
+      }
+    }
+  ]
+}

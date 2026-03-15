@@ -1,0 +1,109 @@
+.mh-header-top {
+  background-image: url(../../../../assets/images/background/header-banner-m.png);
+  background-size: cover;
+  background-position: center;
+  &:hover {
+    cursor: pointer;
+  }
+  @media (max-width: 767px) {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  &-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  &-img {
+    --image-size: 120px;
+    width: var(--image-size);
+    height: var(--image-size);
+    flex-shrink: 0;
+    position: relative;
+    @media (max-width: 767px) {
+      --image-size: 70px;
+    }
+    img {
+      height: var(--image-size);
+      position: relative;
+      z-index: 2;
+      &.bg {
+        position: absolute;
+        z-index: 1;
+        top: 0;
+        left: calc(50% + calc(var(--image-size) / 2));
+        transform: translateX(-50%);
+        &.bg-right {
+          left: calc(50% - calc(var(--image-size) / 2));
+        }
+      }
+    }
+  }
+  &-title {
+    position: relative;
+    z-index: 2;
+    font-family: 'UTM Times', sans-serif;
+    font-weight: 700;
+    font-size: 48px;
+    line-height: 63px;
+    letter-spacing: 0.03em;
+    color: var(--mh-page-header-color);
+    white-space: nowrap;
+    margin-bottom: 0;
+    text-align: center;
+    @media (max-width: 767px) {
+      font-size: 24px;
+      line-height: 32px;
+    }
+  }
+  &-minister {
+    background-color: #fff;
+    padding: 12px 0;
+    // background-image: url(../../../../assets/images/background/minister-header-bg.png);
+    background-size: cover;
+    background-position: center center;
+    @media (max-width: 767px) {
+      padding: 0;
+    }
+    .mh-header-top-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      @media (max-width: 767px) {
+        flex-direction: row;
+        .mh-header-top-title {
+          font-size: 18px;
+        }
+      }
+      .mh-header-top-img {
+        height: auto;
+        width: auto;
+        @media (max-width: 767px) {
+          height: 70px;
+        }
+      }
+    }
+  }
+  &-nqtw4 {
+    .mh-header-top-img {
+      height: 120px;
+      @media (max-width: 767px) {
+        height: unset;
+      }
+    }
+
+    .mh-header-top-img-left {
+      top: calc(50% - 37px);
+      width: 150px !important;
+      height: 75px !important;
+      @media (max-width: 767px) {
+        top: calc(50% - 18px);
+        width: 75px !important;
+        height: 37px !important;
+      }
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "SitePath": "/knd",
+  "SourceListName": "DanhMucChiTieu",
+  "TargetTableName": "ChiTieu_DanhMuc",
+  "MigrationOption": "migrate",
+  "MappingsList": [
+    {
+      "Source": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Title",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TieuDe",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "TenDanhMucChiTieu",
+        "FieldType": "text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TenDanhMuc",
+        "FieldType": "text",
+        "LookupList": null,
+        "Value": "HoatDong"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "KeyDanhMucChiTieu",
+        "FieldType": "text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "KeyDanhMucChiTieu",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Parent",
+        "FieldType": "Lookup",
+        "LookupSite": "/knd",
+        "LookupList": "DanhMucChiTieu"
+      },
+      "Target": {
+        "FieldName": "DanhMucCha",
+        "FieldType": "Lookup",
+        "LookupList": "ChiTieu_DanhMuc"
+      }
+    }
+  ]
+}

@@ -1,0 +1,199 @@
+{
+  "SitePath": "/KND/vb/vbqp",
+  "SourceListName": "Văn bản quy phạm pháp luật",
+  "TargetTableName": "VanBan",
+  "MigrationOption": "migrate",
+  "MappingsList": [
+    {
+      "Source": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Title",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "SoKyHieu",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Fake1",
+        "FieldType": "fixedvalue",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "Lang",
+        "FieldType": "int",
+        "Value": "1066"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Fake2",
+        "FieldType": "fixedvalue",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TrangThai",
+        "FieldType": "int",
+        "Value": "1"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "IDLoaiVB",
+        "FieldType": "lookup",
+        "LookupSite": "/KND/vb",
+        "LookupList": "Loại văn bản"
+      },
+      "Target": {
+        "FieldName": "ID_HinhThucVanBan",
+        "FieldType": "lookup",
+        "LookupList": "HinhThucVanBan"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "IdNguoiKy",
+        "FieldType": "lookup"
+      },
+      "Target": {
+        "FieldName": "NguoiKy",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "IdNguoiKy_ChucDanh",
+        "FieldType": "text"
+      },
+      "Target": {
+        "FieldName": "ChucDanh",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NgayBanHanh",
+        "FieldType": "DateTime",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NgayBanHanh",
+        "FieldType": "DateTime",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NgayHieuLuc",
+        "FieldType": "DateTime",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NgayCoHieuLuc",
+        "FieldType": "DateTime",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NgayHetHieuLuc",
+        "FieldType": "DateTime",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NgayHetHan",
+        "FieldType": "DateTime",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "TrichYeu",
+        "FieldType": "text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TrichYeu",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "ToanVan",
+        "FieldType": "text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NoiDung",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "IDCoquan",
+        "FieldType": "multilookup",
+        "LookupSite": "/KND/vb",
+        "LookupList": "Cơ quan ban hành"
+      },
+      "Target": {
+        "FieldName": "CoQuanBanHanhID",
+        "FieldType": "multilookup",
+        "LookupList": "CoQuanBanHanh|##|VanBan_CoQuanBanHanh|##|VanBanID"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "IdLinhVucVB",
+        "FieldType": "multilookup",
+        "LookupSite": "/KND/vb",
+        "LookupList": "Lĩnh vực"
+      },
+      "Target": {
+        "FieldName": "LinhVucID",
+        "FieldType": "multilookup",
+        "LookupList": "LinhVuc|##|VanBan_LinhVuc|##|VanBanID"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Fake3",
+        "FieldType": "fixedvalue"
+      },
+      "Target": {
+        "FieldName": "LopVanBanID",
+        "FieldType": "multilookup",
+        "LookupList": "VanBan_LopVanBan|##|VanBanID",
+        "Value": "101"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Attachments",
+        "FieldType": "Attachments",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "FilesDinhKem",
+        "FieldType": "Attachments",
+        "LookupList": "VanBan_Files|##|VanBanID"
+      }
+    }
+  ]
+}

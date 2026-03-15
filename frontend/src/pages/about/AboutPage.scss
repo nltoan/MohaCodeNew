@@ -1,0 +1,297 @@
+.mh-about {
+  padding: 24px 0;
+  &-org {
+    &-head {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 48px;
+    }
+    .row {
+      --bs-gutter-y: 48px;
+      @media (max-width: 1199px) {
+        --bs-gutter-y: 24px;
+      }
+      @media (max-width: 1199px) {
+        --bs-gutter-y: 16px;
+      }
+    }
+    &-item {
+      outline: 0;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 40px 8px;
+      gap: 24px;
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      height: 100%;
+      text-decoration: none;
+      transition: all ease-in-out 0.3s;
+      &:hover {
+        box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.15);
+        .mh-about-org-item-name {
+          color: var(--mh-link-hover-color);
+        }
+      }
+      &.lg {
+        padding: 40px 24px;
+        .mh-about-org-item-image {
+          width: auto;
+          height: 299px;
+        }
+      }
+      &-image {
+        width: 200px;
+        height: 200px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+      }
+      &-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      &-position {
+        font-family: 'Merriweather', sans-serif;
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 18px;
+        text-align: center;
+        color: var(--mh-primary-color);
+      }
+      &-name {
+        font-weight: 600;
+        font-size: 18px;
+        line-height: 22px;
+        text-align: center;
+        text-transform: uppercase;
+        color: #000000;
+        transition: all ease-in-out 0.3s;
+      }
+    }
+  }
+  &-document {
+    margin-bottom: 48px;
+    &-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0px;
+      gap: 24px;
+      position: relative;
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background-color: rgba(0, 0, 0, 0.08);
+      }
+      &-name {
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 24px;
+        color: #000000;
+      }
+      a {
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        gap: 12px;
+        background: #ffffff;
+        border: 1px solid #e9eaeb;
+        border-radius: 12px;
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 20px;
+        color: #414651;
+        transition: all ease-in-out 0.3s;
+        height: 72px;
+        svg,
+        img {
+          width: 40px;
+          height: 40px;
+          flex-shrink: 0;
+        }
+        &:hover {
+          color: var(--mh-link-hover-color);
+        }
+      }
+    }
+  }
+  &-history {
+    &-title {
+      font-family: 'Merriweather', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      line-height: 40px;
+      color: #000000;
+      margin-bottom: 48px;
+    }
+    &-items {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    &-item {
+      display: flex;
+      align-items: center;
+      padding: 40px;
+      gap: 24px;
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      text-decoration: none;
+      transition: all ease-in-out 0.3s;
+      height: 241px;
+      &:hover {
+        box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.15);
+      }
+      &-image {
+        width: 120px;
+        height: 161px;
+        flex-shrink: 0;
+        overflow: hidden;
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
+      &-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 17px;
+        color: #000000;
+      }
+      &-title {
+        font-family: 'Merriweather', sans-serif;
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 18px;
+        color: var(--mh-primary-color);
+      }
+      &-name {
+        font-weight: 600;
+        font-size: 18px;
+        line-height: 22px;
+        text-transform: uppercase;
+        color: #000000;
+      }
+    }
+  }
+}
+
+.mh-org-modal {
+  .modal-content {
+    background: #ffffff;
+    box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0px 24px;
+    height: 54px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    .modal-title {
+      display: inline-flex;
+      align-items: center;
+      padding: 16px 0px;
+      border-bottom: 2px solid var(--mh-modal-title-border-color);
+      font-weight: 600;
+      font-size: 18px;
+      line-height: 22px;
+      text-transform: uppercase;
+      color: var(--mh-modal-title-color);
+    }
+    .btn-close {
+      margin: 0;
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      top: 15px;
+      right: 15px;
+      background-image: url('data:image/svg+xml,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.16992 14.8299L14.8299 9.16992" stroke="%234D5562" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.8299 14.8299L9.16992 9.16992" stroke="%234D5562" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z" stroke="%234D5562" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+      background-size: cover;
+      opacity: 1;
+      transition: all ease-in-out 0.3s;
+      &:hover {
+        background-image: url('data:image/svg+xml,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.16992 14.8299L14.8299 9.16992" stroke="%23903315" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.8299 14.8299L9.16992 9.16992" stroke="%23903315" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z" stroke="%23903315" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+      }
+    }
+  }
+  .modal-body {
+    padding: 48px 24px;
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+    &::-webkit-scrollbar-track {
+      background-color: #fff;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #d9d9d9;
+      border: 1px solid #ffffff;
+      border-radius: 9999px;
+    }
+  }
+  &-image {
+    margin-bottom: 24px;
+    text-align: center;
+    img {
+      height: 240px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+  }
+  &-info {
+    font-family: 'Merriweather', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    color: #000000;
+    table {
+      margin-bottom: 24px;
+      td {
+        padding: 12px 0px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        font-family: 'Merriweather', sans-serif;
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 20px;
+        color: #000000;
+        &:first-child {
+          font-family: 'Inter', sans-serif;
+          font-weight: 700;
+          text-transform: uppercase;
+          width: 206px;
+          padding-right: 24px;
+        }
+      }
+    }
+  }
+}

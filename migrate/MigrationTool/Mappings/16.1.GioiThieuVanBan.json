@@ -1,0 +1,116 @@
+{
+  "SitePath": "/KND/vb/vbqp",
+  "SourceListName": "Giới thiệu văn bản",
+  "TargetTableName": "GioiThieuVanBan",
+  "MigrationOption": "migrate",
+  "MappingsList": [
+    {
+      "Source": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Title",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TieuDe",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "MoTa",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "MoTa",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NoiDung",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NoiDung",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "TacGia",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TacGia",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NgayXuatBan",
+        "FieldType": "DateTime",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NgayXuatBan",
+        "FieldType": "DateTime",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "fake",
+        "FieldType": "fixedvalue"
+      },
+      "Target": {
+        "FieldName": "TrangThai",
+        "FieldType": "int",
+        "LookupList": null,
+        "Value": "1"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "AnhDaiDien",
+        "FieldType": "fileupload",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "AnhDaiDien",
+        "FieldType": "int",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Attachments",
+        "FieldType": "Attachments",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "FilesDinhKem",
+        "FieldType": "Attachments",
+        "LookupList": "GioiThieuVanBan_Files|##|GioiThieuVanBanId"
+      }
+    }
+  ]
+}

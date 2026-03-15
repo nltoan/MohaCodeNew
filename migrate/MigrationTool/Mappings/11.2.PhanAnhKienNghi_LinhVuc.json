@@ -1,0 +1,38 @@
+{
+  "SitePath": "/KND/HoiDap",
+  "SourceListName": "Chủ đề hỏi đáp",
+  "TargetTableName": "PhanAnhKienNghi_LinhVuc",
+  "MigrationOption": "migrate",
+  "MappingsList": [
+    {
+      "Source": {
+        "FieldName": "ID",
+        "FieldType": "int"
+      },
+      "Target": {
+        "FieldName": "ID",
+        "FieldType": "int"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Title",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "TenLinhVuc",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "MoTa",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "MoTa",
+        "FieldType": "text"
+      }
+    }
+  ]
+}

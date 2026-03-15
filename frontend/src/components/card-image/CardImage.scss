@@ -1,0 +1,22 @@
+.mh-card-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border-radius: 12px;
+  overflow: hidden;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform-origin: center;
+    transition: all ease-in-out 0.3s;
+  }
+}
+a.mh-card-image {
+  &:hover {
+    img {
+      transform: scale(1.02);
+    }
+  }
+}

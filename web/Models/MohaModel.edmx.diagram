@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="fc9c692895534064b2b58f92c9d4f7c2" Name="Diagram1" ZoomLevel="116">
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.Banner_ViTri" Width="1.5" PointX="5" PointY="10.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.BinhChon_CauHoi" Width="1.5" PointX="8.75" PointY="21.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.BinhChon_KetQua" Width="1.5" PointX="14.75" PointY="6.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.BinhChon_TraLoi" Width="1.5" PointX="21.75" PointY="9.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.BuocQuyTrinh" Width="1.5" PointX="21.75" PointY="12.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ChucDanh" Width="1.5" PointX="22.75" PointY="1.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.CKTD_VanBan" Width="1.5" PointX="22.75" PointY="22.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.CoQuanBanHanh" Width="1.5" PointX="23.75" PointY="8.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.CrawlBVND" Width="1.5" PointX="23.75" PointY="11.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.Crawler_ChuDe" Width="1.5" PointX="14.75" PointY="24.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.Crawler_NguonCha" Width="1.5" PointX="24.75" PointY="1.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DangKyNhanMail" Width="1.5" PointX="24.75" PointY="23.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DanhNgon" Width="1.5" PointX="25.75" PointY="4.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DM_DiaChi" Width="1.5" PointX="12.75" PointY="16.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DM_GiaDat" Width="1.5" PointX="15" PointY="15.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DM_GiaiDoan" Width="1.5" PointX="12.75" PointY="19.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DM_LoaiDat" Width="1.5" PointX="12.75" PointY="22.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DM_LoaiTin" Width="1.5" PointX="25.75" PointY="7.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DongBoDuLieu" Width="1.5" PointX="25.75" PointY="10.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DongSuKien" Width="1.5" PointX="11.75" PointY="26.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DTVB_CoQuanPhuTrach" Width="1.5" PointX="2.75" PointY="15.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DTVB_DuThaoVanBan" Width="1.5" PointX="5" PointY="14.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DTVB_LoaiDuThaoVanBan" Width="1.5" PointX="2.75" PointY="24.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DTVB_YKienDongGop" Width="1.5" PointX="7.25" PointY="14.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DuAnDauThau" Width="1.5" PointX="22.75" PointY="26.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DVC_BuocQuyTrinh" Width="1.5" PointX="10" PointY="5.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DVC_DichVuCong3" Width="1.5" PointX="13" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DVC_DonViDangKy" Width="1.5" PointX="24.75" PointY="26.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DVC_FormMau" Width="1.5" PointX="10.75" PointY="1.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DVC_HoSo" Width="1.5" PointX="15.25" PointY="8.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DVC_NhomQuyen" Width="1.5" PointX="12.25" PointY="5.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DVC_QuyTrinh" Width="1.5" PointX="7.75" PointY="5.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DVC_ThongTinXuLyHoSo" Width="1.5" PointX="17.5" PointY="7.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DVC_TraoDoi" Width="1.5" PointX="17.5" PointY="10.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DVC2_CoQuan" Width="1.5" PointX="10.75" PointY="9.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DVC2_LinhVuc" Width="1.5" PointX="10.75" PointY="13.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DVC2_ThuTucHanhChinh" Width="1.5" PointX="13" PointY="9.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.File_DongBoDuLieu" Width="1.5" PointX="0.75" PointY="27.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.File" Width="1.5" PointX="2.75" PointY="27.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.GLTT_CauHoi" Width="1.5" PointX="9.25" PointY="24.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.GLTT_ChuDe" Width="1.5" PointX="4.75" PointY="22.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.GLTT_PhienGiaoLuu" Width="1.5" PointX="7" PointY="27.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.HinhThucVanBan" Width="1.5" PointX="26.75" PointY="1.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.HoiDap_CauHoi" Width="1.5" PointX="26.75" PointY="13.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.HoiDap_ChuDe" Width="1.5" PointX="26.75" PointY="19.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.HoiDap_DonVi" Width="1.5" PointX="26.75" PointY="22.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.HoiDap_TraLoi" Width="1.5" PointX="26.75" PointY="25.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.LanhDao_ThoiKy" Width="1.5" PointX="27.75" PointY="4.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.LinhVucDuAn" Width="1.5" PointX="27.75" PointY="10.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.LoaiDuAn" Width="1.5" PointX="13.75" PointY="28.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.LopVanBan" Width="1.5" PointX="28.75" PointY="13.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.Menu_Backend" Width="1.5" PointX="7.75" PointY="9.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.Menu_FrontEnd" Width="1.5" PointX="28.75" PointY="17.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.NhomNhanVien" Width="1.5" PointX="28.75" PointY="21.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.NiemGiamThongKe" Width="1.5" PointX="28.75" PointY="1.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.QuangCao_ViTri" Width="1.5" PointX="2.75" PointY="10.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.QuyTrinhKiemDuyet" Width="1.5" PointX="29.75" PointY="9.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.sysdiagram" Width="1.5" PointX="15.75" PointY="30.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.User_Account" Width="1.5" PointX="17.75" PointY="31.25" IsExpanded="true" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_Banner_ViTri_QuangCao_ViTri" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DM_GiaDat_DM_DiaChi" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DM_GiaDat_DM_GiaiDoan" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DM_GiaDat_DM_LoaiDat" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DTVB_DuThaoVanBan_DTVB_CoQuanPhuTrach" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DTVB_DuThaoVanBan_DTVB_DuThaoVanBan" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DTVB_YKienDongGop_DTVB_DuThaoVanBan" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DVC_BuocQuyTrinh_DVC_QuyTrinh" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DVC_NhomQuyen_DVC_BuocQuyTrinh" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DVC_DichVuCong3_DVC_FormMau" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DVC_DichVuCong3_DVC_QuyTrinh" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DVC_DichVuCong3_DVC2_CoQuan" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DVC_DichVuCong3_DVC2_LinhVuc" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DVC_HoSo_DVC_DichVuCong3" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DVC_ThongTinXuLyHoSo_DVC_HoSo" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DVC_TraoDoi_DVC_HoSo" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DVC2_ThuTucHanhChinh_DVC2_CoQuan" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_DVC2_ThuTucHanhChinh_DVC2_LinhVuc" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_GLTT_CauHoi_GLTT_ChuDe" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_GLTT_CauHoi_GLTT_PhienGiaoLuu" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_GLTT_PhienGiaoLuu_GLTT_ChuDe" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_Menu_Backend_Menu_Backend" ManuallyRouted="false" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_QuangCao_ViTri_QuangCao_ViTri" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.Permission" Width="1.5" PointX="3.375" PointY="32.875" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.Role" Width="1.5" PointX="5.625" PointY="32.875" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.RolePermission" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.User_Account_Role_fk" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.QuaTrinhKiemDuyet" Width="1.5" PointX="32.375" PointY="4.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.QuaTrinhKiemDuyet_AlbumAnh" Width="1.5" PointX="22.375" PointY="32.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.QuaTrinhKiemDuyet_AlbumVideo" Width="1.5" PointX="33.375" PointY="9.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ThongTinUyQuyen" Width="1.5" PointX="31.375" PointY="0.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.VungHienThi" Width="1.5" PointX="29.375" PointY="31.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.VDO_ChuyenMucVideo" Width="1.5" PointX="31.375" PointY="32.375" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.VDO_Video" Width="1.5" PointX="33.625" PointY="32" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_VDO_Video_VDO_ChuyenMucVideo" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.USR_LinkQuanLy" Width="1.5" PointX="15.375" PointY="0.75" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.UserBuocQuyTrinh" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.BinhLuan" Width="1.5" PointX="17.375" PointY="0.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.TinTuc_Temp" Width="1.5" PointX="33.625" PointY="21.5" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ThoiKyPhatTrien" Width="1.5" PointX="19.375" PointY="15.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ThongTinDoanhNghiep" Width="1.5" PointX="19.375" PointY="18.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ImageSize" Width="1.5" PointX="19.375" PointY="23.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.LinhVuc" Width="1.5" PointX="0.75" PointY="32" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.QLDA_GiaiDoan" Width="1.5" PointX="34.75" PointY="3.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.QLDA_LoaiDuAn" Width="1.5" PointX="34.75" PointY="1" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.QLDA_PhamVi" Width="1.5" PointX="34.75" PointY="35.625" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.QLDA_DonVi" Width="1.5" PointX="0.75" PointY="0.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.QLDA_DuAnDeAn" Width="2.125" PointX="39" PointY="16.875" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.QLDA_DuAnDeAn_Child_fk" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.QLDA_DuAnDeAn_GiaiDoan_fk" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.QLDA_DuAnDeAn_LoaiDuAn_fk" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.QLDA_DuAnDeAn_PhamVi_fk" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.QLDA_LinhVuc" Width="1.5" PointX="3.375" PointY="1" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.QLDA_DuAnDeAn_LinhVuc_fk" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.QLDA_LinhVuc_Childs_fk" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ThiTruongLaoDong_Files" Width="1.5" PointX="7" PointY="25.125" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.ThiTruongLaoDong_File_Files_fk" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.Template" Width="1.5" PointX="0.75" PointY="4.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ABL_AlbumAnh" Width="1.5" PointX="3.75" PointY="4.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ABL_AlbumAudio" Width="1.5" PointX="5.75" PointY="0.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ABL_AlbumVideo" Width="1.5" PointX="7.75" PointY="0.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ABL_Anh" Width="1.5" PointX="0.75" PointY="7.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ABL_Audio" Width="1.5" PointX="9.75" PointY="17.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ABL_ChuyenMucAlbumAnh" Width="1.5" PointX="19.75" PointY="0.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ABL_ChuyenMucAlbumAudio" Width="1.5" PointX="15.75" PointY="19.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ABL_ChuyenMucAlbumVideo" Width="1.5" PointX="20.75" PointY="4.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ThamSoHeThong" Width="1.5" PointX="25.375" PointY="29.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.LoaiSuKien" Width="1.5" PointX="9.375" PointY="32.125" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DonVi_LanhDao" Width="1.5" PointX="37.625" PointY="25.625" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ChuyenMuc" Width="1.5" PointX="21.375" PointY="15.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.CoCauToChuc" Width="1.5" PointX="35.375" PointY="39.375" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.DonVi_LanhDao_ThongTinLanhDao_IDDonvi_fk" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ThongTinLanhDao" Width="1.5" PointX="14.375" PointY="34.25" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.DonVi_LanhDao_ThongTinLanhDao_IDLanhDao_fk" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.ThongTinLanhDao_ThuKy_fk" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.Block" Width="1.5" PointX="17.375" PointY="26.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.BlockConfig" Width="1.5" PointX="19.375" PointY="26.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.TinTuc_BinhLuan" Width="1.5" PointX="39.875" PointY="33" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.TinTuc_LienQuan" Width="1.5" PointX="39.875" PointY="36" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.TinTuc_Block" Width="1.5" PointX="25.875" PointY="35.5" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__TinTuc_Vu__VungH__5F492382" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.VanBan_LienQuan" Width="1.5" PointX="34" PointY="16.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.VanBan_LinhVuc" Width="1.5" PointX="36.25" PointY="22.5" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.VanBan_LopVanBan" Width="1.5" PointX="36.25" PointY="15.25" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__VanBan_Lo__LinhVuc__6166761E" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.VanBan_LopVanBan_LopVanBan_FK" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.VanBan_CoQuanBanHanh" Width="1.5" PointX="36.25" PointY="12.125" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.VanBan_CoQuanBanHanh_CoQuanBanHanh_FK" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.VanBan" Width="2.875" PointX="29" PointY="34.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.VanBan_Files" Width="2.875" PointX="31.75" PointY="30.25" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__VanBan_File__LopVa__6CD828CA" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.VanBan_HinhThuc_FK" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__VanBan_Lo__LopVa__72910220" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__VanBan_Lo__VanBa__607251E5" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__VanBan_Lo__VanBa__6BE40491" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__VanBan_Lo__VanBa__719CDDE7" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.VanBan_CoQuanBanHanh_VanBan_FK" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.VanBan_LopVanBan_VanBan_FK" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.QLDA_HoSo" Width="1.5" PointX="8.75" PointY="38.875" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.QLDA_HoSo_Files" Width="1.5" PointX="11" PointY="36.25" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.QLDA_VanBan" Width="1.5" PointX="5.75" PointY="39.25" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.QLDA_VanBan_Files" Width="1.5" PointX="8" PointY="35.25" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__QLDA_VanB__FileI__56B3DD81" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__VanBan_Fi__FileI__52E34C9D" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.QLDA_HoSo_QLDA_DuAnDeAn_fk" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.QLDA_VanBan_QLDA_DuAnDeAn_fk" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__QLDA_VanB__VanBa__57A801BA" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__VanBan_Fi__VanBa__51EF2864" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ThiTruongLaoDong" Width="1.5" PointX="29.375" PointY="25" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.ThiTruongLaoDong_File_TTLD_fk" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.Crawler_LienKet" Width="1.5" PointX="0.75" PointY="35.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.TinTuc" Width="1.5" PointX="23.625" PointY="37.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.TinTuc_Files" Width="1.5" PointX="25.875" PointY="38.875" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.TinTuc_ChuyenMuc_IDChuyenMuc_fk" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__VanBan_Fi__FileI__1A69E950" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__TinTuc_Vu__TinTu__603D47BB" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__VanBan_Fi__VanBa__1975C517" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK_TinTuc_Temp_TinTuc" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.TinTuc_BinhLuan_TinTuc_ID_fk" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.TinTuc_LienQuan_LienQuan_ID_fk" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.TinTuc_LienQuan_TinTuc_ID_fk" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.DanhMucThongTin" Width="1.5" PointX="5.375" PointY="19.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.Banner" Width="1.5" PointX="0.75" PointY="18.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.ADConfig" Width="1.5" PointX="23.375" PointY="15.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.SuKienHoiThao" Width="1.5" PointX="9.75" PointY="43.5" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.SuKienHoiThao_Files" Width="1.5" PointX="12" PointY="30.5" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__VanBan_Fi__FileI__220B0B18" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.SuKienHoiThao_LoaiHoiThao_fk" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__VanBan_Fi__VanBa__2116E6DF" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.Crawler_Nguon" Width="1.5" PointX="35.375" PointY="6.75" />
+        <EntityTypeShape EntityType="CongTTDT_MOHAModel.VanBan_BiTacDong" Width="1.5" PointX="32.625" PointY="38.75" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__VanBan_Li__LienQ__2F650636" />
+        <AssociationConnector Association="CongTTDT_MOHAModel.FK__VanBan_Li__VanBa__30592A6F" />
+        </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

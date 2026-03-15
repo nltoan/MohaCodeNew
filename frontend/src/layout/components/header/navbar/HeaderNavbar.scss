@@ -1,0 +1,159 @@
+#offcanvasNavbar {
+  max-height: 500px;
+}
+.mh-header {
+  &-bg-main {
+    --bs-navbar-padding-y: 0;
+    --bs-navbar-color: white !important;
+    --bs-navbar-active-color: white !important;
+    --bs-navbar-hover-color: white !important;
+    --mh-navbar-active-color: white !important;
+    --mh-navbar-active-border-color: white !important;
+    background-color: #903315 !important;
+    .navbar-toggler {
+      .navbar-toggler-icon {
+        width: 24px;
+        height: 24px;
+        background-image: url('data:image/svg+xml,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 7H21" stroke="%23ffffff" strokeWidth="1.5" stroke-linecap="round"/><path d="M3 12H21" stroke="%23ffffff" strokeWidth="1.5" stroke-linecap="round"/><path d="M3 17H21" stroke="%23ffffff" strokeWidth="1.5" stroke-linecap="round"/></svg>') !important;
+      }
+    }
+
+    .nav-link {
+      &.active {
+        background-color: #fff4d10f;
+      }
+    }
+
+    .navbar-nav {
+      .nav-item {
+        &.active {
+          > .nav-link {
+            background-color: #fff4d12b;
+          }
+        }
+      }
+    }
+
+    .dropdown-menu {
+      background-color: #903315 !important;
+    }
+    .dropdown-item {
+      --bs-dropdown-link-color: white !important;
+      --bs-dropdown-font-size: 14px;
+      // --bs-dropdown-link-hover-color: var(--mh-navbar-active-color);
+      --bs-dropdown-link-active-color: var(--mh-navbar-active-color);
+    }
+  }
+
+  &-navbar {
+    --bs-navbar-padding-y: 0;
+    --bs-navbar-color: #000000;
+    --bs-navbar-active-color: var(--mh-navbar-active-color);
+    --bs-navbar-hover-color: var(--mh-navbar-active-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+
+    @media (max-width: 767px) {
+      top: 70px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      z-index: 50;
+      position: initial;
+    }
+
+    @media (min-width: 992px) {
+      .dropdown-menu {
+        margin-top: -4px;
+      }
+
+      .dropdown-toggle:active {
+        pointer-events: none;
+      }
+    }
+
+    .navbar-toggler {
+      border: 0;
+      padding: 12px 0;
+      outline: none;
+      box-shadow: none;
+
+      .navbar-toggler-icon {
+        width: 24px;
+        height: 24px;
+        background-image: url('data:image/svg+xml,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 7H21" stroke="%23903315" strokeWidth="1.5" stroke-linecap="round"/><path d="M3 12H21" stroke="%23903315" strokeWidth="1.5" stroke-linecap="round"/><path d="M3 17H21" stroke="%23903315" strokeWidth="1.5" stroke-linecap="round"/></svg>');
+      }
+    }
+
+    .navbar-nav {
+      column-gap: 40px;
+      row-gap: 20px;
+
+      .nav-item {
+        &.active {
+          > .nav-link {
+            color: var(--mh-navbar-active-color);
+            border-color: var(--mh-navbar-active-border-color);
+          }
+        }
+      }
+
+      .nav-link {
+        --bs-navbar-nav-link-padding-x: 0;
+        --bs-nav-link-padding-y: 16px;
+        --bs-nav-link-height: 49px;
+        --bs-nav-link-font-size: 14px;
+        --bs-nav-link-font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        height: 49px;
+        border-bottom: 3px solid transparent;
+        line-height: 17px;
+        text-transform: uppercase;
+        transition: all ease-in-out 0.3s;
+        outline: 0;
+        box-shadow: none;
+        padding: 0 10px;
+
+        &.active {
+          color: var(--mh-navbar-active-color);
+          border-color: var(--mh-navbar-active-border-color);
+        }
+      }
+    }
+
+    .dropdown-toggle {
+      outline: 0;
+      box-shadow: none;
+
+      &::after {
+        display: none;
+      }
+    }
+
+    .dropdown-menu {
+      padding: 0px;
+      background: #ffffff;
+      box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.15);
+      border-radius: 12px;
+      border: 0;
+      overflow: hidden;
+      margin-top: 0px;
+      border-top: 2px solid white;
+
+      .dropdown-item {
+        --bs-dropdown-item-padding-y: 12px;
+        --bs-dropdown-item-padding-x: 16px;
+        --bs-dropdown-link-color: #000000;
+        --bs-dropdown-font-size: 14px;
+        --bs-dropdown-link-hover-color: var(--mh-navbar-active-color);
+        --bs-dropdown-link-hover-bg: rgba(243, 153, 20, 0.1);
+        --bs-dropdown-link-active-color: var(--mh-navbar-active-color);
+        --bs-dropdown-link-active-bg: rgba(243, 153, 20, 0.1);
+        font-weight: 600;
+        font-size: 14px;
+        line-height: 17px;
+        transition: all ease-in-out 0.3s;
+      }
+    }
+  }
+}

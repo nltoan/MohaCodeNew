@@ -1,0 +1,1 @@
+import{j as n,d as e,t}from"./index-Bwxskp7G.js";const s=()=>n.jsx(e,{className:"py-4",children:n.jsx(t,{title:"Phản ánh - kiến nghị",children:n.jsx("i",{children:"Nội dung đang được cập nhật"})})});export{s as FeedbackAndRecommendationsPage};

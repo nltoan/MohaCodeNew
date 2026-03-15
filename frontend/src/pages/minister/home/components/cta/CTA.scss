@@ -1,0 +1,57 @@
+.mh-minister-cta {
+  padding: 24px 0;
+  @media (max-width: 767px) {
+    padding: 16px 0;
+  }
+  .row {
+    --bs-gutter-y: 16px;
+  }
+  &-banner {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 18px;
+    gap: 10px;
+    background: radial-gradient(50% 171.86% at 50% 50%, #fef900 0%, #fec01d 100%);
+    border-radius: 12px;
+    min-height: 172px;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 150%;
+    text-align: center;
+    letter-spacing: 0.04em;
+    color: #ff0000;
+    @media (max-width: 767px) {
+      font-size: 16px;
+    }
+    strong {
+      font-weight: 900;
+      font-size: 36px;
+      letter-spacing: 0.04em;
+      @media (max-width: 767px) {
+        font-size: 32px;
+      }
+    }
+  }
+  &-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    a {
+      font-weight: 600;
+      font-size: 24px;
+      line-height: 29px;
+      &:nth-child(3) {
+        display: none;
+        @media (max-width: 1199px) {
+          display: flex;
+        }
+        &::before {
+          background-color: rgba($color: #00b47e, $alpha: 0.6);
+        }
+      }
+    }
+  }
+}

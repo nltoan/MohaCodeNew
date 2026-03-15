@@ -1,0 +1,36 @@
+.mh-home-cta {
+  padding: 15px 0;
+  overflow-x: hidden;
+
+  @media (max-width: 767px) {
+    padding: 16px 0;
+  }
+  .row {
+    --bs-gutter-y: 16px;
+  }
+  &-banner {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    a {
+      height: 100%;
+    }
+  }
+  &-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    a {
+      &:nth-child(3) {
+        display: none;
+        @media (max-width: 1199px) {
+          display: flex;
+        }
+        &::before {
+          background-color: rgba($color: #00b47e, $alpha: 0.6);
+        }
+      }
+    }
+  }
+}

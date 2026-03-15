@@ -1,0 +1,80 @@
+{
+  "SitePath": "/KND/vb",
+  "SourceListName": "Loại văn bản",
+  "TargetTableName": "HinhThucVanBan",
+  "MigrationOption": "migrate",
+  "MappingsList": [
+    {
+      "Source": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Title",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TenHinhThucVanBan",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "MoTa",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "MoTa",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "STT",
+        "FieldType": "int",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "SoThuTu",
+        "FieldType": "int",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Fake1",
+        "FieldType": "fixedvalue",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "Lang",
+        "FieldType": "int",
+        "Value": "1066"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Fake2",
+        "FieldType": "fixedvalue",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "HienThi",
+        "FieldType": "int",
+        "LookupList": "1"
+      }
+    }
+  ]
+}

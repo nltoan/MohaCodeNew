@@ -1,0 +1,83 @@
+{
+  "SitePath": "/KND/cong-tac-can-bo-phu-nu/TT",
+  "SourceListName": "Danhmuc",
+  "TargetTableName": "ChuyenMuc",
+  "MigrationOption": "migrate",
+  "MappingsList": [
+    {
+      "Source": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Title",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TenChuyenMuc",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Status",
+        "FieldType": "fixedvalue",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TrangThai",
+        "FieldType": "text",
+        "LookupList": null,
+        "Value": "HoatDong"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "IDQuyTrinh",
+        "FieldType": "fixedvalue",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "IDQuyTrinh",
+        "FieldType": "int",
+        "LookupList": null,
+        "Value": "5"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "STT",
+        "FieldType": "Int",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "SoThuTu",
+        "FieldType": "int",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Parent",
+        "FieldType": "Lookup",
+        "LookupSite": "/KND/cong-tac-can-bo-phu-nu/TT",
+        "LookupList": "Danhmuc"
+      },
+      "Target": {
+        "FieldName": "ChuyenMucCha",
+        "FieldType": "Lookup|##|2",
+        "LookupList": "ChuyenMuc"
+      }
+    }
+  ]
+}

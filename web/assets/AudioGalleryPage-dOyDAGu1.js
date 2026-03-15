@@ -1,0 +1,1 @@
+import{j as e,d as i,t as n}from"./index-Bwxskp7G.js";const t=()=>e.jsx(i,{className:"py-4",children:e.jsx(n,{title:"Audio",children:e.jsx("i",{children:"Nội dung đang được cập nhật"})})});export{t as AudioGalleryPage};

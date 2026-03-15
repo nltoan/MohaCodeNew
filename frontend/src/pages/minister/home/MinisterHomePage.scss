@@ -1,0 +1,16 @@
+.mh-minister {
+  &-section {
+    padding: 24px 0;
+    @media (max-width: 767px) {
+      padding: 16px 0 24px;
+    }
+    .container {
+      > .row {
+        --bs-gutter-y: 24px;
+        @media (max-width: 767px) {
+          --bs-gutter-y: 16px;
+        }
+      }
+    }
+  }
+}

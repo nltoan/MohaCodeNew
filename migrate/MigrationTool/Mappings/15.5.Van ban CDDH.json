@@ -1,0 +1,116 @@
+{
+  "SitePath": "/KND/vb/vbqp",
+  "SourceListName": "Văn bản chỉ đạo điều hành",
+  "TargetTableName": "VanBan",
+  "MigrationOption": "migrate",
+  "MappingsList": [
+    {
+      "Source": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Title",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "SoKyHieu",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Fake1",
+        "FieldType": "fixedvalue",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "Lang",
+        "FieldType": "int",
+        "Value": "1066"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Fake2",
+        "FieldType": "fixedvalue",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TrangThai",
+        "FieldType": "int",
+        "Value": "1"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NgayXuatBan",
+        "FieldType": "DateTime",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NgayXuatBan",
+        "FieldType": "DateTime",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "MoTa",
+        "FieldType": "text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TrichYeu",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NoiDung",
+        "FieldType": "text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NoiDung",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Fake3",
+        "FieldType": "fixedvalue"
+      },
+      "Target": {
+        "FieldName": "LopVanBanID",
+        "FieldType": "multilookup",
+        "LookupList": "VanBan_LopVanBan|##|VanBanID",
+        "Value": "104"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Attachments",
+        "FieldType": "Attachments",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "FilesDinhKem",
+        "FieldType": "Attachments",
+        "LookupList": "VanBan_Files|##|VanBanID"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+import{j as e,d as i,v as n}from"./index-DTp2_wuc.js";const s=()=>e.jsx(i,{className:"py-4",children:e.jsx(n,{title:"Audio",children:e.jsx("i",{children:"Nội dung đang được cập nhật"})})});export{s as AudioGalleryPage};

@@ -1,0 +1,144 @@
+{
+  "SitePath": "/KND/HoiDap",
+  "SourceListName": "Danh sách câu hỏi",
+  "TargetTableName": "PhanAnhKienNghi",
+  "MigrationOption": "migrate",
+  "MappingsList": [
+    {
+      "Source": {
+        "FieldName": "ID",
+        "FieldType": "int"
+      },
+      "Target": {
+        "FieldName": "ID",
+        "FieldType": "int"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Title",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "TenCauHoi",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NguoiGui",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "TenNguoiGui",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Email",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "Email",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "CoQuan",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "SoDienThoai",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "IPNguoiGui",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "IPNguoiGui",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "IdChuDeHoiDap",
+        "FieldType": "Lookup",
+        "LookupSite": "/KND/HoiDap",
+        "LookupList": "Chủ đề hỏi đáp"
+      },
+      "Target": {
+        "FieldName": "LinhVucId",
+        "FieldType": "int",
+        "LookupList": "PhanAnhKienNghi_LinhVuc"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "CoQuanTiepNhan",
+        "FieldType": "Lookup",
+        "LookupSite": "/KND/HoiDap",
+        "LookupList": "Cơ quan tiếp nhận"
+      },
+      "Target": {
+        "FieldName": "CoQuanId",
+        "FieldType": "int",
+        "LookupList": "PhanAnhKienNghi_CoQuan"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NgayBanHanh",
+        "FieldType": "DateTime"
+      },
+      "Target": {
+        "FieldName": "NgayHoi",
+        "FieldType": "DateTime"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NguoiTraLoi",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "NguoiTraLoi",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "IsHienThiLuotXem",
+        "FieldType": "Boolean"
+      },
+      "Target": {
+        "FieldName": "HienThiLuotXem",
+        "FieldType": "bit"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NoiDung",
+        "FieldType": "text"
+      },
+      "Target": {
+        "FieldName": "NoiDungCauHoi",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "CauTraLoi",
+        "FieldType": "Note"
+      },
+      "Target": {
+        "FieldName": "NoiDungCauTraLoi",
+        "FieldType": "text"
+      }
+    }
+  ]
+}

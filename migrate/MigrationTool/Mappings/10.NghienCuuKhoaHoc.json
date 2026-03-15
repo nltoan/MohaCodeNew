@@ -1,0 +1,152 @@
+{
+  "SitePath": "/KND/TT",
+  "SourceListName": "NghienCuuKhoaHoc",
+  "TargetTableName": "NghienCuuKhoaHoc",
+  "MigrationOption": "migrate",
+  "MappingsList": [
+    {
+      "Source": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Title",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TenDeTai",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "CapQuanLy",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "CapQuanLy",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "LinhVuc",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "LinhVuc",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "DonViChuTri",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "DonViChuTri",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "ThoiGianThucHien",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "ThoiGianThucHien",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "MoTa",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "MoTa",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NoiDung",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NoiDung",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Created",
+        "FieldType": "DateTime",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NgayTao",
+        "FieldType": "DateTime",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Modified",
+        "FieldType": "DateTime",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NgayCapNhat",
+        "FieldType": "DateTime",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Author",
+        "FieldType": "Lookup",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NguoiTao",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Editor",
+        "FieldType": "Lookup",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NguoiCapNhat",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    }
+  ]
+}

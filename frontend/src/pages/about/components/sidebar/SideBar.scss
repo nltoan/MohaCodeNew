@@ -1,0 +1,10 @@
+.mh-about-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  &-block {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}

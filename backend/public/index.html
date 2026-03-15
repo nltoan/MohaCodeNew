@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Bộ nội vụ - Quản trị nội dung cổng thông tin" />
+  <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <link rel="stylesheet" href="https://adminlte.io/themes/v3/plugins/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdn3.devexpress.com/jslib/22.2.3/css/dx.light.compact.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.1/dist/css/adminlte.min.css">
+  <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
+  <!-- <link href="https://unpkg.com/grapesjs-project-manager/dist/grapesjs-project-manager.min.css" rel="stylesheet"> -->
+
+  <script type="text/javascript">
+    window.env = {
+      'REACT_APP_LANGUAGE': 'vi',
+      // "REACT_APP_API_URL": 'https://molisa.tefli.vn/api',
+      // "REACT_APP_UPLOAD_URL": 'https://molisa.gov.vn',
+
+      "REACT_APP_API_URL": 'http://mohaapi.tefli.vn/api',
+      "REACT_APP_API_UPLOAD_URL": 'http://mohaapi.tefli.vn',
+      "REACT_APP_UPLOAD_URL": 'http://moha.tefli.vn',
+
+
+      "REACT_APP_FRONTEND_URL": 'http://moha.tefli.vn',
+      "REACT_APP_ENG_FRONTEND_URL": 'http://moha.tefli.vn/en',
+      "REACT_APP_BACKEND_URL": 'http://mohabackend.tefli.vn',
+
+
+
+      "REACT_APP_CHUYEN_MUC_BO_TRUONG_PHAT_BIEU_ID": 11535,
+      "REACT_APP_BAI_VIET_BO_TRUONG_TIEP_CONG_DAN_ID": 236702,
+      "REACT_APP_DANH_MUC_THONG_TIN": "/danhmucthongtin/1",
+
+      "REACT_APP_BOXNDDN_BANNER_TRANG_CHU_TIENG_VIET": 3226,
+      "REACT_APP_BOXVBPL_BANNER_TRANG_CHU_TIENG_VIET": 3225,
+      "REACT_APP_BOXHOT_BANNER_TRANG_CHU_TIENG_VIET": 3224,
+      "REACT_APP_SLIDE_BANNER_TRANG_CHU_TIENG_VIET": 1212,
+      "REACT_APP_BOXLEGAL_BANNER_TRANG_CHU_TIENG_ANH": 3228,
+    }
+  </script>
+  <title>Quản trị nội dung</title>
+  <style>
+    .gjs-editor-cont {
+      position: fixed !important;
+      z-index: 2000 !important;
+      width: 100;
+      height: 100;
+      top: 0;
+      right: 0;
+    }
+
+    .nav-sidebar .nav-item .nav-link {
+      padding: 0px;
+    }
+
+    .nav-sidebar .nav-item .nav-link i {
+      top: 3px;
+    }
+  </style>
+</head>
+
+<body class="sidebar-mini">
+  <div id="root" class="wrapper">
+
+  </div>
+  <script src="https://unpkg.com/grapesjs"></script>
+  <!-- <script src="https://unpkg.com/grapesjs-project-manager"></script> -->
+
+  <script src="https://adminlte.io/themes/v3/plugins/jquery/jquery.min.js"></script>
+  <script src="https://adminlte.io/themes/v3/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="https://adminlte.io/themes/v3/dist/js/adminlte.min.js?v=3.2.0"></script>
+  <!-- <script>
+    $(document).ready(function () {
+      $("body").on("click", '.nav-item', function () {
+        if ($(this).hasClass('menu-open')) {
+          $(this).removeClass("menu-open");
+          $(this).children().removeClass("active");
+        } else {
+          $(this).addClass("menu-open");
+          $(this).children().addClass("active");
+        }
+        $('.nav-item').children().removeClass('active').not(this);
+        $(this).children().addClass("active");
+      });
+    }); 
+  </script> -->
+</body>
+
+</html>

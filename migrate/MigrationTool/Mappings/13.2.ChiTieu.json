@@ -1,0 +1,81 @@
+{
+  "SitePath": "/knd",
+  "SourceListName": "ChiTietChiTieu",
+  "TargetTableName": "ChiTieu",
+  "MigrationOption": "migrate",
+  "MappingsList": [
+    {
+      "Source": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "IDDanhMucChiTieu",
+        "FieldType": "lookup",
+        "LookupSite": "/knd",
+        "LookupList": "DanhMucChiTieu"
+      },
+      "Target": {
+        "FieldName": "DanhMucId",
+        "FieldType": "lookup",
+        "LookupList": "ChiTieu_DanhMuc"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Title",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TieuDe",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "ChiSo",
+        "FieldType": "double",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "ChiSo",
+        "FieldType": "double",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "KeyChiTietChiTieu",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "KeyChiTietChiTieu",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NamThucHien",
+        "FieldType": "int",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NamThucHien",
+        "FieldType": "int",
+        "LookupList": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+import{j as t,d as n,t as a}from"./index-Bwxskp7G.js";const i=()=>t.jsx(n,{className:"py-4",children:t.jsx(a,{title:"Dữ liệu",children:t.jsx("i",{children:"Nội dung đang được cập nhật"})})});export{i as DataPage};

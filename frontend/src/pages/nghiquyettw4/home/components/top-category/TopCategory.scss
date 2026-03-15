@@ -1,0 +1,91 @@
+.mh-nqtw4-cat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  .row {
+    --bs-gutter-y: 24px;
+    @media (max-width: 767px) {
+      --bs-gutter-y: 16px;
+    }
+  }
+  &-slide {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  &-arrow {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 0;
+    background: #ffffff;
+    border-radius: 999px;
+    transition: all ease-in-out 0.3s;
+    z-index: 3;
+    top: calc(50% - 32px / 2 - 66.35px);
+    box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.3);
+    &:hover {
+      box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.5);
+    }
+    &.prev {
+      left: -16px;
+    }
+    &.next {
+      right: -16px;
+    }
+  }
+  &-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px;
+    gap: 16px;
+    background: #ffffff;
+    box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    height: 100%;
+    position: relative;
+    font-family: 'Merriweather', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+    color: #000000;
+    transition: all ease-in-out 0.3s;
+    text-decoration: none;
+    cursor: pointer;
+    &::before {
+      width: 20px;
+      height: 20px;
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-image: url('data:image/svg+xml,<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15.5666 11.6499L12.8916 8.97487L11.2583 7.3332C10.5666 6.64154 9.44164 6.64154 8.74998 7.3332L4.43331 11.6499C3.86664 12.2165 4.27498 13.1832 5.06664 13.1832H9.74164H14.9333C15.7333 13.1832 16.1333 12.2165 15.5666 11.6499Z" fill="%230085FF"/></svg>');
+      background-size: cover;
+      opacity: 0;
+      transition: all ease-in-out 0.3s;
+    }
+    &:hover,
+    &.active {
+      &::before {
+        top: -20px;
+        opacity: 1;
+      }
+    }
+    &:hover {
+      color: #0070d7;
+    }
+    &-date {
+      font-weight: 500;
+      font-size: 12px;
+      line-height: 15px;
+      color: #4d5562;
+    }
+  }
+}

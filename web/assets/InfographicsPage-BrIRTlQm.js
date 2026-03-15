@@ -1,0 +1,1 @@
+import{j as n,d as r,t as s}from"./index-Bwxskp7G.js";const e=()=>n.jsx(r,{className:"py-4",children:n.jsx(s,{title:"InfographicsPage",children:n.jsx("i",{children:"Nội dung đang được cập nhật"})})});export{e as InfographicsPage};

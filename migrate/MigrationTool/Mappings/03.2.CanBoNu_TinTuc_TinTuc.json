@@ -1,0 +1,189 @@
+{
+  "SitePath": "/KND/cong-tac-can-bo-phu-nu/TT",
+  "SourceListName": "Tin công tác cán bộ nữ",
+  "TargetTableName": "TinTuc",
+  "MigrationOption": "migrate",
+  "MappingsList": [
+    {
+      "Source": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "IdDanhMucBT",
+        "FieldType": "text",
+        "LookupSite": "/KND/cong-tac-can-bo-phu-nu/TT",
+        "LookupList": "Danhmuc"
+      },
+      "Target": {
+        "FieldName": "IDChuyenMuc",
+        "FieldType": "lookup",
+        "LookupList": "ChuyenMuc"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "TieuDeBaiViet",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TieuDe",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "MoTa",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "MoTa",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NoiDung",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NoiDung",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "TacGia",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TacGia",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NgayHienThi",
+        "FieldType": "DateTime",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NgayXuatBan",
+        "FieldType": "DateTime",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NguonBaiViet",
+        "FieldType": "text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NguonTin",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NewKeyword",
+        "FieldType": "text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TuKhoa",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "fake",
+        "FieldType": "fixedvalue"
+      },
+      "Target": {
+        "FieldName": "BuocQuyTrinhId",
+        "FieldType": "int",
+        "LookupList": null,
+        "Value": "3306"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "fake1",
+        "FieldType": "fixedvalue"
+      },
+      "Target": {
+        "FieldName": "NguoiTaoId",
+        "FieldType": "int",
+        "LookupList": null,
+        "Value": "4"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Approval Status",
+        "FieldType": "ApprovalStatus",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TrangThai",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "LaNoiBat",
+        "FieldType": "bool",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NoiBat",
+        "FieldType": "int",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "AnhDaiDien",
+        "FieldType": "fileupload",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "AnhDaiDien",
+        "FieldType": "int",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Attachments",
+        "FieldType": "Attachments",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "FilesDinhKem",
+        "FieldType": "Attachments",
+        "LookupList": "TinTuc_Files|##|TinTucID"
+      }
+    }
+  ]
+}

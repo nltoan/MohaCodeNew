@@ -1,0 +1,142 @@
+{
+  "SitePath": "/KND/vb/vbdt",
+  "SourceListName": "Văn bản dự thảo",
+  "TargetTableName": "VanBanDuThao",
+  "MigrationOption": "migrate",
+  "MappingsList": [
+    {
+      "Source": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "ID",
+        "FieldType": "int",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Title",
+        "FieldType": "Text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TieuDe",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Fake1",
+        "FieldType": "fixedvalue",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "Lang",
+        "FieldType": "int",
+        "Value": "1066"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Fake2",
+        "FieldType": "fixedvalue",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TrangThai",
+        "FieldType": "int",
+        "Value": "1"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "IDLoaiVB",
+        "FieldType": "lookup",
+        "LookupSite": "/KND/vb",
+        "LookupList": "Loại văn bản"
+      },
+      "Target": {
+        "FieldName": "ID_HinhThucVanBan",
+        "FieldType": "lookup",
+        "LookupList": "HinhThucVanBan"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "IDCoquan",
+        "FieldType": "multilookup",
+        "LookupSite": "/KND/vb",
+        "LookupList": "Cơ quan ban hành"
+      },
+      "Target": {
+        "FieldName": "CoQuanID",
+        "FieldType": "multilookup",
+        "LookupList": "CoQuanBanHanh|##|VanBanDuThao_CoQuanBanHanhs|##|VanBanDuThaoID"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NgayBatDauLayYK",
+        "FieldType": "DateTime",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NgayBatDauLayYKien",
+        "FieldType": "DateTime",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NgayHetHanLayYK",
+        "FieldType": "DateTime",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NgayHetHanLayYKien",
+        "FieldType": "DateTime",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "TrichYeu",
+        "FieldType": "text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "TrichYeu",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "ToanVan",
+        "FieldType": "text",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NoiDung",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Attachments",
+        "FieldType": "Attachments",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "FilesDinhKem",
+        "FieldType": "Attachments",
+        "LookupList": "VanBanDuThao_Files|##|VanBanDuThaoID"
+      }
+    }
+  ]
+}

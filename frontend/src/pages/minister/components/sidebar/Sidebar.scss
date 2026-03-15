@@ -1,0 +1,105 @@
+.mh-minister-sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0px 16px 16px;
+  background: #ffffff;
+  box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  gap: 0;
+  &-card {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0px 0px 16px;
+    gap: 8px;
+    font-family: 'Merriweather', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+    transition: all ease-in-out 0.3s;
+    text-decoration: none;
+    color: #000;
+    &:hover {
+      color: #0070d7;
+    }
+    &-image {
+      height: 284px;
+      border-radius: 12px;
+      overflow: hidden;
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+  }
+  &-body {
+    padding: 0 16px 16px;
+    max-height: 470px;
+    overflow-y: auto;
+    @media (max-width: 767px) {
+      padding: 0 0 16px;
+    }
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+    &::-webkit-scrollbar-track {
+      background-color: #fff;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #d9d9d9;
+      border: 1px solid #ffffff;
+      border-radius: 9999px;
+    }
+  }
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    li {
+      padding: 16px 0 16px 28px;
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12.6667 8.74167L11.025 7.1L8.35 4.425C7.78333 3.86667 6.81667 4.26667 6.81667 5.06667V10.2583V14.9333C6.81667 15.7333 7.78333 16.1333 8.35 15.5667L12.6667 11.25C13.3583 10.5667 13.3583 9.43333 12.6667 8.74167Z" fill="%230070d7"/></svg>');
+      background-position: left center;
+      background-repeat: no-repeat;
+      position: relative;
+      &:after {
+        content: '';
+        width: 100%;
+        height: 1px;
+        background-color: rgba(0, 0, 0, 0.08);
+        position: absolute;
+        bottom: 0;
+        left: 0;
+      }
+      @media (max-width: 767px) {
+        padding-left: 24px;
+      }
+      a {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-family: 'Merriweather', sans-serif;
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 24px;
+        color: #000000;
+        text-decoration: none;
+        transition: all ease-in-out 0.3s;
+        span {
+          font-weight: 500;
+          font-size: 12px;
+          line-height: 15px;
+          color: #4d5562;
+        }
+        @media (max-width: 767px) {
+          line-height: 20px;
+        }
+        &:hover {
+          color: var(--mh-link-hover-color);
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+
+.cke_notifications_area{
+    display: none !important;
+}
+.cke_maximized{
+    z-index: 999999;
+    background:white;
+    overlay: 1;
+}

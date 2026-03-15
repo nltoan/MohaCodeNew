@@ -1,0 +1,139 @@
+{
+  "SitePath": "/KND/yk",
+  "SourceListName": "Danh sách ý kiến",
+  "TargetTableName": "DongGopYKien",
+  "MigrationOption": "migrate",
+  "MappingsList": [
+    {
+      "Source": {
+        "FieldName": "ID",
+        "FieldType": "int"
+      },
+      "Target": {
+        "FieldName": "ID",
+        "FieldType": "int"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Title",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "TieuDe",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NguoiGui",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "TenNguoiGui",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Email",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "Email",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "SDT",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "SoDienThoai",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "CMND",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "CMND",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Parent",
+        "FieldType": "Lookup",
+        "LookupSite": "/KND/yk",
+        "LookupList": "Chủ đề đóng góp"
+      },
+      "Target": {
+        "FieldName": "ChuDeId",
+        "FieldType": "int",
+        "LookupList": "DongGopYKien_ChuDe"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "NoiDung",
+        "FieldType": "text"
+      },
+      "Target": {
+        "FieldName": "NoiDung",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Created",
+        "FieldType": "DateTime",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NgayTao",
+        "FieldType": "DateTime",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Modified",
+        "FieldType": "DateTime",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NgayCapNhat",
+        "FieldType": "DateTime",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Author",
+        "FieldType": "Lookup",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NguoiTao",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Editor",
+        "FieldType": "Lookup",
+        "LookupList": null
+      },
+      "Target": {
+        "FieldName": "NguoiCapNhat",
+        "FieldType": "text",
+        "LookupList": null
+      }
+    }
+  ]
+}

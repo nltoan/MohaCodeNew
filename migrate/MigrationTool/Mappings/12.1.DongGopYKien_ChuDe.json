@@ -1,0 +1,38 @@
+{
+  "SitePath": "/KND/yk",
+  "SourceListName": "Chủ đề đóng góp",
+  "TargetTableName": "DongGopYKien_ChuDe",
+  "MigrationOption": "migrate",
+  "MappingsList": [
+    {
+      "Source": {
+        "FieldName": "ID",
+        "FieldType": "int"
+      },
+      "Target": {
+        "FieldName": "ID",
+        "FieldType": "int"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "Title",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "TieuDe",
+        "FieldType": "text"
+      }
+    },
+    {
+      "Source": {
+        "FieldName": "MoTa",
+        "FieldType": "Text"
+      },
+      "Target": {
+        "FieldName": "MoTa",
+        "FieldType": "text"
+      }
+    }
+  ]
+}

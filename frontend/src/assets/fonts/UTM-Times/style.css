@@ -1,0 +1,28 @@
+/* Font Faces */
+@font-face {
+  font-family: 'UTM Times';
+  src: url('UtmTimes.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'UTM Times';
+  src: url('Utmtimesitalic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'UTM Times';
+  src: url('Utmtimesbold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'UTM Times';
+  src: url('UtmtimesboldItalic.ttf') format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}

@@ -1,0 +1,967 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.props" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{5B566049-AAEB-494F-B56E-378BB185994A}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Web</RootNamespace>
+    <AssemblyName>Web</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <MvcBuildViews>false</MvcBuildViews>
+    <UseIISExpress>true</UseIISExpress>
+    <Use64BitIISExpress />
+    <IISExpressSSLPort>44368</IISExpressSSLPort>
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
+    <UseGlobalApplicationHostFile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>packages\EntityFramework.6.5.1\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>packages\EntityFramework.6.5.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=4.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\lib\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Web.Infrastructure, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Web.Infrastructure.2.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.Web.Entity" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Abstractions" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.WebPages.3.3.0\lib\net45\System.Web.Helpers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Mvc, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.Mvc.5.3.0\lib\net45\System.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.Razor.3.3.0\lib\net45\System.Web.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Routing" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Net.Http">
+    </Reference>
+    <Reference Include="System.Net.Http.WebRequest">
+    </Reference>
+    <Reference Include="Antlr3.Runtime">
+      <Private>True</Private>
+      <HintPath>packages\Antlr.3.5.0.2\lib\Antlr3.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.WebPages.3.3.0\lib\net45\System.Web.WebPages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Deployment, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.WebPages.3.3.0\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.WebPages.3.3.0\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App_Start\FilterConfig.cs" />
+    <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Global.asax.cs">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ABL_AlbumAnh.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ABL_AlbumAudio.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ABL_AlbumVideo.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ABL_Anh.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ABL_Audio.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ABL_ChuyenMucAlbumAnh.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ABL_ChuyenMucAlbumAudio.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ABL_ChuyenMucAlbumVideo.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ADConfig.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Banner.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Banner_ViTri.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\BinhChon_CauHoi.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\BinhChon_KetQua.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\BinhChon_TraLoi.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\BinhLuan.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Block.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\BlockConfig.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\BuocQuyTrinh.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ChucDanh.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ChuyenMuc.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CKTD_VanBan.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CoCauToChuc.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CoQuanBanHanh.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CrawlBVND.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Crawler_ChuDe.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Crawler_LienKet.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Crawler_Nguon.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Crawler_NguonCha.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DangKyNhanMail.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DanhMucThongTin.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DanhNgon.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DM_DiaChi.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DM_GiaDat.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DM_GiaiDoan.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DM_LoaiDat.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DM_LoaiTin.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DongBoDuLieu.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DongSuKien.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DonVi_LanhDao.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DTVB_CoQuanPhuTrach.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DTVB_DuThaoVanBan.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DTVB_LoaiDuThaoVanBan.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DTVB_YKienDongGop.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DuAnDauThau.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DVC2_CoQuan.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DVC2_LinhVuc.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DVC2_ThuTucHanhChinh.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DVC_BuocQuyTrinh.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DVC_DichVuCong3.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DVC_DonViDangKy.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DVC_FormMau.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DVC_HoSo.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DVC_NhomQuyen.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DVC_QuyTrinh.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DVC_ThongTinXuLyHoSo.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DVC_TraoDoi.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\File.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\File_DongBoDuLieu.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\GLTT_CauHoi.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\GLTT_ChuDe.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\GLTT_PhienGiaoLuu.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HinhThucVanBan.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HoiDap_CauHoi.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HoiDap_ChuDe.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HoiDap_DonVi.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\HoiDap_TraLoi.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ImageSize.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\LanhDao_ThoiKy.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\LinhVuc.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\LinhVucDuAn.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\LoaiDuAn.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\LoaiSuKien.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\LopVanBan.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Menu_Backend.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Menu_FrontEnd.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\MohaModel.Context.cs">
+      <DependentUpon>MohaModel.Context.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Models\MohaModel.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Models\MohaModel.Designer.cs">
+      <DependentUpon>MohaModel.edmx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Models\NhomNhanVien.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\NiemGiamThongKe.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Permission.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\QLDA_DonVi.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\QLDA_DuAnDeAn.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\QLDA_GiaiDoan.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\QLDA_HoSo.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\QLDA_HoSo_Files.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\QLDA_LinhVuc.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\QLDA_LoaiDuAn.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\QLDA_PhamVi.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\QLDA_VanBan.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\QLDA_VanBan_Files.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\QuangCao_ViTri.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\QuaTrinhKiemDuyet.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\QuaTrinhKiemDuyet_AlbumAnh.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\QuaTrinhKiemDuyet_AlbumVideo.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\QuyTrinhKiemDuyet.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ReactModel.cs">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Models\Role.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\SuKienHoiThao.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\SuKienHoiThao_Files.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\sysdiagram.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Template.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ThamSoHeThong.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ThiTruongLaoDong.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ThiTruongLaoDong_Files.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ThoiKyPhatTrien.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ThongTinDoanhNghiep.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ThongTinLanhDao.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ThongTinUyQuyen.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\TinTuc.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\TinTuc_BinhLuan.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\TinTuc_Block.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\TinTuc_Files.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\TinTuc_LienQuan.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\TinTuc_Temp.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\User_Account.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\USR_LinkQuanLy.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\VanBan.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\VanBan_BiTacDong.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\VanBan_CoQuanBanHanh.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\VanBan_Files.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\VanBan_LienQuan.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\VanBan_LinhVuc.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\VanBan_LopVanBan.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\VDO_ChuyenMucVideo.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\VDO_Video.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\VungHienThi.cs">
+      <DependentUpon>MohaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="assets\index-COcDBgFa.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="assets\index-DpIFxEwz.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="favicon.ico" />
+    <Content Include="Global.asax" />
+    <Content Include="Models\ABL_AlbumAnh.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ABL_AlbumAudio.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ABL_AlbumVideo.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ABL_Anh.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ABL_Audio.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ABL_ChuyenMucAlbumAnh.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ABL_ChuyenMucAlbumAudio.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ABL_ChuyenMucAlbumVideo.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ADConfig.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\Banner.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\Banner_ViTri.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\BinhChon_CauHoi.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\BinhChon_KetQua.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\BinhChon_TraLoi.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\BinhLuan.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\Block.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\BlockConfig.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\BuocQuyTrinh.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ChucDanh.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ChuyenMuc.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\CKTD_VanBan.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\CoCauToChuc.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\CoQuanBanHanh.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\CrawlBVND.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\Crawler_ChuDe.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\Crawler_LienKet.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\Crawler_Nguon.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\Crawler_NguonCha.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DangKyNhanMail.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DanhMucThongTin.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DanhNgon.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DM_DiaChi.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DM_GiaDat.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DM_GiaiDoan.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DM_LoaiDat.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DM_LoaiTin.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DongBoDuLieu.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DongSuKien.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DonVi_LanhDao.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DTVB_CoQuanPhuTrach.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DTVB_DuThaoVanBan.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DTVB_LoaiDuThaoVanBan.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DTVB_YKienDongGop.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DuAnDauThau.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DVC2_CoQuan.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DVC2_LinhVuc.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DVC2_ThuTucHanhChinh.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DVC_BuocQuyTrinh.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DVC_DichVuCong3.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DVC_DonViDangKy.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DVC_FormMau.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DVC_HoSo.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DVC_NhomQuyen.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DVC_QuyTrinh.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DVC_ThongTinXuLyHoSo.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\DVC_TraoDoi.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\File.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\File_DongBoDuLieu.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\GLTT_CauHoi.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\GLTT_ChuDe.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\GLTT_PhienGiaoLuu.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\HinhThucVanBan.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\HoiDap_CauHoi.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\HoiDap_ChuDe.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\HoiDap_DonVi.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\HoiDap_TraLoi.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ImageSize.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\LanhDao_ThoiKy.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\LinhVuc.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\LinhVucDuAn.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\LoaiDuAn.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\LoaiSuKien.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\LopVanBan.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\Menu_Backend.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\Menu_FrontEnd.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\MohaModel.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>MohaModel.edmx</DependentUpon>
+      <LastGenOutput>MohaModel.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="Models\MohaModel.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>MohaModel.edmx</DependentUpon>
+      <LastGenOutput>MohaModel.cs</LastGenOutput>
+    </Content>
+    <Content Include="Models\NhomNhanVien.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\NiemGiamThongKe.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\Permission.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\QLDA_DonVi.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\QLDA_DuAnDeAn.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\QLDA_GiaiDoan.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\QLDA_HoSo.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\QLDA_HoSo_Files.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\QLDA_LinhVuc.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\QLDA_LoaiDuAn.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\QLDA_PhamVi.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\QLDA_VanBan.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\QLDA_VanBan_Files.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\QuangCao_ViTri.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\QuaTrinhKiemDuyet.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\QuaTrinhKiemDuyet_AlbumAnh.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\QuaTrinhKiemDuyet_AlbumVideo.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\QuyTrinhKiemDuyet.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ReactModel.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>MohaModel.edmx</DependentUpon>
+      <LastGenOutput>ReactModel.cs</LastGenOutput>
+    </Content>
+    <Content Include="Models\Role.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\SuKienHoiThao.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\SuKienHoiThao_Files.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\sysdiagram.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\Template.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ThamSoHeThong.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ThiTruongLaoDong.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ThiTruongLaoDong_Files.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ThoiKyPhatTrien.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ThongTinDoanhNghiep.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ThongTinLanhDao.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\ThongTinUyQuyen.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\TinTuc.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\TinTuc_BinhLuan.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\TinTuc_Block.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\TinTuc_Files.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\TinTuc_LienQuan.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\TinTuc_Temp.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\User_Account.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\USR_LinkQuanLy.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\VanBan.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\VanBan_BiTacDong.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\VanBan_CoQuanBanHanh.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\VanBan_Files.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\VanBan_LienQuan.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\VanBan_LinhVuc.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\VanBan_LopVanBan.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\VDO_ChuyenMucVideo.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\VDO_Video.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <Content Include="Models\VungHienThi.js">
+      <DependentUpon>ReactModel.tt</DependentUpon>
+    </Content>
+    <EntityDeploy Include="Models\MohaModel.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>MohaModel.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <Content Include="Models\MohaModel.edmx.diagram">
+      <DependentUpon>MohaModel.edmx</DependentUpon>
+    </Content>
+    <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
+    <Content Include="Web.config" />
+    <Content Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Views\Web.config" />
+    <Content Include="Views\Shared\Index.cshtml" />
+    <Content Include="Views\Shared\_Layout.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="App_Data\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
+    <AspNetCompiler VirtualPath="temp" PhysicalPath="$(WebProjectOutputDir)" />
+  </Target>
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>64935</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>https://localhost:44368/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target> -->
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets'))" />
+    <Error Condition="!Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.1\build\EntityFramework.props'))" />
+    <Error Condition="!Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.1\build\EntityFramework.targets'))" />
+  </Target>
+  <Import Project="packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />
+  <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.targets" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" />
+</Project>

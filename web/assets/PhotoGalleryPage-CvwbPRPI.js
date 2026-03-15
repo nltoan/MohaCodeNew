@@ -1,0 +1,1 @@
+import{j as t,d as e,t as n}from"./index-Bwxskp7G.js";const o=()=>t.jsx(e,{className:"py-4",children:t.jsx(n,{title:"Photo",children:t.jsx("i",{children:"Nội dung đang được cập nhật"})})});export{o as PhotoGalleryPage};
