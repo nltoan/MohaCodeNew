@@ -91,13 +91,28 @@ export const NewsDetailPage = () => {
     }
     return detail?.TinTuc_Files;
   }, [detail?.TinTuc_Files]);
-
+  const plainDescription = detail?.MoTa ? detail.MoTa.replace(/<[^>]+>/g, '') : '';
+  const imageUrl = detail?.AnhDaiDienUrl ? getUrlImage(detail.AnhDaiDienUrl) : 'https://moha.gov.vn/images/quoc-huy.svg';
   return (
     <>
       <Helmet>
         <meta charSet="utf-8" />
         <title>{`${t('seo.moha')} - ${detail?.TieuDe ?? t('seo.home')}`}</title>
         <meta name="keywords" content={detail?.TuKhoa ?? 'Tieu De'} />
+        <meta name="description" content={plainDescription ?? 'Mo Ta'} />
+        {/* Open Graph / Facebook */}
+        <meta property="og:title" content={detail?.TieuDe} />
+        <meta property="og:description" content={plainDescription} />
+        <meta property="og:image" content={imageUrl} />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={getNewURL('tin-tuc', detail?.TieuDe, detail?.Id)} />
+        <meta property="canonical" content={getNewURL('tin-tuc', detail?.TieuDe, detail?.Id)} />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={detail?.TieuDe} />
+        <meta name="twitter:description" content={plainDescription} />
+        <meta name="twitter:image" content={imageUrl} />
       </Helmet>
       {detail?.Type === 3 ? ///Emagazine
         <div className="mh-detail">

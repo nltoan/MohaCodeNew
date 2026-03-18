@@ -11,6 +11,7 @@ using Org.BouncyCastle.Crypto;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.Entity;
 using System.Globalization;
 using System.IO;
@@ -2221,6 +2222,374 @@ namespace API.Controllers
             new Dictionary<string, object> { { "@Lang", lan } }).ToList();
 
             return Request.CreateResponse(HttpStatusCode.OK, new { data });
+        }
+
+        [HttpGet]
+        [Route("api/Public/GetBotMetaForTinTuc")]
+        public async Task<HttpResponseMessage> GetBotMetaForTinTuc(int id)
+        {
+            var article = _context.TinTucs.FirstOrDefault(x => x.ID == id);
+
+            if (article == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
+            }
+
+            string plainDescription = System.Text.RegularExpressions.Regex.Replace(article.MoTa ?? "", "<.*?>", string.Empty);
+            if (plainDescription.Length > 200) plainDescription = plainDescription.Substring(0, 197) + "...";
+            
+            string imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + "/images/Quoc_Huy_Viet_Nam.png";
+            if (!string.IsNullOrEmpty(article.AnhDaiDien)) 
+            {
+                int anhDaiDienId = Convert.ToInt32(article.AnhDaiDien);
+                var anhDaiDien = _context.Files.FirstOrDefault(x => x.ID == anhDaiDienId);
+                imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + anhDaiDien.LinkLuuTru;
+            }
+
+            string html = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='utf-8' />
+                    <title>{article.TieuDe}</title>
+                    <meta name='description' content='{plainDescription}' />
+                    <meta property='og:title' content='{article.TieuDe}' />
+                    <meta property='og:description' content='{plainDescription}' />
+                    <meta property='og:image' content='{imageUrl}' />
+                    <meta property='og:type' content='article' />
+                    <meta name='twitter:card' content='summary_large_image' />
+                    <meta name='twitter:title' content='{article.TieuDe}' />
+                    <meta name='twitter:description' content='{plainDescription}' />
+                    <meta name='twitter:image' content='{imageUrl}' />
+                </head>
+                <body>
+                    <h1>{article.TieuDe}</h1>
+                    <p>{plainDescription}</p>
+                </body>
+                </html>";
+
+            var response = Request.CreateResponse(HttpStatusCode.OK);
+            response.Content = new StringContent(html, Encoding.UTF8, "text/html");
+            return response;
+        }
+
+        [HttpGet]
+        [Route("api/Public/GetBotMetaForThongBao")]
+        public async Task<HttpResponseMessage> GetBotMetaForThongBao(int id)
+        {
+            var article = _context.ThongBaos.FirstOrDefault(x => x.ID == id);
+
+            if (article == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
+            }
+
+            string plainDescription = System.Text.RegularExpressions.Regex.Replace(article.NoiDung ?? "", "<.*?>", string.Empty);
+            if (plainDescription.Length > 200) plainDescription = plainDescription.Substring(0, 197) + "...";
+
+            string imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + "/images/Quoc_Huy_Viet_Nam.png";
+
+            string html = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='utf-8' />
+                    <title>{article.TieuDe}</title>
+                    <meta name='description' content='{plainDescription}' />
+                    <meta property='og:title' content='{article.TieuDe}' />
+                    <meta property='og:description' content='{plainDescription}' />
+                    <meta property='og:image' content='{imageUrl}' />
+                    <meta property='og:type' content='article' />
+                    <meta name='twitter:card' content='summary_large_image' />
+                    <meta name='twitter:title' content='{article.TieuDe}' />
+                    <meta name='twitter:description' content='{plainDescription}' />
+                    <meta name='twitter:image' content='{imageUrl}' />
+                </head>
+                <body>
+                    <h1>{article.TieuDe}</h1>
+                    <p>{plainDescription}</p>
+                </body>
+                </html>";
+
+            var response = Request.CreateResponse(HttpStatusCode.OK);
+            response.Content = new StringContent(html, Encoding.UTF8, "text/html");
+            return response;
+        }
+
+        [HttpGet]
+        [Route("api/Public/GetBotMetaForVanBan")]
+        public async Task<HttpResponseMessage> GetBotMetaForVanBan(int id)
+        {
+            var article = _context.VanBans.FirstOrDefault(x => x.ID == id);
+
+            if (article == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
+            }
+
+            string plainDescription = System.Text.RegularExpressions.Regex.Replace(article.TrichYeu ?? "", "<.*?>", string.Empty);
+            if (plainDescription.Length > 200) plainDescription = plainDescription.Substring(0, 197) + "...";
+
+            string imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + "/images/Quoc_Huy_Viet_Nam.png";
+
+            string html = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='utf-8' />
+                    <title>{article.SoKyHieu}</title>
+                    <meta name='description' content='{plainDescription}' />
+                    <meta property='og:title' content='{article.SoKyHieu}' />
+                    <meta property='og:description' content='{plainDescription}' />
+                    <meta property='og:image' content='{imageUrl}' />
+                    <meta property='og:type' content='article' />
+                    <meta name='twitter:card' content='summary_large_image' />
+                    <meta name='twitter:title' content='{article.SoKyHieu}' />
+                    <meta name='twitter:description' content='{plainDescription}' />
+                    <meta name='twitter:image' content='{imageUrl}' />
+                </head>
+                <body>
+                    <h1>{article.SoKyHieu}</h1>
+                    <p>{plainDescription}</p>
+                </body>
+                </html>";
+
+            var response = Request.CreateResponse(HttpStatusCode.OK);
+            response.Content = new StringContent(html, Encoding.UTF8, "text/html");
+            return response;
+        }
+
+        [HttpGet]
+        [Route("api/Public/GetBotMetaForVanBanDuThao")]
+        public async Task<HttpResponseMessage> GetBotMetaForVanBanDuThao(int id)
+        {
+            var article = _context.VanBanDuThaos.FirstOrDefault(x => x.ID == id);
+
+            if (article == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
+            }
+
+            string plainDescription = System.Text.RegularExpressions.Regex.Replace(article.TrichYeu ?? "", "<.*?>", string.Empty);
+            if (plainDescription.Length > 200) plainDescription = plainDescription.Substring(0, 197) + "...";
+
+            string imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + "/images/Quoc_Huy_Viet_Nam.png";
+
+            string html = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='utf-8' />
+                    <title>{article.TieuDe}</title>
+                    <meta name='description' content='{plainDescription}' />
+                    <meta property='og:title' content='{article.TieuDe}' />
+                    <meta property='og:description' content='{plainDescription}' />
+                    <meta property='og:image' content='{imageUrl}' />
+                    <meta property='og:type' content='article' />
+                    <meta name='twitter:card' content='summary_large_image' />
+                    <meta name='twitter:title' content='{article.TieuDe}' />
+                    <meta name='twitter:description' content='{plainDescription}' />
+                    <meta name='twitter:image' content='{imageUrl}' />
+                </head>
+                <body>
+                    <h1>{article.TieuDe}</h1>
+                    <p>{plainDescription}</p>
+                </body>
+                </html>";
+
+            var response = Request.CreateResponse(HttpStatusCode.OK);
+            response.Content = new StringContent(html, Encoding.UTF8, "text/html");
+            return response;
+        }
+
+        [HttpGet]
+        [Route("api/Public/GetBotMetaForNghienCuu")]
+        public async Task<HttpResponseMessage> GetBotMetaForNghienCuu(int id)
+        {
+            var article = _context.NghienCuuKhoaHocs.FirstOrDefault(x => x.ID == id);
+
+            if (article == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
+            }
+
+            string plainDescription = System.Text.RegularExpressions.Regex.Replace(article.NoiDung ?? "", "<.*?>", string.Empty);
+            if (plainDescription.Length > 200) plainDescription = plainDescription.Substring(0, 197) + "...";
+
+            string imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + "/images/Quoc_Huy_Viet_Nam.png";
+
+            string html = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='utf-8' />
+                    <title>{article.TenDeTai}</title>
+                    <meta name='description' content='{plainDescription}' />
+                    <meta property='og:title' content='{article.TenDeTai}' />
+                    <meta property='og:description' content='{plainDescription}' />
+                    <meta property='og:image' content='{imageUrl}' />
+                    <meta property='og:type' content='article' />
+                    <meta name='twitter:card' content='summary_large_image' />
+                    <meta name='twitter:title' content='{article.TenDeTai}' />
+                    <meta name='twitter:description' content='{plainDescription}' />
+                    <meta name='twitter:image' content='{imageUrl}' />
+                </head>
+                <body>
+                    <h1>{article.TenDeTai}</h1>
+                    <p>{plainDescription}</p>
+                </body>
+                </html>";
+
+            var response = Request.CreateResponse(HttpStatusCode.OK);
+            response.Content = new StringContent(html, Encoding.UTF8, "text/html");
+            return response;
+        }
+
+        [HttpGet]
+        [Route("api/Public/GetBotMetaForPhoto")]
+        public async Task<HttpResponseMessage> GetBotMetaForPhoto(int id)
+        {
+            var article = _context.ABL_AlbumAnh.FirstOrDefault(x => x.ID == id);
+            
+            if (article == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
+            }
+
+            string plainDescription = System.Text.RegularExpressions.Regex.Replace(article.MoTa ?? "", "<.*?>", string.Empty);
+            if (plainDescription.Length > 200) plainDescription = plainDescription.Substring(0, 197) + "...";
+
+            string imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + "/images/Quoc_Huy_Viet_Nam.png";
+            if (!string.IsNullOrEmpty(article.AnhDaiDien))
+            {
+                int anhDaiDienId = Convert.ToInt32(article.AnhDaiDien);
+                var anhDaiDien = _context.Files.FirstOrDefault(x => x.ID == anhDaiDienId);
+                imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + anhDaiDien.LinkLuuTru;
+            }
+
+            string html = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='utf-8' />
+                    <title>{article.TieuDe}</title>
+                    <meta name='description' content='{plainDescription}' />
+                    <meta property='og:title' content='{article.TieuDe}' />
+                    <meta property='og:description' content='{plainDescription}' />
+                    <meta property='og:image' content='{imageUrl}' />
+                    <meta property='og:type' content='article' />
+                    <meta name='twitter:card' content='summary_large_image' />
+                    <meta name='twitter:title' content='{article.TieuDe}' />
+                    <meta name='twitter:description' content='{plainDescription}' />
+                    <meta name='twitter:image' content='{imageUrl}' />
+                </head>
+                <body>
+                    <h1>{article.TieuDe}</h1>
+                    <p>{plainDescription}</p>
+                </body>
+                </html>";
+
+            var response = Request.CreateResponse(HttpStatusCode.OK);
+            response.Content = new StringContent(html, Encoding.UTF8, "text/html");
+            return response;
+        }
+
+        [HttpGet]
+        [Route("api/Public/GetBotMetaForVideo")]
+        public async Task<HttpResponseMessage> GetBotMetaForVideo(int id)
+        {
+            var article = _context.ABL_AlbumVideo.FirstOrDefault(x => x.ID == id);
+
+            if (article == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
+            }
+
+            string plainDescription = System.Text.RegularExpressions.Regex.Replace(article.MoTa ?? "", "<.*?>", string.Empty);
+            if (plainDescription.Length > 200) plainDescription = plainDescription.Substring(0, 197) + "...";
+
+            string imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + "/images/Quoc_Huy_Viet_Nam.png";
+            if (!string.IsNullOrEmpty(article.AnhDaiDien))
+            {
+                int anhDaiDienId = Convert.ToInt32(article.AnhDaiDien);
+                var anhDaiDien = _context.Files.FirstOrDefault(x => x.ID == anhDaiDienId);
+                imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + anhDaiDien.LinkLuuTru;
+            }
+
+            string html = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='utf-8' />
+                    <title>{article.TieuDe}</title>
+                    <meta name='description' content='{plainDescription}' />
+                    <meta property='og:title' content='{article.TieuDe}' />
+                    <meta property='og:description' content='{plainDescription}' />
+                    <meta property='og:image' content='{imageUrl}' />
+                    <meta property='og:type' content='article' />
+                    <meta name='twitter:card' content='summary_large_image' />
+                    <meta name='twitter:title' content='{article.TieuDe}' />
+                    <meta name='twitter:description' content='{plainDescription}' />
+                    <meta name='twitter:image' content='{imageUrl}' />
+                </head>
+                <body>
+                    <h1>{article.TieuDe}</h1>
+                    <p>{plainDescription}</p>
+                </body>
+                </html>";
+
+            var response = Request.CreateResponse(HttpStatusCode.OK);
+            response.Content = new StringContent(html, Encoding.UTF8, "text/html");
+            return response;
+        }
+
+        [HttpGet]
+        [Route("api/Public/GetBotMetaForAudio")]
+        public async Task<HttpResponseMessage> GetBotMetaForAudio(int id)
+        {
+            var article = _context.ABL_AlbumAudio.FirstOrDefault(x => x.ID == id);
+
+            if (article == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
+            }
+
+            string plainDescription = System.Text.RegularExpressions.Regex.Replace(article.MoTa ?? "", "<.*?>", string.Empty);
+            if (plainDescription.Length > 200) plainDescription = plainDescription.Substring(0, 197) + "...";
+
+            string imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + "/images/Quoc_Huy_Viet_Nam.png";
+            if (!string.IsNullOrEmpty(article.AnhDaiDien))
+            {
+                int anhDaiDienId = Convert.ToInt32(article.AnhDaiDien);
+                var anhDaiDien = _context.Files.FirstOrDefault(x => x.ID == anhDaiDienId);
+                imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + anhDaiDien.LinkLuuTru;
+            }
+
+            string html = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='utf-8' />
+                    <title>{article.TieuDe}</title>
+                    <meta name='description' content='{plainDescription}' />
+                    <meta property='og:title' content='{article.TieuDe}' />
+                    <meta property='og:description' content='{plainDescription}' />
+                    <meta property='og:image' content='{imageUrl}' />
+                    <meta property='og:type' content='article' />
+                    <meta name='twitter:card' content='summary_large_image' />
+                    <meta name='twitter:title' content='{article.TieuDe}' />
+                    <meta name='twitter:description' content='{plainDescription}' />
+                    <meta name='twitter:image' content='{imageUrl}' />
+                </head>
+                <body>
+                    <h1>{article.TieuDe}</h1>
+                    <p>{plainDescription}</p>
+                </body>
+                </html>";
+
+            var response = Request.CreateResponse(HttpStatusCode.OK);
+            response.Content = new StringContent(html, Encoding.UTF8, "text/html");
+            return response;
         }
     }
 }
