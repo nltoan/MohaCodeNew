@@ -39,6 +39,7 @@ namespace API.Controllers
     public class PublicController : ApiController
     {
         static readonly string RelativePath = System.IO.Path.Combine("~/Upload");
+        private readonly string QueryByChuyenMucHienThiThem = "EXISTS (SELECT 1 FROM {0} nt WHERE (',' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ChuyenMucHienThiThem, '[', ''), ']', ''),' ',''),CHAR(13),''),CHAR(9),''),CHAR(10),'') + ',') LIKE '%,' + CAST(nt.ID AS NVARCHAR(max)) + ',%')";
         private CongTTDT_MOHAEntities _context = new CongTTDT_MOHAEntities();
 
         public string ReadPdfFile(string fileName)
@@ -805,7 +806,7 @@ namespace API.Controllers
                 )
                 select top " + limitTopPost + @" t.ID, t.TieuDe, t.MoTa, t.NgayXuatBan, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc t
                 left join Files f on t.AnhDaiDien = f.ID
-                where IDChuyenMuc in (SELECT ID FROM name_tree) and t.TrangThai='public' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                where (IDChuyenMuc in (SELECT ID FROM name_tree) or " + string.Format(QueryByChuyenMucHienThiThem,"name_tree") + @") and t.TrangThai='public' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
                 order by t.NoiBat desc, t.NgayXuatBan desc
             ",
             new Dictionary<string, object> { { "@IDChuyenMuc", chuyenmuc.ID } }).ToList();
@@ -867,7 +868,7 @@ namespace API.Controllers
                 )
                 select t.ID, t.TieuDe, t.MoTa, t.NgayXuatBan, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc t
                 left join Files f on t.AnhDaiDien = f.ID
-                where IDChuyenMuc in (SELECT ID FROM name_tree) and t.ID <> @ID and t.TrangThai='public' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                where (IDChuyenMuc in (SELECT ID FROM name_tree) or " + string.Format(QueryByChuyenMucHienThiThem, "name_tree") + @") and t.ID <> @ID and t.TrangThai='public' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
                 order by t.NgayXuatBan desc
             ",
             new Dictionary<string, object> { { "@IDChuyenMuc", post.IDChuyenMuc }, { "@ID", post.ID } }).ToList();
@@ -952,7 +953,7 @@ namespace API.Controllers
                 select t.ID, t.TieuDe, t.MoTa, t.NgayXuatBan, t.NoiBat, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl 
                 from TinTuc t 
                 left join Files f on t.AnhDaiDien = f.ID
-                where t.IDChuyenMuc in (SELECT Id FROM cte) 
+                where (t.IDChuyenMuc in (SELECT Id FROM cte)  or " + string.Format(QueryByChuyenMucHienThiThem,"cte") + @")
                 and t.TrangThai = 'public' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
                 {1}
                 ORDER BY NgayXuatBan desc
@@ -1050,7 +1051,7 @@ namespace API.Controllers
                 )
                 select top " + limit + @" tt.*, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc tt 
                 left join Files f on tt.AnhDaiDien = f.ID
-                where tt.IDChuyenMuc in (SELECT Id FROM cte) and tt.TrangThai = 'public' and tt.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                where (tt.IDChuyenMuc in (SELECT Id FROM cte) or " + string.Format(QueryByChuyenMucHienThiThem,"cte") + @") and tt.TrangThai = 'public' and tt.NgayXuatBan >= '2021-01-01 00:00:00.001'
                 ORDER BY NgayXuatBan desc
             ",
             new Dictionary<string, object> { { "@ID", lan } }).ToList();
@@ -1080,7 +1081,7 @@ namespace API.Controllers
                 )
                 select top {1} t.ID, t.TieuDe, t.MoTa, t.NgayXuatBan, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc t 
                 left join Files f on t.AnhDaiDien = f.ID
-                where t.IDChuyenMuc in (SELECT Id FROM cte) 
+                where (t.IDChuyenMuc in (SELECT Id FROM cte) or " + string.Format(QueryByChuyenMucHienThiThem,"cte") + @")
                 and t.TrangThai = 'public' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
                 {2}
                 ORDER BY t.NoiBat desc, t.NgayXuatBan desc
@@ -1415,7 +1416,7 @@ namespace API.Controllers
                 select top 5 t.ID, t.TieuDe, t.MoTa, t.NgayXuatBan, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl 
                 from TinTuc t 
                 left join Files f on t.AnhDaiDien = f.ID
-                where t.IDChuyenMuc in (SELECT Id FROM cte) 
+                where (t.IDChuyenMuc in (SELECT Id FROM cte) or " + string.Format(QueryByChuyenMucHienThiThem,"cte") + @")
                 and t.TrangThai = 'public' and t.ID <> @idTop and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
                 ORDER BY NgayXuatBan desc
             ", new Dictionary<string, object> { { "@ID", ID }, { "@idTop", top.ID } }).ToList();
@@ -1634,17 +1635,30 @@ namespace API.Controllers
                 .ToList();
 
             sql = @"
-                select tmp.ID from (
-	                SELECT distinct top " + limit + @" vb.ID, vb.NgayBatDauLayYKien FROM Vanbanduthao vb 
-                    where vb.ID !=0  and vb.lang=@lang and vb.TrangThai = 1 
-                    order by vb.NgayBatDauLayYKien desc
-                ) tmp
-            ";
+                SELECT tmp.ID 
+                FROM (
+                    SELECT DISTINCT TOP  " + limit + @"  
+                        vb.ID, 
+                        vb.NgayBatDauLayYKien,
+                        CASE 
+                            WHEN vb.NgayBatDauLayYKien <= CAST(GETDATE() AS DATE) 
+                             AND vb.NgayHetHanLayYKien >= CAST(GETDATE() AS DATE) 
+                            THEN 0
+                            ELSE 1
+                        END AS PriorityRank
+                    FROM Vanbanduthao vb 
+                    WHERE vb.ID != 0 
+                      AND vb.lang = @lang 
+                      AND vb.TrangThai = 1 
+                    ORDER BY 
+                        PriorityRank ASC,
+                        vb.NgayBatDauLayYKien DESC
+                ) tmp;
+                ";
 
             ids = _context.CollectionFromSql(sql, new Dictionary<string, object> { { "@lang", lan } }).Select(x => (int)x.ID).ToList();
             var duthaos = _context.VanBanDuThaos
                 .Where(x => ids.Contains(x.ID))
-                .OrderByDescending(x => x.NgayBatDauLayYKien)
                 .Select(x => new
                 {
                     x.ID,
@@ -1652,9 +1666,11 @@ namespace API.Controllers
                     x.NgayHetHanLayYKien,
                     x.TieuDe,
                     TenHinhThucVanBan = x.HinhThucVanBan.TenHinhThucVanBan,
-                    DangKhaDung = x.NgayBatDauLayYKien <= DateTime.Now && x.NgayHetHanLayYKien >= DateTime.Now,
+                    DangKhaDung = x.NgayBatDauLayYKien <= DateTime.Today && x.NgayHetHanLayYKien >= DateTime.Today,
                     Files = x.VanBanDuThao_Files.Select(f => f.File).ToList()
                 })
+                .OrderByDescending(x => x.DangKhaDung)
+                .ThenByDescending(x => x.NgayBatDauLayYKien)
                 .ToList();
             return Request.CreateResponse(HttpStatusCode.OK, new { cddhs, qppls, duthaos });
         }

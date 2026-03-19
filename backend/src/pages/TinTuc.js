@@ -108,7 +108,7 @@ export default function TinTuc() {
       type == "emagazine"
     );
   }
-  function treeviewEditCellRender(data) {
+  function treeviewChuyenMucEditCellRender(data) {
     return (
       <>
         <MyTreeCombobox
@@ -116,11 +116,31 @@ export default function TinTuc() {
           keyExpr={"ID"}
           displayExpr={"TenChuyenMuc"}
           parentIdExpr={"ChuyenMucCha"}
+          selectionMode="single"
           defaultValue={data.row.data.IDChuyenMuc}
           onValueChanged={(e) => {
             if (e.value && e.value.length > 0) {
               data.setValue(e.value[0]);
+            } else {
+              data.setValue(null);
             }
+          }}
+        />
+      </>
+    );
+  }
+  function treeviewChuyenMucThemEditCellRender(data) {
+    return (
+      <>
+        <MyTreeCombobox
+          treeDataSource={dataSourceChuyenMucOptions}
+          keyExpr={"ID"}
+          displayExpr={"TenChuyenMuc"}
+          parentIdExpr={"ChuyenMucCha"}
+          selectionMode="multiple"
+          defaultValue={data.row.data.ChuyenMucHienThiThem ? JSON.parse(data.row.data.ChuyenMucHienThiThem) : []}
+          onValueChanged={(e) => {
+            data.setValue(e.value);
           }}
         />
       </>
@@ -306,6 +326,11 @@ export default function TinTuc() {
                     <Item
                       dataField="IDChuyenMuc"
                       isRequired={true}
+                      colSpan={2}
+                    />
+                    <Item
+                      dataField="ChuyenMucHienThiThem"
+                      editorType="dxTagBox"
                       colSpan={2}
                     />
                     <Item dataField="TieuDe" colSpan={2} isRequired={true} />
@@ -696,7 +721,7 @@ export default function TinTuc() {
               dataField="IDChuyenMuc"
               dataType="string"
               caption="Chuyên mục"
-              editCellRender={treeviewEditCellRender}
+              editCellRender={treeviewChuyenMucEditCellRender}
               width={120}
             >
               <Lookup
@@ -708,6 +733,22 @@ export default function TinTuc() {
                 displayExpr="TenChuyenMuc"
               />
             </Column>
+            <Column
+              dataField="ChuyenMucHienThiThem"
+              allowSearch={false}
+              dataType="string"
+              caption="Chuyên mục hiển thị thêm"
+              visible={false}
+              editCellRender={treeviewChuyenMucThemEditCellRender}
+            >
+              <Lookup
+                allowClearing={true}
+                searchEnabled={true}
+                dataSource={dataSourceChuyenMucOptions}
+                valueExpr="ID"
+                displayExpr="TenChuyenMuc"
+              />
+            </Column>            
             <Column
               dataField="TacGia"
               dataType="string"

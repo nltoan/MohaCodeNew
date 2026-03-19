@@ -6,12 +6,13 @@ export default function MyTreeCombobox({
   treeDataSource,
   keyExpr,
   parentIdExpr,
+  selectionMode,
   displayExpr,
   defaultValue,
   onValueChanged,
 }) {
-  const [treeBoxValue, setTreeBoxValue] = useState();
-  const [isTreeBoxOpened, setIsTreeBoxOpened] = useState();
+  const [treeBoxValue, setTreeBoxValue] = useState(Number | []);
+  const [isTreeBoxOpened, setIsTreeBoxOpened] = useState(false);
   const treeviewRef = useRef();
 
   const treeViewRender = () => {
@@ -22,12 +23,21 @@ export default function MyTreeCombobox({
         dataStructure="plain"
         keyExpr={keyExpr}
         parentIdExpr={parentIdExpr}
-        selectionMode="single"
+        selectionMode={selectionMode}
         displayExpr={displayExpr}
         selectByClick={true}
         searchEnabled={true}
+        selectNodesRecursive={false}
+        expandNodesRecursive={true}
         onContentReady={(e) => {
-          e.component.selectItem(treeBoxValue);
+          if(!treeBoxValue) return;
+          if(Array.isArray(treeBoxValue)){
+            treeBoxValue.forEach(value => {
+              e.component.selectItem(value);
+            });
+          } else {
+            e.component.selectItem(treeBoxValue);
+          }
         }}
         onItemClick={(e) => {
           setIsTreeBoxOpened(false);
@@ -58,16 +68,16 @@ export default function MyTreeCombobox({
           if (!treeviewRef || !treeviewRef.current) return;
 
           if (!e.value) {
-            treeviewRef.current._instance.unselectAll();
+            treeviewRef.current.instance.unselectAll();
             onValueChanged(e);
           } else {
-            treeviewRef.current._instance.selectItem(e.value);
+            treeviewRef.current.instance.selectItem(e.value);
             onValueChanged(e);
           }
         }}
         onOptionChanged={(e) => {
           if (e.name === "opened") {
-            setIsTreeBoxOpened(true);
+            setIsTreeBoxOpened(e.value);
           }
         }}
         contentRender={treeViewRender}
