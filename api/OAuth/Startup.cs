@@ -28,7 +28,7 @@ namespace API.OAuth
             OAuthAuthorizationServerOptions oAuthAuthorizationServerOptions = new OAuthAuthorizationServerOptions()
             {
                 TokenEndpointPath = new PathString("/api/Token"), // Get token path
-                AccessTokenExpireTimeSpan = TimeSpan.FromMinutes(30),
+                AccessTokenExpireTimeSpan = TimeSpan.FromHours(2),
                 AllowInsecureHttp=true,
                 Provider= new SimpleAuthorizationServerProvider()
             };
