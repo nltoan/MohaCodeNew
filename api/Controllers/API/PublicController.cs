@@ -1326,9 +1326,17 @@ namespace API.Controllers
                         left join Files f on c.AnhDaiDien = f.ID
                         where c.TrangThai = '1' order by c.ThoiGianXuatBan desc
                     ", new Dictionary<string, object>()).ToList();
+                    int count = 0;
                     foreach (var media in medias)
                     {
-                        cate.items.Add(new { url = $"/video/{Utils.ToUnsignString(media.TieuDe)}---id{media.ID}", image = media.LinkLuuTru, title = media.TieuDe, date = media.ThoiGianXuatBan });
+                        if (count++ == 0)
+                        {
+                            posts.Add(new { url = $"/video/{Utils.ToUnsignString(media.TieuDe)}---id{media.ID}", image = media.LinkLuuTru, title = media.TieuDe, date = media.ThoiGianXuatBan });
+                        }
+                        else
+                        {
+                            cate.items.Add(new { url = $"/video/{Utils.ToUnsignString(media.TieuDe)}---id{media.ID}", image = media.LinkLuuTru, title = media.TieuDe, date = media.ThoiGianXuatBan });
+                        }
                     }
                 }
                 else if (url.ToLower().Contains("/multimedia/audio"))
