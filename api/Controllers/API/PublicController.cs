@@ -22,6 +22,7 @@ using System.Net.Http.Formatting;
 using System.Net.Mail;
 using System.Security;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
@@ -2268,6 +2269,7 @@ namespace API.Controllers
                 int anhDaiDienId = Convert.ToInt32(article.AnhDaiDien);
                 var anhDaiDien = _context.Files.FirstOrDefault(x => x.ID == anhDaiDienId);
                 imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + anhDaiDien.LinkLuuTru;
+                imageUrl = Uri.EscapeUriString(imageUrl);
             }
 
             string html = $@"

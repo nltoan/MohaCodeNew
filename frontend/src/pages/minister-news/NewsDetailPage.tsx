@@ -104,7 +104,7 @@ export const NewsDetailPage = () => {
                 onPrint={handlePrint}
               />
               <div className="" dangerouslySetInnerHTML={{ __html: detail?.MoTa }}></div>
-              <div className="mh-detail-body" dangerouslySetInnerHTML={{ __html: detail?.NoiDung }}></div>
+              <div className="mh-detail-body" dangerouslySetInnerHTML={{ __html: detail?.NoiDung.replace(/contenteditable="true"/g, 'contenteditable="false"') }}></div>
               <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 5 }}>Tài liệu liên quan:</div>
               {files.length > 0 ? (
                 <div
