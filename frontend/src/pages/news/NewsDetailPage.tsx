@@ -148,7 +148,7 @@ export const NewsDetailPage = () => {
                   <div
                     style={{ fontSize: fontSize }}
                     className="mh-detail-body"
-                    dangerouslySetInnerHTML={{ __html: detail?.NoiDung.replace(/contenteditable="true"/g, 'contenteditable="false"') }}
+                    dangerouslySetInnerHTML={{ __html: detail?.NoiDung?.replace(/contenteditable="true"/g, 'contenteditable="false"') }}
                   ></div>
                   {files.length > 0 && 
                     <>

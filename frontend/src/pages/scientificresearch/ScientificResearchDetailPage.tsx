@@ -110,7 +110,7 @@ export const ScientificResearchDetailPage = () => {
                     <div
                       className="mt-3"
                       dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(detail.noidung.replace(/contenteditable="true"/g, 'contenteditable="false"')),
+                        __html: DOMPurify.sanitize(detail?.noidung?.replace(/contenteditable="true"/g, 'contenteditable="false"')),
                       }}
                     />
                   </td>

@@ -50,7 +50,7 @@ export const FunctionsAndDutiesPage = () => {
         <AboutBody>
           <div
             dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(data.NoiDung.replace(/contenteditable="true"/g, 'contenteditable="false"')),
+              __html: DOMPurify.sanitize(data?.NoiDung?.replace(/contenteditable="true"/g, 'contenteditable="false"')),
             }}
           />
         </AboutBody>
