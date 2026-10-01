@@ -1,3 +1,4 @@
+import HoiQuy from './pages/HoiQuy';
 import { withNavigationWatcher } from "./contexts/navigation";
 import ABL_AlbumAudio from "./pages//ABL_AlbumAudio";
 import ABL_AlbumVideo from "./pages//ABL_AlbumVideo";
@@ -75,6 +76,7 @@ import VanBanDuThao_GopYs from "./pages/VanBanDuThao_GopYs";
 import VungHienThi from "./pages/VungHienThi";
 
 const routes = [
+  { path: "/HoiQuy/Import", element: HoiQuy },
   { path: "/ABL_AlbumAnh", element: ABL_AlbumAnh },
   { path: "/ABL_AlbumAudio", element: ABL_AlbumAudio },
   { path: "/ABL_AlbumVideo", element: ABL_AlbumVideo },

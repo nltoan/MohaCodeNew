@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { LoadingFallback } from '@/components/LoadingFallback';
 import { HomePage } from '@/pages';
 
+const HoiQuyPage = lazy(() => import('@/pages/hoi-quy/HoiQuyPage').then(m => ({ default: m.HoiQuyPage })));
 // Lazy load all pages
 const AboutPage = lazy(() => import('@/pages/about/AboutPage').then((m) => ({ default: m.AboutPage })));
 const AboutPageMis = lazy(() => import('@/pages/about/AboutPageMinius').then((m) => ({ default: m.AboutPage })));
@@ -331,6 +332,10 @@ export const appRoutes = [
             element: withSuspense(() => <HistoryAndDevelopmentPage />),
           },
         ],
+      },
+      {
+        path: 'tra-cuu-hoi-quy',
+        element: withSuspense(HoiQuyPage),
       },
       {
         path: 'tim-kiem',

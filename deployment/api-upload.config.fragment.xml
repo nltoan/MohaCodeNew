@@ -1,0 +1,12 @@
+<location path="api/HoiQuy/Preview">
+  <system.webServer>
+    <security>
+      <requestFiltering>
+        <requestLimits maxAllowedContentLength="84934656" />
+      </requestFiltering>
+    </security>
+  </system.webServer>
+</location>
+<!-- Merge inside the existing configuration element. Keep production settings.
+     Existing system.web/httpRuntime maxRequestLength must allow >=82944 KB.
+     This is a fragment, not a complete Web.config. -->

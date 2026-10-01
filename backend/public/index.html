@@ -46,6 +46,16 @@
       "REACT_APP_SLIDE_BANNER_TRANG_CHU_TIENG_VIET": 1212,
       "REACT_APP_BOXLEGAL_BANNER_TRANG_CHU_TIENG_ANH": 3228,
     }
+    if ('%NODE_ENV%' === 'development') {
+      Object.assign(window.env, {
+        REACT_APP_API_URL: 'http://localhost:55104/api',
+        REACT_APP_API_UPLOAD_URL: 'http://localhost:55104',
+        REACT_APP_UPLOAD_URL: 'http://localhost:55104',
+        REACT_APP_FRONTEND_URL: 'http://localhost:5173',
+        REACT_APP_ENG_FRONTEND_URL: 'http://localhost:5173/en',
+        REACT_APP_BACKEND_URL: 'http://localhost:5174',
+      });
+    }
   </script>
   <title>Quản trị nội dung</title>
   <style>

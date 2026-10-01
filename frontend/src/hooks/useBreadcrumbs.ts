@@ -12,6 +12,7 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
     // Always start with Home
     const breadcrumbs: BreadcrumbItem[] = [{ label: t('breadcrumb.home'), path: '/' }];
     const BREADCRUMB_LABELS: Record<string, string> = {
+      'tra-cuu-hoi-quy': 'Tra cứu Hội và Quỹ',
       // Home
       '': t('breadcrumb.home'),
       'trang-chu': t('breadcrumb.home'),

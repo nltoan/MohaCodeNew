@@ -113,6 +113,12 @@ export default function Aside() {
             role={"menu"}
           >
             <MenuItem
+              icon="fas fa-file-excel nav-icon"
+              permission={"manage-hoiquy"}
+              title={"Hội và Quỹ - Import Excel"}
+              path={"/HoiQuy/Import"}
+            />
+            <MenuItem
               icon="fas fa-chart-line nav-icon"
               title={"Dashboard"}
               path={"/"}

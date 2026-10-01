@@ -28,8 +28,8 @@ export const AboutPage = () => {
       title: 'Thông báo'
     },
     ctaImage2: {
-      image: { src: image2, alt: '' },
-      linkProps: { to: '/#' },
+      image: { src: image2, alt: 'Tra cứu Hội và Quỹ Trung ương' },
+      linkProps: { to: '/tra-cuu-hoi-quy' },
     },
     buttons: [
       { linkProps: { to: '/#' }, style: { backgroundImage: `url(${buttonBg1}` }, label: 'CHUYỂN ĐỔI SỐ' },
