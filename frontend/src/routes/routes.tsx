@@ -1,7 +1,7 @@
 import { Suspense, lazy, type FC } from 'react';
 import { Outlet } from 'react-router-dom';
 import { LoadingFallback } from '@/components/LoadingFallback';
-import { HomePage } from '@/pages';
+import { HomePage } from '@/pages/home/HomePage';
 
 const HoiQuyPage = lazy(() => import('@/pages/hoi-quy/HoiQuyPage').then(m => ({ default: m.HoiQuyPage })));
 // Lazy load all pages

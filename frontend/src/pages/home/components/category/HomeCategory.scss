@@ -295,3 +295,5 @@
     }
   }
 }
+.mh-home-cat-loading { min-height: 620px; background: #fafafa; }
+@media (max-width: 767px) { .mh-home-cat-loading { min-height: 760px; } }

@@ -12,6 +12,7 @@ export interface HeaderTopProps {
 }
 export const HeaderTop = ({ minister, nqtw4, image, imageRight, title }: HeaderTopProps) => {
   const navigation = useNavigate();
+  const BrandingHeading = minister || nqtw4 ? 'h1' : 'div';
   return (
     <div
       className={`mh-header-top ${minister ? 'mh-header-top-minister' : nqtw4 ? 'mh-header-top-nqtw4' : ''}`}
@@ -26,10 +27,10 @@ export const HeaderTop = ({ minister, nqtw4, image, imageRight, title }: HeaderT
               {minister ? <></> : <Image src={imgLeft} className="bg" />}
               <Image src={image.src} alt={image.alt} className={nqtw4 ? 'mh-header-top-img-left' : ''} />
             </div>
-            <h1
+            <BrandingHeading
               className="mh-header-top-title"
               dangerouslySetInnerHTML={{ __html: title.replace(/(?:\r\n|\r|\n)/g, '<br>') }}
-            ></h1>
+            ></BrandingHeading>
             {imageRight ? (
               <div className="mh-header-top-img">
                 {minister ? <></> : <Image src={imgRight} className="bg bg-right" />}

@@ -108,3 +108,9 @@ Dùng -UseExistingUiBuilds chỉ khi bundle đã build và nguồn không mới 
 
 Tham khảo Microsoft về maintenance với app_offline.htm: https://learn.microsoft.com/en-us/aspnet/web-forms/overview/deployment/visual-studio-web-deployment/deploying-a-code-update
 URL Rewrite IIS: https://learn.iis.net/downloads/microsoft/url-rewrite
+# Bản tối ưu hiệu năng và SEO portal
+
+Vẫn là React CSR trên IIS, deploy file tĩnh theo cách hiện tại. Với gói portal-performance-seo, chỉ cập nhật portal; không cập nhật API/admin hay chạy migration DB. Build frontend rồi chạy scripts/Prepare-PortalRelease.ps1 để tạo gói riêng. Chép assets trước, runtime-config.js và các file public tiếp theo, index.html cuối; giữ Web.config production và assets cũ. Purge /, /index.html và /runtime-config.js. Không cần Node.js trên server hay thêm nguồn CSP cho phần SEO/layout. GA vẫn cần các nguồn CSP đã hướng dẫn riêng nếu chưa cấu hình.
+
+Nội dung trang chủ dưới màn hình tự tải nền sau phần đầu trang, không đòi hỏi cuộn. Description/canonical/og:url tạo phía client; chưa phải SSR. Sau deploy kiểm tra bằng Search Console URL Inspection để xác nhận HTML render và canonical Google chọn. Hiệu năng tốt hơn không đảm bảo thứ hạng tăng.
+

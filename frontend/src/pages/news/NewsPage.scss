@@ -373,3 +373,12 @@
     box-shadow: none !important;
   }
 }
+.mh-news { min-height: 760px; }
+.mh-news-header { min-height: 40px; }
+.mh-news-banner-main-image { aspect-ratio: 16 / 10; display: block; flex: none; width: 100%; }
+.mh-news-content { min-height: 760px; }
+@media (max-width: 1199px) {
+  .mh-news > .container > .row > .col-xl-3 { order: 2; }
+  .mh-news > .container > .row > .col-xl-9 { order: 1; }
+  .mh-news-header { min-height: 80px; }
+}

@@ -1,3 +1,4 @@
+import { cachedPublicGet } from './public-cache';
 import type { AxiosResponse } from 'axios';
 import axiosInstance, { getUrlPath, getUrlPathWithLang, axiosPhanAnhExternalInstance, getLang } from '.';
 
@@ -17,24 +18,24 @@ export interface NewsCategoryItem {
 }
 
 export const getCtxAppConfig = async () => {
-  return await axiosInstance.get(getUrlPath('/menu'));
+  return await cachedPublicGet(getUrlPath('/menu'));
 };
 
 export const getBoxHot = async () => {
-  return await axiosInstance.get(getUrlPathWithLang('/BoxHot'));
+  return await cachedPublicGet(getUrlPathWithLang('/BoxHot'));
 };
 
 export const getBox8News = async (id: string): Promise<NewsCategoryItem[]> => {
-  const res = await axiosInstance.get(`/Box8News?ID=${id}`);
+  const res = await cachedPublicGet(`/Box8News?ID=${id}`);
   return res.data.subCates;
 };
 
 export const getNotify = async () => {
-  return await axiosInstance.get(getUrlPath('/BoxAnnouncement'));
+  return await cachedPublicGet(getUrlPath('/BoxAnnouncement'));
 };
 
 export const getEvents = async () => {
-  return await axiosInstance.get(getUrlPath('/SuKienHoiThao'));
+  return await cachedPublicGet(getUrlPath('/SuKienHoiThao'));
 };
 export interface BannerItem {
   ID: number;
@@ -50,15 +51,15 @@ export interface BannerItem {
 }
 
 export const getHomeBanner = async (bannerId: string | number): Promise<AxiosResponse<{ data: BannerItem[] }>> => {
-  return await axiosInstance.get(`/BannerByViTri?ID_ViTri=${bannerId}`);
+  return await cachedPublicGet(`/BannerByViTri?ID_ViTri=${bannerId}`);
 };
 
 export const getDocumentLegal = async () => {
-  return await axiosInstance.get(getUrlPathWithLang('/BoxVBPL', { limit: 7}));
+  return await cachedPublicGet(getUrlPathWithLang('/BoxVBPL', { limit: 7}));
 };
 
 export const getMedias = async () => {
-  return await axiosInstance.get(getUrlPathWithLang('/BoxMedia'));
+  return await cachedPublicGet(getUrlPathWithLang('/BoxMedia'));
 };
 
 export const getPhanAnhKienNghiCuTri = async () => {

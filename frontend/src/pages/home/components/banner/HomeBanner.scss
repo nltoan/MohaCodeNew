@@ -1,4 +1,10 @@
 .mh-home-banner {
+  &-loading {
+    height: 715px;
+    border-radius: 12px;
+    background: #f1f3f5;
+    @media (max-width: 1199px) { height: 440px; }
+  }
   padding: 24px 0;
   overflow-x: hidden;
 
@@ -50,6 +56,7 @@
       }
 
       @media (max-width: 1199px) {
+        aspect-ratio: 16 / 10;
         height: auto;
         img {
           max-height: unset;
@@ -244,4 +251,8 @@
       display: block;
     }
   }
+}
+@media (max-width: 767px) {
+  .mh-home-banner-widget > a { aspect-ratio: 3 / 1; display: flex; align-items: center; }
+  .mh-home-banner-widget > a > img { width: 100%; height: 100%; object-fit: contain; }
 }

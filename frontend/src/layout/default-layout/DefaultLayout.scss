@@ -100,3 +100,5 @@ body:has(.theme-blue) {
     }
   }
 }
+.mh-main-content { min-height: calc(100svh - 218px); }
+@media (max-width: 767px) { .mh-main-content { min-height: calc(100svh - 176px); } }

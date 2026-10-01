@@ -5,7 +5,7 @@ export const LoadingFallback = () => {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        height: '100vh',
+        minHeight: '240px',
         fontSize: '18px',
         color: '#666',
       }}

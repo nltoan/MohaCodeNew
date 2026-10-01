@@ -116,6 +116,7 @@ export const NewsCategoryPage = () => {
     <div className="mh-news">
       <Helmet>
         <title>{`${t('seo.moha')} - ${titlePage ?? t('seo.home')}`}</title>
+        <meta name="description" content={`${titlePage || 'Tin tức Bộ Nội vụ'}: cập nhật tin tức, hoạt động và thông tin chính sách trên Cổng thông tin điện tử Bộ Nội vụ.`} />
       </Helmet>
       <Container>
         <Row>

@@ -1,11 +1,16 @@
+import { lazy, Suspense } from 'react';
+import { DeferredSection } from './components/DeferredSection';
 import { Image } from 'react-bootstrap';
 import { HomeBanner } from './components/banner/HomeBanner';
 import { HomeCategorySection, type HomeCategorySectionProps } from './components/category/HomeCategory';
 import { HomeCTASection } from './components/cta/HomeCTA';
-import { HomeInteractSection, type HomeInteractSectionProps } from './components/interact/HomeInteract';
-import { HomeOtherSection, type HomeOtherSectionProps } from './components/other/HomeOther';
-import { HomeRefsSection } from './components/refs/HomeRefs';
-import { HomeMediaSection, type HomeMediaSectionProps } from './components/media/HomeMedia';
+import type { HomeInteractSectionProps } from './components/interact/HomeInteract';
+const HomeInteractSection = lazy(() => import('./components/interact/HomeInteract').then(m => ({ default: m.HomeInteractSection })));
+import type { HomeOtherSectionProps } from './components/other/HomeOther';
+const HomeOtherSection = lazy(() => import('./components/other/HomeOther').then(m => ({ default: m.HomeOtherSection })));
+const HomeRefsSection = lazy(() => import('./components/refs/HomeRefs').then(m => ({ default: m.HomeRefsSection })));
+import type { HomeMediaSectionProps } from './components/media/HomeMedia';
+const HomeMediaSection = lazy(() => import('./components/media/HomeMedia').then(m => ({ default: m.HomeMediaSection })));
 import image4 from '../../assets/images/PieChart.png';
 
 import { IconPlayFill } from '@/components/icons';
@@ -43,17 +48,18 @@ export const HomePage = () => {
       <Helmet>
         <title>BỘ NỘI VỤ - MINISTRY OF HOME AFFAIRS OF THE SOCIALIST REPUBLIC OF VIETNAM</title>
       </Helmet>
+      <h1 className="visually-hidden">Cổng thông tin điện tử Bộ Nội vụ</h1>
       <HomeBanner />
       <HomeCategorySection {...CATEGORY_CONFIG} />
       <HomeCTASection />
-      <HomeOtherSection
+      <DeferredSection><Suspense fallback={<div style={{ minHeight: 360 }} aria-hidden="true" />}><HomeOtherSection
         {...OTHER_CONFIG}
         onDownload={(item) => console.log(item)}
         onDisscuss={(item) => console.log(item)}
-      />
-      <HomeInteractSection {...INTERACT_CONFIG} />
-      <HomeMediaSection {...MEDIA_CONFIG} />
-      <HomeRefsSection title={t('home.components')} />
+      /></Suspense></DeferredSection>
+      <DeferredSection><Suspense fallback={<div style={{ minHeight: 360 }} aria-hidden="true" />}><HomeInteractSection {...INTERACT_CONFIG} /></Suspense></DeferredSection>
+      <DeferredSection><Suspense fallback={<div style={{ minHeight: 360 }} aria-hidden="true" />}><HomeMediaSection {...MEDIA_CONFIG} /></Suspense></DeferredSection>
+      <DeferredSection><Suspense fallback={<div style={{ minHeight: 360 }} aria-hidden="true" />}><HomeRefsSection title={t('home.components')} /></Suspense></DeferredSection>
     </>
   );
 };

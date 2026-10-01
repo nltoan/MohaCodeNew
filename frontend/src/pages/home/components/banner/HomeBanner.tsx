@@ -34,8 +34,10 @@ interface NewsItem {
 }
 export const HomeBanner = () => {
   const [banners, setBanner] = useState<NewsItem[]>();
+  const [loading, setLoading] = useState(true);
 
   const [widgets, setWidgets] = useState<HomeBannerWidget[]>([]);
+  const [loadingWidgets, setLoadingWidgets] = useState(true);
   useEffect(() => {
     const fetchDidMoundData = async () => {
       try {
@@ -51,7 +53,7 @@ export const HomeBanner = () => {
         );
       } catch (error) {
         console.log('err', error);
-      }
+      } finally { setLoadingWidgets(false); }
     };
     fetchDidMoundData();
   }, []);
@@ -103,7 +105,7 @@ export const HomeBanner = () => {
         console.log('err', error);
       }
     };
-    fetchAppMenus();
+    void fetchAppMenus().finally(() => setLoading(false));
   }, []);
 
   const slideSettings = {
@@ -121,14 +123,15 @@ export const HomeBanner = () => {
       <Container>
         <Row>
           <Col xl={8} className="mh-home-banner-slide">
-            <Slider {...slideSettings}>
-              {banners?.map((banner) => (
-                <div className="mh-home-banner-card">
+            <div className="mh-home-banner-loading" aria-hidden="true" hidden={!loading} />
+            {!loading && !!banners?.length && <Slider {...slideSettings}>
+              {banners?.map((banner, index) => (
+                <div className="mh-home-banner-card" key={banner.ID}>
                   <Link
                     to={getNewURL('tin-tuc', banner?.TieuDe || '', banner?.ID || '')}
                     className="mh-home-banner-card-image"
                   >
-                    <Image src={getUrlImage(banner?.AnhDaiDienUrl)} alt={banner?.TieuDe} loading="lazy" />
+                    <Image src={getUrlImage(banner?.AnhDaiDienUrl)} alt={banner?.TieuDe} loading={index === 0 ? "eager" : "lazy"} fetchPriority={index === 0 ? "high" : "auto"} decoding="async" />
                   </Link>
                   <div className="mh-home-banner-card-info">
                     <Link
@@ -141,10 +144,10 @@ export const HomeBanner = () => {
                   </div>
                 </div>
               ))}
-            </Slider>
+            </Slider>}
           </Col>
           <Col xl={4}>
-            <div className="mh-home-banner-widget">
+            <div className="mh-home-banner-widget" style={loadingWidgets ? { minHeight: 360 } : undefined}>
               {renderWidgets(widgets)}
             </div>
           </Col>

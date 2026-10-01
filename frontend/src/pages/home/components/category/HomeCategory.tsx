@@ -20,11 +20,13 @@ export interface HomeCategorySectionProps {
 export const HomeCategorySection = ({ notice, event }: HomeCategorySectionProps) => {
   const [banners, setBanners] = useState<BannerItem[]>([]);
   const [bannerSections, setBannerSections] = useState<NewsCategoryItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingBanners, setLoadingBanners] = useState(true);
+  const [loadingNews, setLoadingNews] = useState(true);
+  const loading = loadingBanners || loadingNews;
 
   useEffect(() => {
     const fetchDidMoundData = async () => {
-      setLoading(true);
+      setLoadingBanners(true);
       try {
         const response = await getHomeBanner(
           getLang() === 'vi' ? APP_DATA_CONFIG.HOME_BANNER.VI : APP_DATA_CONFIG.HOME_BANNER.EN,
@@ -35,7 +37,7 @@ export const HomeCategorySection = ({ notice, event }: HomeCategorySectionProps)
       } catch (error) {
         console.log('err', error);
       } finally {
-        setLoading(false);
+        setLoadingBanners(false);
       }
     };
     fetchDidMoundData();
@@ -43,7 +45,7 @@ export const HomeCategorySection = ({ notice, event }: HomeCategorySectionProps)
 
   useEffect(() => {
     const fetchDidMoundData = async () => {
-      setLoading(true);
+      setLoadingNews(true);
       try {
         const response = await getHomeBanner(
           getLang() === 'vi' ? APP_DATA_CONFIG.BOX_8NEWS.VI : APP_DATA_CONFIG.BOX_8NEWS.EN,
@@ -65,14 +67,14 @@ export const HomeCategorySection = ({ notice, event }: HomeCategorySectionProps)
       } catch (error) {
         console.log('err', error);
       } finally {
-        setLoading(false);
+        setLoadingNews(false);
       }
     };
     fetchDidMoundData();
   }, []);
 
   if (loading) {
-    return <Loading />;
+    return <section className="mh-home-cat-loading" aria-label="Đang tải chuyên mục"><Loading /></section>;
   }
 
   return (

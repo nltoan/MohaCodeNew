@@ -93,3 +93,17 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Initialize-Hoi
 Khi triển khai lên môi trường khác, chạy `db/migrations/20261001-HoiQuy.sql` bằng tài khoản có quyền tạo bảng và thêm quyền trước khi cập nhật API. Migration không tự import dữ liệu. Cấu hình IIS giới hạn upload riêng cho endpoint xem trước; không thêm thư viện Excel bên ngoài.
 
 Kiểm tra chức năng bằng `scripts/Test-HoiQuy.mjs` trên ba URL local. Chạy `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Prepare-HoiQuyTests.ps1` để tạo hai tài khoản test riêng trong database local. Script dùng hai tài khoản test được lưu trong `.dev/hoi-test-accounts.json` (tài khoản có quyền và tài khoản không có quyền), chạy import vào database dev và lưu ảnh trong `.dev/test-results/hoi-quy/`. Khi log `CAPTCHA_READY` xuất hiện, đọc ảnh `captcha.png`, ghi 5 ký tự vào `.dev/hoi-captcha-answer.txt` trong 120 giây để kiểm tra mã xác nhận thật; script không bỏ qua xác thực CAPTCHA.
+# Kiểm tra tối ưu frontend tại local
+
+Bản build production tối ưu đang được xem thử tại http://localhost:5175/. Server xem thử chạy bằng scripts/Serve-PortalPreview.mjs, phục vụ frontend/dist, thay API sang localhost:55104 và dùng ảnh công khai trên moha.gov.vn. GA tắt trên localhost. Không ghi dữ liệu production. Máy chủ dev/HMR vẫn ở http://localhost:5173/.
+
+Để chạy lại preview sau khi build frontend: dùng Node đã cài để chạy scripts/Serve-PortalPreview.mjs từ repository. Port 5175 chỉ bind localhost. PID phiên hiện tại lưu trong .dev/portal-preview.pid; kiểm tra tiến trình trước khi dừng, không chạy thêm phiên trùng port.
+
+Kiểm tra: Ctrl+Shift+R trang chủ, xem tin/ảnh đầu trang, cuộn dần tới văn bản/tương tác/đa phương tiện/các trang thành phần, mở trang tin rồi quay lại; thử mobile và đổi ngôn ngữ. Các khối phía dưới tải khi cách viewport 400px hoặc tự tải nền sau 2,5 giây + idle (timeout idle 1 giây); không phụ thuộc thao tác cuộn. Menu/banner/tin nổi bật và một số widget công khai dùng cache RAM 30 giây; F5 lấy mới. Các request đồng thời cùng URL được gộp, lỗi không được cache, dữ liệu trả cho mỗi caller được sao chép độc lập. Không cache tìm kiếm/CAPTCHA/import.
+
+Đã kiểm tra build, desktop/mobile, các khối tải khi cuộn, route Hội/Quỹ chưa tìm không hiện kết quả, và cache (gộp request, hết hạn, ngôn ngữ, lỗi thử lại). Bundle entry giảm từ 1.180.834 byte xuống 571.868 byte; gzip giảm 46,9%. Đây là giảm kích thước bundle, không phải khẳng định thời gian tải giảm cùng tỷ lệ. Báo cáo local: .dev/performance-after.json. Chưa triển khai production trong bước tối ưu này.
+
+
+## Bản tối ưu SEO/layout tiếp theo
+
+Vẫn deploy portal tĩnh, không SSR/Node.js trên production. Dùng scripts/Prepare-PortalRelease.ps1 để đóng gói riêng portal. Bản xem thử local port 5175 phục vụ build mới nhất. Đã bổ sung title mặc định, description theo trang, canonical/og:url tuyệt đối và H1 đúng cho các trang chính; đưa menu chuyên mục mobile xuống sau nội dung và giữ chỗ khi tải. Kết quả đo cuối ở .dev/portal-audit-report.md.

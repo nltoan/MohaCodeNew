@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const env = (window as any).env;
-const apiUrl = env.VITE_API_URL || 'https://api-portal.moha.gov.vn';
+const env = (window as any).env || {};
+const apiUrl = env.VITE_API_URL || 'https://api-portal.moha.gov.vn/api/Public/';
 
 const axiosInstance = axios.create({
   baseURL: apiUrl,

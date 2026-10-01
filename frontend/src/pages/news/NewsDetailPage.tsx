@@ -1,8 +1,9 @@
+import { portalCanonical } from '@/components/PortalSeo';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Col, Container, Image, Row } from 'react-bootstrap';
 import './NewsDetail.scss';
 import { CardSection, PageHeader } from '@/components';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import { useEffect, useRef, useMemo, useState } from 'react';
 import { getDetailPost, getDetailPostByoid, getRelatedPost, getRelatedPostByoid } from '@/services/news';
 import { getUrlImage, getUrlPdfFile } from '@/utils/image';
@@ -23,9 +24,12 @@ interface BannerItem {
 }
 export const NewsDetailPage = () => {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
+  const canonicalUrl = portalCanonical(pathname);
   const contentRef = useRef(null);
   const { slug } = useParams<{ slug: string }>();
   const [detail, setDetail] = useState<any>(null);
+  const [loadingDetail, setLoadingDetail] = useState(true);
   const [fontSize, setFontSize] = useState<number>(16);
 
   const handlePrint = useReactToPrint({
@@ -33,22 +37,26 @@ export const NewsDetailPage = () => {
   });
 
   useEffect(() => {
+    let active = true;
+    setLoadingDetail(true);
+    setDetail(null);
     const fetchData = async () => {
       try {
         let id = getIdFromSlug(slug || '', 'oid');
         if(!id){
           id = getIdFromSlug(slug || '', 'id');
           const res = await getDetailPost(id || '');
-          setDetail(res.data);
+          if (active) setDetail(res.data);
         } else {
           const res = await getDetailPostByoid(id || '');
-          setDetail(res.data);
+          if (active) setDetail(res.data);
         }
       } catch (err) {
         console.error(err);
-      }
+      } finally { if (active) setLoadingDetail(false); }
     };
     fetchData();
+    return () => { active = false; };
   }, [slug]);
 
   const [pagination, setPagination] = useState({
@@ -86,27 +94,27 @@ export const NewsDetailPage = () => {
   }, [pagination.activePage, pagination.pageSize, slug]);
 
   const files = useMemo(() => {
-    if (!detail?.TinTuc_Files.length) {
+    if (!detail?.TinTuc_Files?.length) {
       return [];
     }
     return detail?.TinTuc_Files;
   }, [detail?.TinTuc_Files]);
-  const plainDescription = detail?.MoTa ? detail.MoTa.replace(/<[^>]+>/g, '') : '';
+  const plainDescription = (detail?.MoTa || detail?.TieuDe || 'Tin tức, hoạt động và thông tin chính sách của Bộ Nội vụ.').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().slice(0, 200);
   const imageUrl = detail?.AnhDaiDienUrl ? getUrlImage(detail.AnhDaiDienUrl) : 'https://moha.gov.vn/images/quoc-huy.svg';
   return (
     <>
       <Helmet>
         <meta charSet="utf-8" />
         <title>{`${t('seo.moha')} - ${detail?.TieuDe ?? t('seo.home')}`}</title>
-        <meta name="keywords" content={detail?.TuKhoa ?? 'Tieu De'} />
-        <meta name="description" content={plainDescription ?? 'Mo Ta'} />
+        <meta name="keywords" content={detail?.TuKhoa || undefined} />
+        <meta name="description" content={plainDescription} />
         {/* Open Graph / Facebook */}
         <meta property="og:title" content={detail?.TieuDe} />
         <meta property="og:description" content={plainDescription} />
         <meta property="og:image" content={imageUrl} />
         <meta property="og:type" content="article" />
-        <meta property="og:url" content={getNewURL('tin-tuc', detail?.TieuDe, detail?.Id)} />
-        <meta property="canonical" content={getNewURL('tin-tuc', detail?.TieuDe, detail?.Id)} />
+        <meta property="og:url" content={canonicalUrl} />
+        <link rel="canonical" href={canonicalUrl} />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
@@ -114,7 +122,7 @@ export const NewsDetailPage = () => {
         <meta name="twitter:description" content={plainDescription} />
         <meta name="twitter:image" content={imageUrl} />
       </Helmet>
-      {detail?.Type === 3 ? ///Emagazine
+      {loadingDetail ? <div className="mh-detail-loading" aria-label="Đang tải bài viết" /> : detail?.Type === 3 ? ///Emagazine
         <div className="mh-detail">
           <div className="mh-detail-content">
             <div
