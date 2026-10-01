@@ -13,6 +13,28 @@ async function get<T>(path: string): Promise<T> {
   if (!response.ok) throw new Error(data.Message || 'Không thể kết nối máy chủ. Vui lòng thử lại.');
   return data;
 }
+function OrganizationLogo({ id, name }: { id: number; name: string }) {
+  const [src, setSrc] = useState('');
+  useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+    setSrc('');
+    void (async () => {
+      try {
+        // API origin is allowed by connect-src; data: images are allowed by portal CSP.
+        const response = await fetch(`${api()}/Logo/${id}`, { signal: controller.signal });
+        if (!response.ok || response.headers.get('content-type')?.split(';')[0] !== 'image/png') return;
+        const blob = await response.blob();
+        if (blob.size > 1024 * 1024) return;
+        const reader = new FileReader();
+        reader.onload = () => { if (active && typeof reader.result === 'string') setSrc(reader.result); };
+        reader.readAsDataURL(blob);
+      } catch { /* Missing/unavailable logos must not leave a broken image. */ }
+    })();
+    return () => { active = false; controller.abort(); };
+  }, [id]);
+  return src ? <img className="hq-logo" src={src} alt={`Logo ${name}`} onError={() => setSrc('')} /> : null;
+}
 export function HoiQuyPage() {
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
@@ -61,7 +83,7 @@ export function HoiQuyPage() {
       </>}
     </section>}
     <Modal show={!!detail} onHide={() => setDetail(null)} size="lg" centered><Modal.Header closeButton><Modal.Title>Thông tin Hội và Quỹ</Modal.Title></Modal.Header><Modal.Body>{detail && <div className="hq-detail">
-      {detail.HasLogo && <img className="hq-logo" src={`${api()}/Logo/${detail.ID}`} alt={`Logo ${detail.Name}`} />}
+      {detail.HasLogo && <OrganizationLogo key={detail.ID} id={detail.ID} name={detail.Name} />}
       <h2>{detail.Name}</h2><span className="hq-type">{detail.Type}</span>
       <dl>{([['Chủ tịch', detail.Chair], ['Địa chỉ', detail.Address], ['Số điện thoại', detail.Phone], ['Email', detail.Email], ['Website', detail.Website], ['Tôn chỉ mục đích', detail.Purpose]] as const).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value || 'Chưa có thông tin'}</dd></div>)}</dl>
     </div>}</Modal.Body><Modal.Footer><button className="btn btn-secondary" onClick={() => setDetail(null)}>Đóng</button></Modal.Footer></Modal>

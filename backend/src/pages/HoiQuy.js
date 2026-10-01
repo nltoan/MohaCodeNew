@@ -20,6 +20,7 @@ export default function HoiQuy() {
   const [filter, setFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState('');
   const [error, setError] = useState('');
   const rows = preview?.Rows || [];
   const invalid = rows.filter(r => r.Issues.some(i => i !== duplicateIssue));
@@ -32,8 +33,18 @@ export default function HoiQuy() {
     if (!file.name.toLowerCase().endsWith('.xlsx') || file.size > 80 * 1024 * 1024) { setError('Chọn file .xlsx tối đa 80 MB.'); return; }
     setBusy(true); setError(''); setPreview(null); setResult(null);
     try {
-      const body = new FormData(); body.append('file', file); body.append('includeLogos', String(includeLogos));
-      setPreview(await request('Preview', { method: 'POST', body })); setPage(1); setFilter('all');
+      setProgress('Đang khởi tạo upload…');
+      const upload = await request('UploadStart', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ FileName: file.name, Bytes: file.size, IncludeLogos: includeLogos }) });
+      for (let offset = 0, index = 0; offset < file.size; offset += upload.ChunkBytes, index++) {
+        const body = file.slice(offset, Math.min(offset + upload.ChunkBytes, file.size));
+        for (let attempt = 0; ; attempt++) {
+          try { await request(`UploadChunk?token=${encodeURIComponent(upload.Token)}&index=${index}`, { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body }); break; }
+          catch (e) { if (attempt >= 2) throw e; }
+        }
+        setProgress(`Đã tải ${Math.round(Math.min(offset + upload.ChunkBytes, file.size) / file.size * 100)}%`);
+      }
+      setProgress('Đang đọc dữ liệu và logo…');
+      setPreview(await request(`UploadComplete?token=${encodeURIComponent(upload.Token)}`, { method: 'POST' })); setPage(1); setFilter('all');
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
   }
@@ -52,7 +63,7 @@ export default function HoiQuy() {
         <label htmlFor="hqa-file">File dữ liệu (.xlsx, tối đa 80 MB)</label><input id="hqa-file" className="form-control-file mb-3" type="file" accept=".xlsx" disabled={busy} onChange={e => { setFile(e.target.files[0] || null); setPreview(null); setError(''); }} />
         <p className="text-muted">Sheet <strong>HoiQuyTrungUong</strong> · Tiêu đề dòng 3 · Dữ liệu từ dòng 4. Các cột: STT, Logo, Tên đơn vị, Loại, Chủ tịch, Địa chỉ, Số điện thoại, Email, Website, Tôn chỉ mục đích.</p>
         <div className="hqa-options"><label><input type="checkbox" checked={includeLogos} disabled={busy || !!preview} onChange={e => setIncludeLogos(e.target.checked)} /> Nhập logo nhúng trong Excel</label><label>Chế độ import <select className="form-control" value={String(updateExisting)} disabled={busy} onChange={e => setUpdateExisting(e.target.value === 'true')}><option value="false">Chỉ thêm mới (bỏ qua bản ghi đã có)</option><option value="true">Thêm mới và cập nhật theo tên + loại</option></select></label></div>
-        <button className="btn btn-primary" disabled={busy || !file} onClick={readFile}>{busy ? 'Đang xử lý…' : 'Đọc file và xem trước'}</button>
+        <button className="btn btn-primary" disabled={busy || !file} onClick={readFile}>{busy ? progress || 'Đang xử lý…' : 'Đọc file và xem trước'}</button>
       </>}
     </div></div>
     {preview && !result && <div className="card"><div className="card-header"><h3 className="card-title">Xem trước: {preview.FileName}</h3></div><div className="card-body">

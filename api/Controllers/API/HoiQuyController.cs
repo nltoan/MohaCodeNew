@@ -66,6 +66,60 @@ namespace API.Controllers
             if (bytes == null) return Request.CreateResponse(HttpStatusCode.NotFound);
             var response = Request.CreateResponse(HttpStatusCode.OK); response.Content = new ByteArrayContent(bytes); response.Content.Headers.ContentType = new MediaTypeHeaderValue("image/png"); return response;
         }
+        public class UploadStart { public string FileName { get; set; } public int Bytes { get; set; } public bool IncludeLogos { get; set; } = true; }
+        class UploadSession { public string Owner; public UploadStart Info; public byte[][] Parts; public object Sync = new object(); }
+        [HoiQuyAuthorize, HttpPost, Route("UploadStart")]
+        public IHttpActionResult StartUpload(UploadStart info)
+        {
+            if (info == null || info.Bytes <= 0 || info.Bytes > 80 * 1024 * 1024 || string.IsNullOrEmpty(info.FileName) || info.FileName.Length > 260 || !string.Equals(Path.GetExtension(info.FileName), ".xlsx", StringComparison.OrdinalIgnoreCase)) return BadRequest("Chỉ hỗ trợ file .xlsx tối đa 80 MB.");
+            string ownerKey = "hoi-upload-owner:" + User.Identity.Name;
+            lock (UploadLock)
+            {
+                var previous = HttpRuntime.Cache[ownerKey] as string;
+                if (previous != null) HttpRuntime.Cache.Remove("hoi-upload:" + previous);
+                var token = Token();
+                HttpRuntime.Cache.Insert("hoi-upload:" + token, new UploadSession { Owner = User.Identity.Name, Info = info, Parts = new byte[(info.Bytes + 4194303) / 4194304][] }, null, DateTime.UtcNow.AddMinutes(30), Cache.NoSlidingExpiration);
+                HttpRuntime.Cache.Insert(ownerKey, token, null, DateTime.UtcNow.AddMinutes(30), Cache.NoSlidingExpiration);
+                return Ok(new { Token = token, ChunkBytes = 4194304 });
+            }
+        }
+        static readonly object UploadLock = new object();
+        [HoiQuyAuthorize, HttpPost, Route("UploadChunk")]
+        public IHttpActionResult UploadChunk(string token, int index)
+        {
+            var session = HttpRuntime.Cache["hoi-upload:" + token] as UploadSession;
+            if (session == null || session.Owner != User.Identity.Name) return BadRequest("Phiên upload hết hạn. Vui lòng chọn lại file.");
+            lock (session.Sync)
+            {
+                if (session.Parts == null || index < 0 || index >= session.Parts.Length) return BadRequest("Phần upload không hợp lệ.");
+                int expected = Math.Min(4194304, session.Info.Bytes - index * 4194304);
+                var request = HttpContext.Current.Request;
+                if (request.ContentLength != expected) return BadRequest("Kích thước phần upload không hợp lệ.");
+                var bytes = new byte[expected]; int offset = 0, count;
+                while (offset < expected && (count = request.InputStream.Read(bytes, offset, expected - offset)) > 0) offset += count;
+                if (offset != expected) return BadRequest("Phần upload chưa đầy đủ.");
+                if (session.Parts[index] != null && !session.Parts[index].SequenceEqual(bytes)) return BadRequest("Phần upload đã nhận có nội dung khác.");
+                session.Parts[index] = bytes;
+                return Ok(new { Index = index });
+            }
+        }
+        [HoiQuyAuthorize, HttpPost, Route("UploadComplete")]
+        public IHttpActionResult CompleteUpload(string token)
+        {
+            var session = HttpRuntime.Cache["hoi-upload:" + token] as UploadSession;
+            if (session == null || session.Owner != User.Identity.Name) return BadRequest("Phiên upload hết hạn. Vui lòng chọn lại file.");
+            lock (session.Sync)
+            {
+                if (session.Parts == null || session.Parts.Any(part => part == null)) return BadRequest("File chưa đủ các phần.");
+                using (var stream = new MemoryStream(session.Info.Bytes))
+                {
+                    foreach (var part in session.Parts) stream.Write(part, 0, part.Length);
+                    stream.Position = 0; session.Parts = null;
+                    HttpRuntime.Cache.Remove("hoi-upload:" + token);
+                    return CreatePreview(stream, session.Info.FileName, session.Info.IncludeLogos);
+                }
+            }
+        }
         [HoiQuyAuthorize, HttpPost, Route("Preview")]
         public IHttpActionResult Preview()
         {
@@ -73,9 +127,13 @@ namespace API.Controllers
             if (request.Files.Count != 1) return BadRequest("Vui lòng chọn một file Excel .xlsx.");
             var file = request.Files[0];
             if (!string.Equals(Path.GetExtension(file.FileName), ".xlsx", StringComparison.OrdinalIgnoreCase) || file.ContentLength <= 0 || file.ContentLength > 80 * 1024 * 1024) return BadRequest("Chỉ hỗ trợ file .xlsx tối đa 80 MB.");
+            return CreatePreview(file.InputStream, file.FileName, request.Form["includeLogos"] != "false");
+        }
+        IHttpActionResult CreatePreview(Stream stream, string fileName, bool includeLogos)
+        {
             try
             {
-                var preview = new ImportPreview { Token = Token(), FileName = Path.GetFileName(file.FileName), Owner = User.Identity.Name, Rows = HoiQuyExcel.Parse(file.InputStream, request.Form["includeLogos"] != "false") };
+                var preview = new ImportPreview { Token = Token(), FileName = Path.GetFileName(fileName), Owner = User.Identity.Name, Rows = HoiQuyExcel.Parse(stream, includeLogos) };
                 if (preview.FileName.Length > 260) return BadRequest("Tên file quá dài.");
                 // One active preview per account keeps uploads bounded and invalidates superseded previews.
                 var ownerKey = "hoi-preview-owner:" + preview.Owner;

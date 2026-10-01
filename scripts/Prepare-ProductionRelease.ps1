@@ -8,6 +8,8 @@ foreach($name in @('PortalUrl','ApiUrl','MediaUrl')){
  if(!$url.IsAbsoluteUri -or $url.Scheme -ne 'https'){throw "Invalid HTTPS URL: $name"}
 }
 $adminReady=![string]::IsNullOrWhiteSpace($config.AdminUrl)
+$gaId=[string]$config.GoogleAnalyticsMeasurementId
+if($gaId -and $gaId -notmatch '^G-[A-Z0-9]+$'){throw 'Invalid Google Analytics measurement ID'}
 if($adminReady -and ([uri]$config.AdminUrl).Scheme -ne 'https'){throw 'AdminUrl must be HTTPS'}
 $tools=Join-Path $env:LOCALAPPDATA 'MohaDev'
 $nodeDir=Join-Path $tools 'node-v22.23.3-win-x64'
@@ -49,9 +51,10 @@ foreach($app in @('portal','admin-candidate')){
   Remove-Item -LiteralPath $webConfig
  }
 }
-$portalIndex=Join-Path $release 'portal\index.html'
+$portalIndex=Join-Path $release 'portal\runtime-config.js'
 $html=[IO.File]::ReadAllText($portalIndex).Replace('http://mohaapi.tefli.vn/api/Public/',$config.ApiUrl.TrimEnd('/')+'/api/Public/').Replace('http://moha.tefli.vn/',$config.MediaUrl.TrimEnd('/')+'/')
 [IO.File]::WriteAllText($portalIndex,$html)
+if($gaId -and $html -notmatch [regex]::Escape($gaId)){throw 'Portal Analytics ID does not match production.json; update frontend/index.html and rebuild'}
 $adminIndex=Join-Path $release 'admin-candidate\index.html'
 $adminUrl=if($adminReady){$config.AdminUrl.TrimEnd('/')}else{'https://ADMIN-HOST-UNCONFIRMED.invalid'}
 $html=[IO.File]::ReadAllText($adminIndex).Replace('http://mohaapi.tefli.vn',$config.ApiUrl.TrimEnd('/')).Replace('http://mohabackend.tefli.vn',$adminUrl).Replace('http://moha.tefli.vn',$config.PortalUrl.TrimEnd('/'))

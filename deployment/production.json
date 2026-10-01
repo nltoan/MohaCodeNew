@@ -2,5 +2,6 @@
   "PortalUrl": "https://moha.gov.vn",
   "ApiUrl": "https://api-portal.moha.gov.vn",
   "MediaUrl": "https://moha.gov.vn",
-  "AdminUrl": null
+  "AdminUrl": "https://quantri-portal.moha.gov.vn",
+  "GoogleAnalyticsMeasurementId": "G-R36X6C2E0S"
 }

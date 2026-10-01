@@ -86,7 +86,19 @@ Nếu lỗi, dừng thao tác import và khôi phục portal/admin/API từ back
 
 Migration là bổ sung nên có thể giữ bảng/quyền mới khi quay lại code cũ; không DROP bảng hoặc xóa dữ liệu vừa nhập. Nếu import cập nhật gây sai dữ liệu, dùng backup riêng bảng/DB theo quy trình DBA; không restore toàn bộ DB ghi đè các thay đổi nghiệp vụ phát sinh mà chưa đánh giá. Ghi lại số Added/Updated/Existing/Skipped và thời điểm import.
 
-## Tạo lại gói
+## Google Analytics 4
+
+Portal dùng /runtime-config.js cùng tên miền thay cho script cấu hình inline. Chép runtime-config.js trước index.html; không giữ file này từ bản cũ. Không cần thêm unsafe-inline hoặc cập nhật hash mỗi lần đổi cấu hình. Purge cache runtime-config.js và index.html khi deploy. CSP script-src phải giữ 'self'; để GA tải được, bổ sung https://www.googletagmanager.com vào script-src, và https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com vào connect-src (giữ nguyên các nguồn đang dùng). Kiểm tra img-src cho https://*.google-analytics.com nếu phát sinh request ảnh. Mẫu cấu hình chỉ là các nguồn cần gộp, không thay toàn bộ CSP hiện hữu.
+
+Admin import nay gọi UploadStart, UploadChunk và UploadComplete; mỗi phần tối đa 4 MiB, có tiến độ và thử lại tối đa ba lần. Tổng file tối đa 80 MiB. API giữ phần upload trong bộ nhớ cache, một phiên mỗi tài khoản, hết hạn sau 30 phút hoặc được thay bởi phiên mới; không ghi file tạm ra ổ đĩa. Triển khai API trước admin. Không cần nâng giới hạn request lên 81 MiB cho luồng mới; proxy/WAF vẫn phải cho phép request 4 MiB và thời gian đọc Excel ở UploadComplete. Luồng này vẫn yêu cầu một worker hoặc affinity như phần API ở trên. Dự trù RAM cho các tài khoản upload đồng thời; không recycle worker trong lúc import. Migration DB không đổi.
+
+Mã đo lường mới: G-R36X6C2E0S. Portal đã tích hợp qua frontend/src/services/analytics.ts và cấu hình trong frontend/index.html. Chỉ bản production trên moha.gov.vn hoặc www.moha.gov.vn khởi tạo thẻ; localhost, staging và admin không gửi dữ liệu vào tài sản này.
+
+Trong luồng web Google Analytics, kiểm tra Đo lường nâng cao > Lượt xem trang > Cài đặt nâng cao bật đo khi lịch sử trình duyệt thay đổi để ghi nhận chuyển trang React. Không chèn thêm đoạn gtag vào IIS/template hay Google Tag Manager cho cùng mã vì sẽ trùng lượt xem.
+
+Sau khi chép portal/assets trước và portal/index.html sau, purge cache HTML, mở site thật và kiểm tra Network tải gtag/js?id=G-R36X6C2E0S, request collect cùng mã, rồi xem báo cáo Thời gian thực của tài sản. Chưa xác minh nhận dữ liệu production trước khi deploy. Nếu server có CSP, cho phép nguồn script https://www.googletagmanager.com và các endpoint kết nối Google Analytics theo chính sách CSP hiện tại. Thay đổi GA không cần migration DB; chức năng Hội và Quỹ vẫn cần migration 20261001-HoiQuy.sql như hướng dẫn trên.
+
+## Tạo lại gói triển khai
 
 Sửa deployment/production.json theo môi trường đã xác nhận:
 

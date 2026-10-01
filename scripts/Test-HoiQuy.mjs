@@ -33,7 +33,7 @@ try {
  await admin.goto('http://localhost:5174/HoiQuy/Import',{timeout:180000});
  await admin.getByText('Hội và Quỹ Trung ương — Import Excel').waitFor({timeout:180000});
  await admin.locator('#hqa-file').setInputFiles(process.argv[2] || 'C:/Users/toanlee/Desktop/DanhSach_HoiQuy_TrungUong_20260930_142742.xlsx');
- const previewResponse=admin.waitForResponse(r=>r.url().endsWith('/HoiQuy/Preview'),{timeout:180000});
+ const previewResponse=admin.waitForResponse(r=>r.url().includes('/HoiQuy/UploadComplete?'),{timeout:180000});
  await admin.getByRole('button',{name:'Đọc file và xem trước'}).click();
  const response=await previewResponse; const preview=await response.json();
  assert.equal(response.status(),200,JSON.stringify(preview));
