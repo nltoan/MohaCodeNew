@@ -58,9 +58,9 @@ export const DraftLegalDocumentsPage = () => {
   return (
     <div className="mh-document-content">
       <Helmet>
-        <title>{t("seo.directive")}</title>
+        <title>{t("documents.draftLegalDocuments")} - {t("seo.moha")}</title>
       </Helmet>
-      <CardSection title={t("documents.draftLegalDocuments")}>
+      <CardSection title={<h1 className="m-0 fs-4">{t("documents.draftLegalDocuments")}</h1>}>
         <div className="mh-document-posts">
           {pagination.data.length > 0 ? (
             pagination.data.map((item) => (
@@ -75,7 +75,6 @@ export const DraftLegalDocumentsPage = () => {
             <div className="mh-document-empty">{t("common.no_data")}</div>
           )}
 
-          {pagination.data.length === 0 && <div className="text-center">{t('common.no_data')}</div>}
         </div>
         {pagination.totalPages >= 1 && (<Pagination
           style={{ marginTop: 10 }}

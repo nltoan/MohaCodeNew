@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Col, Row, Table } from 'react-bootstrap';
+import { Col, Container, Row, Table } from 'react-bootstrap';
 import { CardSection, Loading } from '@/components';
 import { Link, useParams } from 'react-router-dom';
 import { getScientificResearchDetail, getScientificResearchDetailByoid } from '@/services/scientificresearch';
@@ -72,10 +72,10 @@ export const ScientificResearchDetailPage = () => {
   };
 
   return (
-    <Row>
+    <Container className="py-4"><Row>
       <Col xl={12}>
         <div className="scientificresearch-detail-wrapper">
-          <CardSection title={t("scientificresearch.title")}>
+          <CardSection title={<h1 className="m-0 fs-4">{t("scientificresearch.title")}</h1>}>
             <Table bordered responsive className="mb-0">
               <tbody>
                 <tr>
@@ -126,6 +126,6 @@ export const ScientificResearchDetailPage = () => {
           </div>
         </div>
       </Col>
-    </Row>
+    </Row></Container>
   );
 };

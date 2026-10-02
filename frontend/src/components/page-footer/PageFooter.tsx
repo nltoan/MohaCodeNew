@@ -1,6 +1,7 @@
 import type { MouseEvent, ReactNode } from "react";
 import { Link, type LinkProps } from "react-router-dom";
 import "./PageFooter.scss";
+import { getUrlPdfFile } from '@/utils/image';
 export interface FileItem extends LinkProps {
   icon: string | ReactNode;
   fileName: string;
@@ -17,13 +18,13 @@ export const PageFooter = ({ files, onPrint, onShare }: PageFooterProps) => {
       {files && files.length > 0 ? (
         <div>
           {files.map((file, index) => (
-            <div style={{
+            <div key={index} style={{
                     display: "flex",
                     flexDirection: "column",
                     gap: 15,
                     paddingBottom: 20,
                   }}>
-            <Link key={index} to={file.to} target={file.target} className={`mh-page-footer-file ${file.className || ""}`}>
+            <Link to={typeof file.to === 'string' ? getUrlPdfFile(file.to) : file.to} target={file.target} className={`mh-page-footer-file ${file.className || ""}`}>
               {typeof file.icon === "string" ? (
                 <img src={file.icon} alt={file.fileName} height={40} /> 
               ) : (

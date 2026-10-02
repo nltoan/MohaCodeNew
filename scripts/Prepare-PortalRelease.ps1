@@ -17,12 +17,12 @@ if($content -match 'tefli\.vn|localhost:' -or $content -notmatch [regex]::Escape
 [IO.File]::WriteAllText($file,$content)
 Copy-Item "$root\deployment\CSP-PORTAL.txt" $release
 @'
-PORTAL ONLY: performance and SEO metadata update; still React CSR/static IIS.
+PORTAL ONLY: performance, search, document/media layout and SEO fixes; still React CSR/static IIS.
 1. Backup current index.html and runtime-config.js. Keep production Web.config.
 2. Merge portal/assets first; retain old assets for existing browser sessions.
 3. Copy portal/runtime-config.js and other portal public files; copy portal/index.html LAST.
 4. Purge cache /, /index.html and /runtime-config.js, then Ctrl+Shift+R.
-5. Check home, news, category, article and association/fund lookup on desktop/mobile.
+5. Check home/news/lookup, about, document filters/drafts, search, research, photo/video/audio and special sections on desktop/mobile.
 No API/admin update, DB migration, Node.js service or new CSP sources needed for this update.
 GA still requires the sources in CSP-PORTAL.txt if they have not already been added.
 SEO metadata is rendered client-side; this release does not add SSR or guarantee search rankings.

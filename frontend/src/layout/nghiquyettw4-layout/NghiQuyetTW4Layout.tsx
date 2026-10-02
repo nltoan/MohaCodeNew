@@ -8,6 +8,7 @@ import { HttpStatusCode } from 'axios';
 import { getMenus } from '@/services/nghiquyettw4';
 import { NghiQuyetTW4_DATA_CONFIG } from '@/configs';
 import { t } from 'i18next';
+import { PortalSeo } from '@/components/PortalSeo';
 
 export const NghiQuyetTW4Layout = () => {
   const breadcrumbs = useBreadcrumbs();
@@ -50,10 +51,11 @@ export const NghiQuyetTW4Layout = () => {
   }, [location.pathname]);
 
   const handleSearch = () => {
-    navigation('/tim-kiem');
+    navigation(keyword.trim() ? '/tim-kiem/' + encodeURIComponent(keyword.trim()) : '/tim-kiem');
   };
   return (
     <div className="mh-nqtw4-layout">
+      <PortalSeo />
       <HeaderTop
         nqtw4
         image={NghiQuyetTW4_DATA_CONFIG.header.top.image}

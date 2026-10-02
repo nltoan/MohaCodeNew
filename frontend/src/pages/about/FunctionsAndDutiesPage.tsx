@@ -5,7 +5,7 @@ import { IconPdfFile } from '@/components/icons';
 import { useEffect, useRef, useState } from 'react';
 import axiosInstance from '@/services';
 import DOMPurify from 'dompurify';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { getIdFromSlug } from '@/utils/getSlugKey';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +16,7 @@ export const FunctionsAndDutiesPage = () => {
   const contentRef = useRef(null);
   const [data, setData] = useState<any>();
   const { slug } = useParams<{ slug: string }>();
+  const isHistory = useLocation().pathname.startsWith('/gioi-thieu/lich-su-bo/');
 
   const handlePrint = useReactToPrint({
     contentRef,
@@ -49,15 +50,16 @@ export const FunctionsAndDutiesPage = () => {
         <PageHeader title={data.TieuDe} date={data.NgayXuatBan} viewCount={data.PageCount} onPrint={handlePrint} />
         <AboutBody>
           <div
+            className={isHistory ? 'mh-about-history' : undefined}
             dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(data?.NoiDung?.replace(/contenteditable="true"/g, 'contenteditable="false"')),
+              __html: DOMPurify.sanitize((isHistory ? data?.NoiDung?.replace(/&nbsp;|\u00a0/g, ' ') : data?.NoiDung)?.replace(/contenteditable="true"/g, 'contenteditable="false"')),
             }}
           />
         </AboutBody>
       </div>
 
       <PageFooter
-        files={data.TinTuc_Files.map((fileInfo: any) => {
+        files={data.TinTuc_Files?.map((fileInfo: any) => {
           const fileDetails = fileInfo.File;
 
           return {

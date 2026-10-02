@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Container, Image } from 'react-bootstrap';
 import './Gallery.scss';
@@ -70,6 +71,7 @@ export const PhotoAlbumDetailPage = () => {
 
   return (
     <div className="mh-gallery">
+      <Helmet><title>{album?.TieuDe || 'Thư viện đa phương tiện - Bộ Nội vụ'}</title></Helmet>
       <Container>
         <div className="mh-gallery-content">
           <div className="mh-gallery-header">
@@ -77,7 +79,7 @@ export const PhotoAlbumDetailPage = () => {
           </div>
           <div className="mh-gallery-slide">
             <Slider {...slideSettings}>
-              {album?.AlbumAnh_Files.map((p:any) => (
+              {album?.AlbumAnh_Files?.map((p:any) => (
                 <div className="mh-gallery-slide-card">
                   {p.File?.LinkLuuTru &&
                     <div className="mh-gallery-slide-card-image">

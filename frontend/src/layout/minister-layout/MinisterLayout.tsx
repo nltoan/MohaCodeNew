@@ -10,6 +10,7 @@ import { HttpStatusCode } from 'axios';
 import { getMinisterMenus } from '@/services/minister';
 import { getLang } from '@/services';
 import { useTranslation } from 'react-i18next';
+import { PortalSeo } from '@/components/PortalSeo';
 
 export const MinisterLayout = () => {
     const { t } = useTranslation();
@@ -53,10 +54,11 @@ export const MinisterLayout = () => {
   }, [location.pathname]);
 
   const handleSearch = () => {
-    navigate('/tim-kiem/' + keyword);
+    navigate(keyword.trim() ? '/tim-kiem/' + encodeURIComponent(keyword.trim()) : '/tim-kiem');
   };
   return (
     <div className="mh-minister-layout">
+      <PortalSeo />
       <HeaderTop
         minister
         image={{ src: imageLeft, alt: 'Quốc huy Cộng hòa Xã hội chủ nghĩa Việt Nam' }}

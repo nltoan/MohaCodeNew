@@ -2,7 +2,8 @@ import { Container, FormControl, Image } from 'react-bootstrap';
 import { CardSection, Loading, Pagination } from '@/components';
 import { IconPdfFile } from '@/components/icons';
 import './search.scss';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import type { PaginationState } from '@/types/common';
 import { searchInformation } from '@/services/config';
@@ -25,42 +26,65 @@ export const SearchPage = () => {
   const navigate = useNavigate();
   const [keyword, setKeyword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState('');
+  const [searchVersion, setSearchVersion] = useState(0);
+  const previousSlug = useRef(slug);
   const [pagination, setPagination] = useState<PaginationState<SearchResult>>({
     data: [] as SearchResult[],
     activePage: 1,
-    totalPages: 10,
+    totalPages: 0,
     pageSize: 10,
   });
 
   const onSearchKeyword = async () => {
-    navigate('/tim-kiem/' + keyword);
+    const value = keyword.trim();
+    setPagination(prev => ({ ...prev, activePage: 1 }));
+    setSearchVersion(prev => prev + 1);
+    navigate(value ? '/tim-kiem/' + encodeURIComponent(value) : '/tim-kiem');
   };
 
   useEffect(() => {
+    let active = true;
+    if (previousSlug.current !== slug) {
+      previousSlug.current = slug;
+      if (pagination.activePage !== 1) {
+        setPagination(prev => ({ ...prev, activePage: 1 }));
+        return;
+      }
+    }
     const fetchData = async () => {
-      if (slug === '') return;
       setKeyword(slug ?? '');
+      setError('');
+      if (!slug?.trim()) {
+        setLoading(false);
+        setPagination(prev => ({ ...prev, data: [], totalPages: 0 }));
+        return;
+      }
       setLoading(true);
+      setPagination(prev => ({ ...prev, data: [], totalPages: 0 }));
       try {
         const res: { data: SearchResult[]; totalCount: number } = await searchInformation(
           slug ?? '',
           pagination.activePage,
           pagination.pageSize,
         );
-        if (!res) return;
+        if (!active) return;
         setPagination((prev) => ({ ...prev, data: res.data, totalPages: Math.ceil(res.totalCount / prev.pageSize) }));
-        setLoading(false);
       } catch {
-        setLoading(false);
+        if (active) setError('Không thể tải kết quả. Vui lòng thử lại sau.');
+      } finally {
+        if (active) setLoading(false);
       }
     };
 
     fetchData();
-  }, [pagination.activePage, pagination.pageSize, slug]);
+    return () => { active = false; };
+  }, [pagination.activePage, pagination.pageSize, slug, searchVersion]);
 
   return (
     <Container className="py-4">
-      <CardSection title="Tìm kiếm thông tin">
+      <Helmet><title>{slug ? `Tìm kiếm: ${slug} - Bộ Nội vụ` : 'Tìm kiếm thông tin - Bộ Nội vụ'}</title><meta name="robots" content="noindex, follow" /></Helmet>
+      <CardSection title={<h1 className="m-0 fs-4">Tìm kiếm thông tin</h1>}>
         <>
           <div className="mh-searchbox-search">
             <button type="button" aria-label="Tìm kiếm" onClick={onSearchKeyword}>
@@ -90,7 +114,8 @@ export const SearchPage = () => {
             </button>
             <FormControl
               type="search"
-              placeholder={'search'}
+              placeholder="Nhập từ khóa tìm kiếm"
+              aria-label="Từ khóa tìm kiếm"
               value={keyword}
               onChange={(e) => {
                 setKeyword(e.target.value);
@@ -107,55 +132,54 @@ export const SearchPage = () => {
         {loading && <Loading />}
 
         <div className="mh-searchbox-items">
-          {pagination?.data?.length > 0 ? (
+          {!loading && !error && pagination?.data?.length > 0 ? (
             pagination.data.map((item) => (
-              <>
+              <Fragment key={`${item.Type}-${item.ID}`}>
                 {item.Type == 'tin-tuc' && (
-                  <div className="mh-news-item" key={item?.ID}>
-                    <Link to={getNewURL('tin-tuc', item.TieuDe, item?.ID)} className="mh-news-item-image">
+                  <div className="mh-searchbox-item" key={item?.ID}>
+                    <Link to={getNewURL('tin-tuc', item.TieuDe, item?.ID)} className="mh-searchbox-item-image">
                       <Image src={getUrlImage(item?.AnhDaiDienUrl)} alt={item?.TieuDe} />
                     </Link>
-                    <div className="mh-news-item-info">
-                      <Link to={getNewURL('tin-tuc', item.TieuDe, item?.ID)} className="mh-news-item-title">
+                    <div className="mh-searchbox-item-info">
+                      <Link to={getNewURL('tin-tuc', item.TieuDe, item?.ID)} className="mh-searchbox-item-title">
                         {item?.TieuDe}
                       </Link>
-                      <div className="mh-news-item-description" dangerouslySetInnerHTML={{ __html: item?.MoTa }} />
+                      <div className="mh-searchbox-item-description" dangerouslySetInnerHTML={{ __html: item?.MoTa }} />
                     </div>
-                    <div className="mh-news-item-date">{vnFormatter(item?.NgayXuatBan)}</div>
+                    <div className="mh-searchbox-item-date">{vnFormatter(item?.NgayXuatBan)}</div>
                   </div>
                 )}
                 {item.Type == 'pdf-file' && (
-                  <div className="mh-news-item" key={item?.ID}>
+                  <div className="mh-searchbox-item" key={item?.ID}>
                     <Link
                       to={getUrlPdfFile(item?.AnhDaiDienUrl)}
                       key={item?.AnhDaiDienUrl}
                       target="_blank"
-                      className="mh-news-item-image"
+                      className="mh-searchbox-item-image"
                     >
                       <IconPdfFile />
                     </Link>
-                    <div className="mh-news-item-info">
+                    <div className="mh-searchbox-item-info">
                       <Link
                         to={getUrlPdfFile(item?.AnhDaiDienUrl)}
                         key={item?.AnhDaiDienUrl + '1'}
                         target="_blank"
-                        className="mh-news-item-title"
+                        className="mh-searchbox-item-title"
                       >
                         {item?.TieuDe}
                       </Link>
-                      <div className="mh-news-item-description" dangerouslySetInnerHTML={{ __html: item?.MoTa }} />
+                      <div className="mh-searchbox-item-description" dangerouslySetInnerHTML={{ __html: item?.MoTa }} />
                     </div>
                   </div>
                 )}
-              </>
+              </Fragment>
             ))
           ) : (
-            <div className="mh-searchbox-empty">{t("common.no_data")}</div>
+            !loading && <div className="mh-searchbox-empty" role="status">{error || (slug ? t('common.no_data') : 'Nhập từ khóa để tìm kiếm thông tin.')}</div>
           )}
 
-          {pagination?.data?.length === 0 && <div className="text-center">{t('common.no_data')}</div>}
         </div>
-        {pagination?.totalPages >= 1 && (
+        {!loading && !error && pagination?.totalPages >= 1 && (
           <Pagination
             style={{ marginTop: 10 }}
             showPageSizeSelector

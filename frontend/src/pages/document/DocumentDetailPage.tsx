@@ -74,7 +74,7 @@ export const DocumentDetailPage = () => {
               url: item.File?.LinkLuuTru || '#',
             })) || [],
           content: data.NoiDung || '',
-          lopvanbanid: data.VanBan_LopVanBan[0]?.LopVanBan?.ID
+          lopvanbanid: data.VanBan_LopVanBan?.[0]?.LopVanBan?.ID
         });
       }
     } catch (error) {
@@ -108,7 +108,7 @@ export const DocumentDetailPage = () => {
       </Helmet>
       <Col xl={12}>
         <div className="document-detail-wrapper">
-          <CardSection title={t('documents.detail.title')}>
+          <CardSection title={<h1 className="m-0 fs-4">{t('documents.detail.title')}</h1>}>
             <Table bordered responsive className="mb-0">
               <tbody>
                 <tr>

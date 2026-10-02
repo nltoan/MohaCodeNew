@@ -50,7 +50,7 @@ export const LegalNormativeDocumentsPage = () => {
   const [pagination, setPagination] = useState<PaginationState>({
     documents: [],
     activePage: 1,
-    totalPages: 10,
+    totalPages: 0,
     pageSize: 10,
     totalCount: 0,
   });
@@ -86,7 +86,7 @@ export const LegalNormativeDocumentsPage = () => {
         name: item.TenLinhVuc,
         value: item.ID,
       })),
-    [legalDocumentForms],
+    [documentAreas],
   );
 
   const documentSignerOptions = useMemo(
@@ -95,7 +95,7 @@ export const LegalNormativeDocumentsPage = () => {
         name: item.Name,
         value: item.Name,
       })),
-    [legalDocumentForms],
+    [documentSigners],
   );
 
   const documentSignerTitleOptions = useMemo(
@@ -104,7 +104,7 @@ export const LegalNormativeDocumentsPage = () => {
         name: item.Name,
         value: item.Name,
       })),
-    [legalDocumentForms],
+    [documentSignerTitles],
   );
 
   const loadData = async () => {
@@ -146,7 +146,7 @@ export const LegalNormativeDocumentsPage = () => {
 
   useEffect(() => {
     loadData();
-  }, [pagination.activePage, pagination.pageSize]);
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -187,6 +187,7 @@ export const LegalNormativeDocumentsPage = () => {
   }, [ID]);
 
   const handleSearch = () => {
+    setPagination(prev => ({ ...prev, activePage: 1 }));
     setFilter((prev) => ({
       ...prev,
       trichYeu: searchType === 'desc' || searchType === 'all' ? searchKeyword : '',
@@ -248,6 +249,7 @@ export const LegalNormativeDocumentsPage = () => {
       <Helmet>
         <title>{t('seo.legal')}</title>
       </Helmet>
+      <h1 className="visually-hidden">{t('documents.list.title')}</h1>
       <div className="mh-document-filter">
         <div className="mh-document-filter-basic" style={{ display: showAdvanced ? 'none' : 'block' }}>
           <SearchRadioGroup prefix="rdBasic" />

@@ -2,6 +2,7 @@ import { Suspense, lazy, type FC } from 'react';
 import { Outlet } from 'react-router-dom';
 import { LoadingFallback } from '@/components/LoadingFallback';
 import { HomePage } from '@/pages/home/HomePage';
+import { PortalSectionIndex } from '@/components/PortalSectionIndex';
 
 const HoiQuyPage = lazy(() => import('@/pages/hoi-quy/HoiQuyPage').then(m => ({ default: m.HoiQuyPage })));
 // Lazy load all pages
@@ -309,7 +310,7 @@ export const appRoutes = [
         children: [
           {
             index: true,
-            element: withSuspense(() => <FunctionsAndDutiesPage />),
+            element: <PortalSectionIndex prefix="/gioi-thieu/chuc-nang-nhiem-vu/" title="Giới thiệu Bộ Nội vụ" />,
           },
           {
             path: 'chuc-nang-nhiem-vu/:slug',
@@ -415,7 +416,7 @@ export const appRoutes = [
         children: [
           {
             index: true,
-            element: withSuspense(() => <DirectivesAndAdministrativeDocumentsPage />),
+            element: <PortalSectionIndex prefix="/van-ban/van-ban-chi-dao/" title="Văn bản chỉ đạo điều hành" />,
           },
           {
             path: 'van-ban-chi-dao/:slug',

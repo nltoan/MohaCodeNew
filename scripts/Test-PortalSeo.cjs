@@ -7,10 +7,11 @@ const {chromium}=createRequire(path.join(process.env.LOCALAPPDATA,'MohaDev/brows
    const data=await page.evaluate(()=>({canonical:[...document.querySelectorAll('link[rel="canonical"]')].map(n=>n.href),description:[...document.querySelectorAll('meta[name="description"]')].map(n=>n.content),og:document.querySelector('meta[property="og:url"]')?.content,path:location.pathname,title:document.title,h1:document.querySelectorAll('h1').length}));
    assert.deepEqual(data.canonical,['https://moha.gov.vn'+data.path]);assert.equal(data.description.length,1);assert.ok(data.description[0].length>20);assert.equal(data.og,data.canonical[0]);assert.ok(data.title.length>5);assert.equal(data.h1,1);
   };
-  await page.goto('http://localhost:5175/');await page.locator('link[rel="canonical"]').waitFor({state:'attached'});await check();
+  await page.addInitScript(()=>localStorage.setItem('i18nextLng','vi'));
+  await page.goto('http://localhost:5175/');await page.locator('.mh-home-banner').waitFor();await page.locator('h1').waitFor({state:'attached'});await check();
   // SPA navigation through a real homepage article link, followed by browser Back.
   const article=page.locator('.slick-slide.slick-active:not(.slick-cloned) .mh-home-banner-card-image').first();await article.waitFor();await article.click();
-  await page.waitForURL('**/tin-tuc/**');await page.waitForFunction(()=>document.querySelector('.mh-detail-body')?.innerText.length>100);await check();
+  await page.waitForURL('**/tin-tuc/**');await page.waitForFunction(()=>document.querySelector('.mh-page-header h1')?.textContent.length>0);await check();
   await page.goBack();await page.waitForURL('http://localhost:5175/');await page.locator('.mh-home-banner').waitFor();await check();
   await page.goto('http://localhost:5175/tin-tuc');await page.waitForFunction(()=>document.querySelector('.mh-news-header h1')?.textContent.length>0);await check();
   const menu=page.locator('.mh-document-accordion').first(),content=page.locator('.mh-news-content').first();

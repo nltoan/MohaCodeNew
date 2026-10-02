@@ -64,7 +64,7 @@ export const AudioAlbumDetailPage = () => {
     <div className="mh-gallery">
       <Helmet>
         <meta charSet="utf-8" />
-        <title>{t('seo.audioLibrary')}</title>
+        <title>{album?.TieuDe || t('seo.audioLibrary')}</title>
       </Helmet>
       <Container>
         <div className="mh-gallery-content">
@@ -72,7 +72,7 @@ export const AudioAlbumDetailPage = () => {
             <h1>{album?.TieuDe}</h1>
           </div>
           <div className="mh-gallery-slide">
-            {album?.AlbumAudio_Files.length > 0 && (
+            {album?.AlbumAudio_Files?.length > 0 && (
               <video width="100%" height="auto" controls autoPlay>
                 <source src={getUrlImage(album?.AlbumAudio_Files[0].File?.LinkLuuTru)} type="video/mp4" />
               </video>

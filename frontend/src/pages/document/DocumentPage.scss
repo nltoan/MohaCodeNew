@@ -344,4 +344,14 @@
       }
     }
   }
+  @media (max-width: 767px) {
+    &-filter { padding: 16px; }
+    &-filter .form-group-radios { flex-wrap: wrap; height: auto; gap: 8px 16px; }
+    &-filter .form-group-radios .form-label { width: 100%; }
+    &-filter-basic-body { flex-wrap: wrap; }
+    &-filter-basic-body .form-control { flex-basis: 100%; min-width: 0; }
+    &-filter button { padding: 8px 16px; }
+    &-filter-actions { flex-wrap: wrap; }
+    &-content .mh-section-header { flex-wrap: wrap; }
+  }
 }

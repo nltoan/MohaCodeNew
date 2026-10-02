@@ -3,7 +3,7 @@ const getUrlImage = (url: string) => {
 
   const env = (window as any).env;
   const baseUrl = (env && env.VITE_MEDIA_URL) ? env.VITE_MEDIA_URL : 'https://moha.gov.vn';
-  const finalUrl = `${baseUrl}${url}`;
+  const finalUrl = /^(https?:|data:|blob:)/i.test(url) ? url : new URL(url.replace(/^\/+/, ''), baseUrl.replace(/\/+$/, '') + '/').href;
 
   return finalUrl;
 };
@@ -13,7 +13,7 @@ const getUrlPdfFile = (url: string) => {
 
   const env = (window as any).env;
   const baseUrl = (env && env.VITE_MEDIA_URL) ? env.VITE_MEDIA_URL : 'https://moha.gov.vn';
-  const finalUrl = `${baseUrl}${url}`;
+  const finalUrl = /^https?:/i.test(url) ? url : new URL(url.replace(/^\/+/, ''), baseUrl.replace(/\/+$/, '') + '/').href;
 
   return finalUrl;
 };

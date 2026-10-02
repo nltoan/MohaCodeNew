@@ -7,6 +7,7 @@ const {chromium}=createRequire(path.join(process.env.LOCALAPPDATA,'MohaDev/brows
   for(const [label,viewport] of [['desktop',{width:1440,height:900}],['mobile',{width:390,height:844}]]) {
    const page=await browser.newPage({viewport}); const errors=[],requests=[];
    page.on('pageerror',e=>errors.push(e.message)); page.on('request',r=>requests.push(r.url()));
+  await page.addInitScript(()=>localStorage.setItem('i18nextLng','vi'));
    await page.goto('http://localhost:5175/');
    await page.locator('.mh-home-banner').waitFor();
    const sections=page.locator('.mh-deferred-section'); assert.equal(await sections.count(),4);

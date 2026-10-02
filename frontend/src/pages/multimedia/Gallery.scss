@@ -1,5 +1,10 @@
 .mh-gallery {
   padding: 24px 0;
+  &-content { min-height: 480px; }
+  @media (max-width: 1199px) {
+    > .container > .row > .col-xl-3 { order: 2; }
+    > .container > .row > .col-xl-9 { order: 1; }
+  }
   .row {
     --bs-gutter-y: 16px;
   }
@@ -140,11 +145,13 @@
       }
       &.slick-prev {
         left: -15px;
+        @media (max-width: 767px) { left: 4px; }
         background-image: url('data:image/svg+xml,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.99998 13.2807L5.65331 8.93404C5.13998 8.4207 5.13998 7.5807 5.65331 7.06737L9.99998 2.7207" stroke="%23292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/></svg>');
       }
       &.slick-next {
         background-image: url('data:image/svg+xml,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.94 13.2807L10.2867 8.93404C10.8 8.4207 10.8 7.5807 10.2867 7.06737L5.94 2.7207" stroke="%23292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/></svg>');
         right: -15px;
+        @media (max-width: 767px) { right: 4px; }
       }
     }
 

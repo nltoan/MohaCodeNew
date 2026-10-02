@@ -38,7 +38,7 @@ export const transformMenuData = (data: RawMenuItem[]): HeaderMenu[] => {
     nodeMap.set(item.ID, {
       id: item.ID.toString(),
       label: item.Level === 1 ? item.TenMenu.toUpperCase() : item.TenMenu, // Viết hoa level 1
-      url: item.URL,
+      url: item.URL === '/tintuc' ? '/tin-tuc' : item.URL,
       children: [],
     });
   });

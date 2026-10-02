@@ -49,7 +49,7 @@ export const ScientificResearchPage = () => {
   return (
     <div className="mh-scientificresearch">
       <div className="mh-scientificresearch-content">
-        <CardSection title={t("scientificresearch.title")}>
+        <CardSection title={<h1 className="m-0 fs-4">{t("scientificresearch.title")}</h1>}>
           <div className="mh-scientificresearch-posts">
             {pagination.data.length > 0 ? (
               pagination.data.map((item) => (
@@ -63,7 +63,6 @@ export const ScientificResearchPage = () => {
               <div className="mh-scientificresearch-empty">{t("common.no_data")}</div>
             )}
 
-            {pagination.data.length === 0 && <div className="text-center">{t('common.no_data')}</div>}
           </div>
           {pagination.totalPages >= 1 && (<Pagination
             style={{ marginTop: 10 }}

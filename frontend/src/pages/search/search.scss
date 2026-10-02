@@ -97,6 +97,8 @@
       }
     }
     &-info {
+      min-width: 0;
+      overflow-wrap: anywhere;
       order: 2;
       flex: 1;
       display: flex;
@@ -117,6 +119,7 @@
       }
     }
     &-description {
+      img { max-width: 100%; height: auto; }
       font-weight: 400;
       font-size: 14px;
       line-height: 24px;

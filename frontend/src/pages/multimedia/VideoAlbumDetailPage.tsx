@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { Container, Image } from 'react-bootstrap';
 import './Gallery.scss';
 import { Pagination } from '@/components';
@@ -60,13 +61,14 @@ export const VideoAlbumDetailPage = () => {
 
   return (
     <div className="mh-gallery">
+      <Helmet><title>{album?.TieuDe || 'Thư viện đa phương tiện - Bộ Nội vụ'}</title></Helmet>
       <Container>
         <div className="mh-gallery-content">
           <div className="mh-gallery-header">
             <h1>{album?.TieuDe}</h1>
           </div>
           <div className="mh-gallery-slide">
-            {album?.AlbumVideo_Files.length > 0 &&
+            {album?.AlbumVideo_Files?.length > 0 &&
               <video width="100%" height="auto" controls autoPlay>
                 <source src={getUrlImage(album?.AlbumVideo_Files[0].File?.LinkLuuTru)} type="video/mp4" />
               </video>

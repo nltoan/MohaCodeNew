@@ -15,7 +15,7 @@ export const NghiQuyetTW4Footer = () => {
           <div className="row">
               <div className="col-md-9 col-12">
                   <div className="display-flex full-width justify-content-between">
-                      <div className="footer-info col-12">
+                      <div className="footer-info">
                           <div>
                               <p>
                                   Bản quyền: Bộ Nội vụ - Số 8 Tôn Thất Thuyết - Nam Từ Liêm - Hà Nội.
@@ -27,7 +27,7 @@ export const NghiQuyetTW4Footer = () => {
                               </p>
                           </div>
                       </div>
-                      <div className="footer-address col-12">
+                      <div className="footer-address">
                           <div className="display-flex-center mg-b-10">
                               <i className="fa fa-phone" aria-hidden="true"></i>
                               <span>Tel (84-024)62821016</span>

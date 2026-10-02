@@ -1,4 +1,14 @@
 .mh-about-body {
+  max-width: 100%;
+  position: relative;
+  overflow-x: auto;
+  img { max-width: 100%; height: auto; }
+  .mh-about-history {
+    table { width: 100% !important; table-layout: fixed; }
+    td { width: auto !important; overflow-wrap: anywhere; }
+    td:first-child { width: 75% !important; }
+    td:last-child { width: 25% !important; }
+  }
   font-weight: 400;
   font-size: 16px;
   line-height: 24px;
