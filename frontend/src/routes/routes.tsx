@@ -1,8 +1,10 @@
 import { Suspense, lazy, type FC } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { LoadingFallback } from '@/components/LoadingFallback';
 import { HomePage } from '@/pages/home/HomePage';
 import { PortalSectionIndex } from '@/components/PortalSectionIndex';
+import { ArticleLanguageUnavailable } from '@/components/ArticleLanguageUnavailable';
+import { getLang } from '@/services';
 
 const HoiQuyPage = lazy(() => import('@/pages/hoi-quy/HoiQuyPage').then(m => ({ default: m.HoiQuyPage })));
 // Lazy load all pages
@@ -176,9 +178,16 @@ const SearchPage = lazy(() =>
 const MinisterHomePage = lazy(() => import('@/pages/minister/home/MinisterHomePage').then((m) => ({ default: m.MinisterHomePage })))
 const NghiQuyetHomePage = lazy(() => import('@/pages/nghiquyettw4/home/NghiQuyetTW4HomePage').then((m) => ({ default: m.NghiQuyetTW4HomePage })))
 
+const RouteComponent = ({ component: Component }: { component: FC }) => {
+  const { pathname } = useLocation();
+  const newsList = /^\/(?:tin-tuc\/?$|chuyen-muc(?:\/|$)|tim-kiem(?:\/|$)|(?:bo-truong|nghi-quyet-tw4)\/(?:tin-tuc\/?$|chuyen-muc(?:\/|$)))/.test(pathname);
+  if (getLang() === 'en' && newsList) return <ArticleLanguageUnavailable collection />;
+  return <Component key={pathname} />;
+};
+
 const withSuspense = (Component: FC) => (
   <Suspense fallback={<LoadingFallback />}>
-    <Component />
+    <RouteComponent component={Component} />
   </Suspense>
 );
 

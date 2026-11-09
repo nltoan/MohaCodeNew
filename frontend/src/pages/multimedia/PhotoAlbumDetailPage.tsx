@@ -12,6 +12,7 @@ import { vnFormatter } from '@/utils';
 import { getPhotoAlbums, getPhotoAlbum } from '@/services/multimedia';
 import { getIdFromSlug, getNewURL } from '@/utils/getSlugKey';
 import { t } from 'i18next';
+import { DublinCore } from '@/components/DublinCore';
 
 interface MediaItem {
   ID: number;
@@ -72,6 +73,7 @@ export const PhotoAlbumDetailPage = () => {
 
   return (
     <div className="mh-gallery">
+      <DublinCore title={album?.TieuDe} description={album?.MoTa} date={album?.ThoiGianXuatBan} />
       <Helmet><title>{album?.TieuDe || 'Thư viện đa phương tiện - Bộ Nội vụ'}</title></Helmet>
       <Container>
         <div className="mh-gallery-content">

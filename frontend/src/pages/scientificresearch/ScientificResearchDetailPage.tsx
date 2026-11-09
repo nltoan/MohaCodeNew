@@ -7,6 +7,7 @@ import { getScientificResearchDetail, getScientificResearchDetailByoid } from '@
 import { getIdFromSlug } from '@/utils/getSlugKey';
 import DOMPurify from 'dompurify';
 import { useTranslation } from 'react-i18next';
+import { DublinCore } from '@/components/DublinCore';
 
 interface ScientificResearchDetailState {
   tendetai: string;
@@ -16,6 +17,7 @@ interface ScientificResearchDetailState {
   thoigianthuchien: string;
   mota: string;
   noidung: string;
+  ngaytao: string;
 }
 
 export const ScientificResearchDetailPage = () => {
@@ -48,6 +50,7 @@ export const ScientificResearchDetailPage = () => {
           thoigianthuchien: data.ThoiGianThucHien || '',
           mota: data.MoTa || '',
           noidung: data.NoiDung || '',
+          ngaytao: data.NgayTao || '',
         });
       }
     } catch (error) {
@@ -73,7 +76,7 @@ export const ScientificResearchDetailPage = () => {
   };
 
   return (
-    <Container className="py-4"><Row>
+    <Container className="py-4"><DublinCore title={detail.tendetai} description={detail.mota} creator={detail.donvichutri} date={detail.ngaytao} dateKind="Created" subject={detail.linhvuc} /><Row>
       <Col xl={12}>
         <div className="scientificresearch-detail-wrapper">
           <CardSection title={<h1 className="m-0 fs-4">{t("scientificresearch.title")}</h1>}>

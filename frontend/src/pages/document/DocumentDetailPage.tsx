@@ -13,11 +13,13 @@ import { useTranslation } from 'react-i18next';
 import { IconDocumentDownload } from '@/components/icons';
 import { Helmet } from 'react-helmet-async';
 import { APP_DATA_CONFIG } from '@/configs';
+import { DublinCore } from '@/components/DublinCore';
 
 interface DocumentDetailState {
   documentNumber: string;
   summary: string;
   issueDate: string;
+  issueDateRaw: string;
   documentType: string;
   field: string;
   issuingAuthority: string;
@@ -64,6 +66,7 @@ export const DocumentDetailPage = () => {
           documentNumber: data.SoKyHieu || '',
           summary: data.TrichYeu || '',
           issueDate: data.NgayBanHanh ? vnFormatter(data.NgayBanHanh) ?? '' : '',
+          issueDateRaw: data.NgayBanHanh || '',
           documentType: data.HinhThucVanBan?.TenHinhThucVanBan || '',
           field: data.VanBan_LinhVuc?.[0]?.LinhVuc?.TenLinhVuc || '',
           issuingAuthority: data.VanBan_CoQuanBanHanh?.[0]?.CoQuanBanHanh?.TenCoQuanBanHanh || '',
@@ -102,6 +105,7 @@ export const DocumentDetailPage = () => {
 
   return (
     <Row>
+      <DublinCore title={detail.documentNumber || detail.summary} description={detail.summary} creator={detail.issuingAuthority} publisher={detail.issuingAuthority} date={detail.issueDateRaw} subject={detail.field} />
       <Helmet>
         <title>
           {t('seo.moha')} - {detail.documentNumber ?? t('seo.documentDetail')}

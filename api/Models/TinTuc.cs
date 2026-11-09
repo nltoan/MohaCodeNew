@@ -45,6 +45,8 @@ public partial class TinTuc
 
     public string TieuDe { get; set; }
 
+    public string NgonNgu { get; set; }
+
     public string MoTa { get; set; }
 
     public string NoiDung { get; set; }

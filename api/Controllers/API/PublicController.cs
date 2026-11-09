@@ -44,6 +44,19 @@ namespace API.Controllers
         private readonly string QueryByChuyenMucHienThiThem = "EXISTS (SELECT 1 FROM {0} nt WHERE (',' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ChuyenMucHienThiThem, '[', ''), ']', ''),' ',''),CHAR(13),''),CHAR(9),''),CHAR(10),'') + ',') LIKE '%,' + CAST(nt.ID AS NVARCHAR(max)) + ',%')";
         private CongTTDT_MOHAEntities _context = new CongTTDT_MOHAEntities();
 
+        private static bool IsEnglishLanguage(string lang)
+        {
+            var value = (lang ?? "").Trim();
+            return value.Equals("en", StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("en-", StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("en_", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private HttpResponseMessage EnglishNewsUnavailable()
+        {
+            return Request.CreateResponse(HttpStatusCode.OK, new { data = new object[0], totalCount = 0, reason = "language_unavailable" });
+        }
+
         [NonAction]
         public string ReadPdfFile(string fileName)
         {
@@ -256,6 +269,7 @@ namespace API.Controllers
         [HttpGet]
         public async Task<HttpResponseMessage> Search(string keyword, string lang, DataSourceLoadOptions loadOptions)
         {
+            if (IsEnglishLanguage(lang)) return EnglishNewsUnavailable();
             int lan = 10;//chuyen muc: Tin tuc - su kien
             if (lang == "en")
             {
@@ -277,7 +291,7 @@ namespace API.Controllers
                 select t.ID, t.TieuDe as TieuDe, t.MoTa, t.NgayXuatBan, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl, 'tin-tuc' as Type from TinTuc t
                 left join Files f on t.AnhDaiDien = f.ID
                 where t.IDChuyenMuc in (SELECT Id FROM cte) and (t.TieuDe like @keyword or t.MoTa like @keyword) and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
-                and t.TrangThai='public' order by t.NgayXuatBan desc
+                and t.TrangThai='public' and t.NgonNgu='vi' order by t.NgayXuatBan desc
             ",
             new Dictionary<string, object> { { "@ID", lan }, { "@keyword", "%" + keyword + "%" } }).ToList();
 
@@ -636,18 +650,19 @@ namespace API.Controllers
         [HttpGet]
         public async Task<HttpResponseMessage> PostDetail(int ID, string lang = "")
         {
-            return PostDetailById(ID);
+            return PostDetailById(ID, lang);
         }
-        private HttpResponseMessage PostDetailById(int ID)
+        private HttpResponseMessage PostDetailById(int ID, string lang)
         {
+            var language = IsEnglishLanguage(lang) ? "en" : "vi";
             var post = _context.TinTucs
                 .Include(s => s.ChuyenMuc)
                 .Include(s => s.TinTuc_Files.Select(x => x.File))
-                .Where(x => x.ID == ID && x.TrangThai == "public")
+                .Where(x => x.ID == ID && x.TrangThai == "public" && x.NgonNgu == language)
                 .FirstOrDefault();
             if (post == null)
             {
-                return Request.CreateResponse(HttpStatusCode.OK, new { data = (string)null });
+                return Request.CreateResponse(HttpStatusCode.OK, new { data = (string)null, reason = "language_unavailable" });
             }
             post.PageCount = post.PageCount + 1 ?? 1;
             _context.Entry(post).Property(x => x.PageCount).IsModified = true;
@@ -675,45 +690,46 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.OK, new { data = post, parents, username });
         }
 
-        private HttpResponseMessage PostDetailByOldId(string oldID)
+        private HttpResponseMessage PostDetailByOldId(string oldID, string lang)
         {
             var id = _context.TinTucs
                 .Where(x => x.Migrate_Source.EndsWith(oldID))
                 .Select(s => s.ID).FirstOrDefault();
-            return PostDetailById(id);
+            return PostDetailById(id, lang);
         }
 
         [HttpGet]
         public async Task<HttpResponseMessage> PostDetailByoid(int ID, string lang = "")
         {
             string oldID = $"/knd/tt|##|Tin tức|##|{ID}";
-            return PostDetailByOldId(oldID);
+            return PostDetailByOldId(oldID, lang);
         }
 
         [HttpGet]
         public async Task<HttpResponseMessage> PostDetailBybtid(int ID, string lang = "")
         {
             string oldID = $"|##|Tin trang bộ trưởng|##|{ID}";
-            return PostDetailByOldId(oldID);
+            return PostDetailByOldId(oldID, lang);
         }
 
         [HttpGet]
         public async Task<HttpResponseMessage> PostDetailBynqid(int ID, string lang = "")
         {
             string oldID = $"|##|Tin Nghị quyết Trung ương 4|##|{ID}";
-            return PostDetailByOldId(oldID);
+            return PostDetailByOldId(oldID, lang);
         }
 
         [HttpGet]
         public async Task<HttpResponseMessage> PostDetailBygtbtid(int ID, string lang = "")
         {
             string oldID = $"|##|Tin tức Infographics|##|{ID}";
-            return PostDetailByOldId(oldID);
+            return PostDetailByOldId(oldID, lang);
         }
 
         [HttpGet]
-        public async Task<HttpResponseMessage> ChuyenMucDetail(int ID, int limitTopPost = 6)
+        public async Task<HttpResponseMessage> ChuyenMucDetail(int ID, int limitTopPost = 6, string lang = "")
         {
+            if (IsEnglishLanguage(lang)) return Request.CreateResponse(HttpStatusCode.OK, new { data = (string)null, topposts = new object[0], childs = new object[0], reason = "language_unavailable" });
             return ChuyenMucDetailById(ID, limitTopPost);
         }
         private HttpResponseMessage ChuyenMucDetailById(int ID, int limitTopPost = 6)
@@ -766,7 +782,7 @@ namespace API.Controllers
                 )
                 select top " + limitTopPost + @" t.ID, t.TieuDe, t.MoTa, t.NgayXuatBan, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc t
                 left join Files f on t.AnhDaiDien = f.ID
-                where (IDChuyenMuc in (SELECT ID FROM name_tree) or " + string.Format(QueryByChuyenMucHienThiThem,"name_tree") + @") and t.TrangThai='public' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                where (IDChuyenMuc in (SELECT ID FROM name_tree) or " + string.Format(QueryByChuyenMucHienThiThem,"name_tree") + @") and t.TrangThai='public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
                 order by t.NoiBat desc, t.NgayXuatBan desc
             ",
             new Dictionary<string, object> { { "@IDChuyenMuc", chuyenmuc.ID } }).ToList();
@@ -781,22 +797,25 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<HttpResponseMessage> ChuyenMucDetailByoid(int ID, int limitTopPost = 6)
+        public async Task<HttpResponseMessage> ChuyenMucDetailByoid(int ID, int limitTopPost = 6, string lang = "")
         {
+            if (IsEnglishLanguage(lang)) return Request.CreateResponse(HttpStatusCode.OK, new { data = (string)null, topposts = new object[0], childs = new object[0], reason = "language_unavailable" });
             string oldID = $"|##|Danh mục tin tức|##|{ID}";
             return ChuyenMucDetailByOldId(oldID, limitTopPost);
         }
 
         [HttpGet]
-        public async Task<HttpResponseMessage> ChuyenMucDetailBybtid(int ID, int limitTopPost = 6)
+        public async Task<HttpResponseMessage> ChuyenMucDetailBybtid(int ID, int limitTopPost = 6, string lang = "")
         {
+            if (IsEnglishLanguage(lang)) return Request.CreateResponse(HttpStatusCode.OK, new { data = (string)null, topposts = new object[0], childs = new object[0], reason = "language_unavailable" });
             string oldID = $"|##|DanhmucTDKT|##|{ID}";
             return ChuyenMucDetailByOldId(oldID, limitTopPost);
         }
 
         [HttpGet]
-        public async Task<HttpResponseMessage> ChuyenMucDetailBynqid(int ID, int limitTopPost = 6)
+        public async Task<HttpResponseMessage> ChuyenMucDetailBynqid(int ID, int limitTopPost = 6, string lang = "")
         {
+            if (IsEnglishLanguage(lang)) return Request.CreateResponse(HttpStatusCode.OK, new { data = (string)null, topposts = new object[0], childs = new object[0], reason = "language_unavailable" });
             string oldID = $"/KND/nghi-quyet-tw4/TT|##|Danhmuc|##|{ID}";
             return ChuyenMucDetailByOldId(oldID, limitTopPost);
         }
@@ -808,9 +827,10 @@ namespace API.Controllers
         }
         private HttpResponseMessage PostRelateById(int ID, string lang, DataSourceLoadOptions loadOptions)
         {
+            if (IsEnglishLanguage(lang)) return EnglishNewsUnavailable();
             var post = _context.TinTucs
                 .Include(s => s.ChuyenMuc)
-                .Where(x => x.ID == ID && x.TrangThai == "public")
+                .Where(x => x.ID == ID && x.TrangThai == "public" && x.NgonNgu == "vi")
                 .FirstOrDefault();
 
             if (post == null)
@@ -831,7 +851,7 @@ namespace API.Controllers
                 )
                 select t.ID, t.TieuDe, t.MoTa, t.NgayXuatBan, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc t
                 left join Files f on t.AnhDaiDien = f.ID
-                where (IDChuyenMuc in (SELECT ID FROM name_tree) or " + string.Format(QueryByChuyenMucHienThiThem, "name_tree") + @") and t.ID <> @ID and t.TrangThai='public' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                where (IDChuyenMuc in (SELECT ID FROM name_tree) or " + string.Format(QueryByChuyenMucHienThiThem, "name_tree") + @") and t.ID <> @ID and t.TrangThai='public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
                 order by t.NgayXuatBan desc
             ",
             new Dictionary<string, object> { { "@IDChuyenMuc", post.IDChuyenMuc }, { "@ID", post.ID } }).ToList();
@@ -858,6 +878,7 @@ namespace API.Controllers
         }
         private HttpResponseMessage PostRelateByOldId(string oldID, string lang, DataSourceLoadOptions loadOptions)
         {
+            if (IsEnglishLanguage(lang)) return EnglishNewsUnavailable();
             var id = _context.TinTucs
                 .Where(x => x.Migrate_Source.EndsWith(oldID))
                 .Select(s => s.ID).FirstOrDefault();
@@ -865,28 +886,32 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<HttpResponseMessage> PostsByCategory(int ID, [FromUri] int[] exId, DataSourceLoadOptions loadOptions)
+        public async Task<HttpResponseMessage> PostsByCategory(int ID, [FromUri] int[] exId, DataSourceLoadOptions loadOptions, string lang = "")
         {
+            if (IsEnglishLanguage(lang)) return EnglishNewsUnavailable();
             return  PostsByCategoryById(ID, exId, loadOptions);
         }
 
         [HttpGet]
-        public async Task<HttpResponseMessage> PostsByCategoryBybtid(int ID, [FromUri] int[] exId, DataSourceLoadOptions loadOptions)
+        public async Task<HttpResponseMessage> PostsByCategoryBybtid(int ID, [FromUri] int[] exId, DataSourceLoadOptions loadOptions, string lang = "")
         {
+            if (IsEnglishLanguage(lang)) return EnglishNewsUnavailable();
             string oldID = $"|##|DanhmucTDKT|##|{ID}";
             return PostsByCategoryByOldId(oldID, exId, loadOptions);
         }
 
         [HttpGet]
-        public async Task<HttpResponseMessage> PostsByCategoryBynqid(int ID, [FromUri] int[] exId, DataSourceLoadOptions loadOptions)
+        public async Task<HttpResponseMessage> PostsByCategoryBynqid(int ID, [FromUri] int[] exId, DataSourceLoadOptions loadOptions, string lang = "")
         {
+            if (IsEnglishLanguage(lang)) return EnglishNewsUnavailable();
             string oldID = $"/KND/nghi-quyet-tw4/TT|##|Danhmuc|##|{ID}";
             return PostsByCategoryByOldId(oldID, exId, loadOptions);
         }
 
         [HttpGet]
-        public async Task<HttpResponseMessage> PostsByCategoryByoid(int ID, [FromUri] int[] exId, DataSourceLoadOptions loadOptions)
+        public async Task<HttpResponseMessage> PostsByCategoryByoid(int ID, [FromUri] int[] exId, DataSourceLoadOptions loadOptions, string lang = "")
         {
+            if (IsEnglishLanguage(lang)) return EnglishNewsUnavailable();
             string oldID = $"/knd|##|Danh mục tin tức|##|{ID}";
             return PostsByCategoryByOldId(oldID, exId, loadOptions);
         }
@@ -917,7 +942,7 @@ namespace API.Controllers
                 from TinTuc t 
                 left join Files f on t.AnhDaiDien = f.ID
                 where (t.IDChuyenMuc in (SELECT Id FROM cte)  or " + string.Format(QueryByChuyenMucHienThiThem,"cte") + @")
-                and t.TrangThai = 'public' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                and t.TrangThai = 'public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
                 {1}
                 ORDER BY NgayXuatBan desc
             ", ID, exIdsStr);
@@ -961,6 +986,7 @@ namespace API.Controllers
         [HttpGet]
         public async Task<HttpResponseMessage> BoxHighLight(int limit, string lang = "")
         {
+            if (IsEnglishLanguage(lang)) return EnglishNewsUnavailable();
             int lan = 10;//chuyen muc: Tin tuc - su kien
             if (lang == "en")
             {
@@ -980,7 +1006,7 @@ namespace API.Controllers
                 )
                 select top " + limit + @" tt.*, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc tt 
                 left join Files f on tt.AnhDaiDien = f.ID
-                where (tt.IDChuyenMuc in (SELECT Id FROM cte) or " + string.Format(QueryByChuyenMucHienThiThem,"cte") + @") and tt.TrangThai = 'public' and tt.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                where (tt.IDChuyenMuc in (SELECT Id FROM cte) or " + string.Format(QueryByChuyenMucHienThiThem,"cte") + @") and tt.TrangThai = 'public' and tt.NgonNgu='vi' and tt.NgayXuatBan >= '2021-01-01 00:00:00.001'
                 ORDER BY NgayXuatBan desc
             ",
             new Dictionary<string, object> { { "@ID", lan } }).ToList();
@@ -1011,7 +1037,7 @@ namespace API.Controllers
                 select top {1} t.ID, t.TieuDe, t.MoTa, t.NgayXuatBan, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc t 
                 left join Files f on t.AnhDaiDien = f.ID
                 where (t.IDChuyenMuc in (SELECT Id FROM cte) or " + string.Format(QueryByChuyenMucHienThiThem,"cte") + @")
-                and t.TrangThai = 'public' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                and t.TrangThai = 'public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
                 {2}
                 ORDER BY t.NoiBat desc, t.NgayXuatBan desc
             ", ID, limit, exIdsStr);
@@ -1021,8 +1047,9 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<HttpResponseMessage> Box8News(int ID)
+        public async Task<HttpResponseMessage> Box8News(int ID, string lang = "")
         {
+            if (IsEnglishLanguage(lang)) return Request.CreateResponse(HttpStatusCode.OK, new { subCates = new object[0], reason = "language_unavailable" });
             var chuyenmuc = _context.ChuyenMucs.Find(ID);
             string sql = string.Format(@"
                 SELECT ID, TenChuyenMuc
@@ -1038,7 +1065,7 @@ namespace API.Controllers
                     from TinTuc t 
                     left join Files f on t.AnhDaiDien = f.ID
                     where t.IDChuyenMuc = @IDChuyenMuc 
-                    and t.TrangThai = 'public' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                    and t.TrangThai = 'public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
                     ORDER BY NgayXuatBan desc
                 ");
                 var topposts = _context.CollectionFromSql(sqlPosts, new Dictionary<string, object> { { "@IDChuyenMuc", cate.ID } }).FirstOrDefault();
@@ -1211,7 +1238,7 @@ namespace API.Controllers
                                 )
                                 select top 6 t.ID, t.TieuDe, t.MoTa, t.NgayXuatBan, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc t
                                 left join Files f on t.AnhDaiDien = f.ID
-                                where IDChuyenMuc in (SELECT ID FROM name_tree) and t.TrangThai='public' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                                where IDChuyenMuc in (SELECT ID FROM name_tree) and t.TrangThai='public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
                                 order by t.NoiBat desc, t.NgayXuatBan desc
                             ",
                             new Dictionary<string, object> { { "@IDChuyenMuc", idChuyenMuc } }).ToList();
@@ -1334,6 +1361,7 @@ namespace API.Controllers
 	                join Block b on b.ID = tb.BlockID
 	                where b.Path = 'BoxTongHop'
                 )
+                and t.TrangThai = 'public' and t.NgonNgu='vi'
                 ORDER BY t.ID desc
             ",
             new Dictionary<string, object> { }).FirstOrDefault();
@@ -1354,7 +1382,7 @@ namespace API.Controllers
                 from TinTuc t 
                 left join Files f on t.AnhDaiDien = f.ID
                 where (t.IDChuyenMuc in (SELECT Id FROM cte) or " + string.Format(QueryByChuyenMucHienThiThem,"cte") + @")
-                and t.TrangThai = 'public' and t.ID <> @idTop and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                and t.TrangThai = 'public' and t.NgonNgu='vi' and t.ID <> @idTop and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
                 ORDER BY NgayXuatBan desc
             ", new Dictionary<string, object> { { "@ID", ID }, { "@idTop", top.ID } }).ToList();
 
@@ -1371,7 +1399,7 @@ namespace API.Controllers
 	                join Block b on b.ID = tb.BlockID
 	                where b.Path = 'BoxTinNoiBatEn'
                 )
-                and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                and t.TrangThai = 'public' and t.NgonNgu='en' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
                 ORDER BY t.ID desc
             ",
             new Dictionary<string, object> { }).ToList();
@@ -1387,7 +1415,7 @@ namespace API.Controllers
 	                select tb.TinTucID from TinTuc_Block tb
 	                join Block b on b.ID = tb.BlockID
 	                where b.Path = 'BoxHot'
-                ) and t.TrangThai = 'public' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                ) and t.TrangThai = 'public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
                 ORDER BY t.NgayXuatBan desc
             ",
             new Dictionary<string, object> { }).ToList();
@@ -1404,7 +1432,7 @@ namespace API.Controllers
 	                select tb.TinTucID from TinTuc_Block tb
 	                join Block b on b.ID = tb.BlockID
 	                where b.Path = 'BoxHotEn'
-                ) and t.TrangThai = 'public' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                ) and t.TrangThai = 'public' and t.NgonNgu='en' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
                 ORDER BY t.NgayXuatBan desc
             ",
             new Dictionary<string, object> { }).ToList();
@@ -1418,7 +1446,7 @@ namespace API.Controllers
             var datanotifys = _context.CollectionFromSql(@"
                 select top 3 t.*, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc t
                 left join Files f on t.AnhDaiDien = f.ID 
-                WHERE t.IDChuyenMuc = 27 and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                WHERE t.IDChuyenMuc = 27 and t.TrangThai='public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
                 ORDER BY t.NgayXuatBan desc
             ",
             new Dictionary<string, object> { }).ToList();
@@ -1427,8 +1455,9 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<HttpResponseMessage> BoxAnnouncement()
+        public async Task<HttpResponseMessage> BoxAnnouncement(string lang = "")
         {
+            if (IsEnglishLanguage(lang)) return EnglishNewsUnavailable();
             var data = _context.CollectionFromSql(@"
                 SELECT TOP 3
                     t.ID,
@@ -2148,8 +2177,9 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<HttpResponseMessage> ThongBaoDetail(int ID)
+        public async Task<HttpResponseMessage> ThongBaoDetail(int ID, string lang = "")
         {
+            if (IsEnglishLanguage(lang)) return Request.CreateResponse(HttpStatusCode.OK, new { data = (string)null, relates = new object[0], reason = "language_unavailable" });
             var data = _context.ThongBaos
                 .Include(s => s.ThongBao_Files.Select(y => y.File))
                 .Where(x => x.ID == ID).FirstOrDefault();

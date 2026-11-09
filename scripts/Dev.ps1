@@ -3,7 +3,13 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $toolsDir = Join-Path $env:LOCALAPPDATA 'MohaDev'
 $nodeDir = Join-Path $toolsDir 'node-v22.23.3-win-x64'
-$env:PATH = "$nodeDir;$toolsDir\npm-global;$env:PATH"
+$pathEntries = @($env:PATH -split ';' | Where-Object { $_ })
+foreach ($devPath in @((Join-Path $toolsDir 'npm-global'), $nodeDir)) {
+    if (-not ($pathEntries | Where-Object { $_.TrimEnd('\') -ieq $devPath.TrimEnd('\') })) {
+        $pathEntries = @($devPath) + $pathEntries
+    }
+}
+$env:PATH = $pathEntries -join ';'
 $node = Join-Path $nodeDir 'node.exe'
 $msbuild = 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe'
 $iis = 'C:\Program Files\IIS Express\iisexpress.exe'
@@ -86,6 +92,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Initialize the dev database first.' }
 $apiRoot = Join-Path $runtime 'api'
 if (!($processes | Where-Object Name -eq 'api')) {
 & (Join-Path $PSScriptRoot 'Initialize-HoiQuy.ps1')
+& (Join-Path $PSScriptRoot 'Initialize-TinTucNgonNgu.ps1')
 New-Item -ItemType Directory -Path $apiRoot -Force | Out-Null
 Copy-Item (Join-Path $root 'api\Global.asax') $apiRoot -Force
 Copy-Item (Join-Path $root 'api\bin') $apiRoot -Recurse -Force

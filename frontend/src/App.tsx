@@ -7,6 +7,26 @@ import { appRoutes, ministerRouters, nghiquyettw4Routers } from '@/routes';
 import { MinisterLayout } from './layout/minister-layout/MinisterLayout';
 import { NghiQuyetTW4Layout } from './layout/nghiquyettw4-layout/NghiQuyetTW4Layout';
 import './i18n';
+import { useEffect } from 'react';
+
+function useInertHiddenSlides() {
+  useEffect(() => {
+    let frame = 0;
+    const sync = () => {
+      frame = 0;
+      document.querySelectorAll<HTMLElement>('.slick-slide[aria-hidden]').forEach(slide => {
+        const hidden = slide.getAttribute('aria-hidden') === 'true';
+        if (slide.inert !== hidden) slide.inert = hidden;
+      });
+    };
+    const observer = new MutationObserver(() => {
+      if (!frame) frame = requestAnimationFrame(sync);
+    });
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-hidden'] });
+    sync();
+    return () => { observer.disconnect(); if (frame) cancelAnimationFrame(frame); };
+  }, []);
+}
 
 function createRoutes(routeList: typeof appRoutes) {
   return routeList[0].children?.map((route, index) => {
@@ -24,6 +44,7 @@ function createRoutes(routeList: typeof appRoutes) {
 }
 
 function App() {
+  useInertHiddenSlides();
   return (
     <Router>
       <Routes>

@@ -26,7 +26,7 @@ export const getBoxHot = async () => {
 };
 
 export const getBox8News = async (id: string): Promise<NewsCategoryItem[]> => {
-  const res = await cachedPublicGet(`/Box8News?ID=${id}`);
+  const res = await cachedPublicGet(getUrlPath('/Box8News', { ID: id }));
   return res.data.subCates;
 };
 

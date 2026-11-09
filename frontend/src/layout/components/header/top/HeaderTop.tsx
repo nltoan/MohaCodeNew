@@ -25,7 +25,7 @@ export const HeaderTop = ({ minister, nqtw4, image, imageRight, title }: HeaderT
         <Container>
           <div className="mh-header-top-inner">
             <div className={`mh-header-top-img`}>
-              {minister ? <></> : <Image src={imgLeft} className="bg" />}
+              {minister ? <></> : <Image src={imgLeft} alt="" className="bg" />}
               <Image src={image.src} alt={image.alt} className={nqtw4 ? 'mh-header-top-img-left' : ''} />
             </div>
             <BrandingHeading
@@ -34,7 +34,7 @@ export const HeaderTop = ({ minister, nqtw4, image, imageRight, title }: HeaderT
             ></BrandingHeading>
             {imageRight ? (
               <div className="mh-header-top-img">
-                {minister ? <></> : <Image src={imgRight} className="bg bg-right" />}
+                {minister ? <></> : <Image src={imgRight} alt="" className="bg bg-right" />}
                 <Image src={imageRight.src} alt={imageRight.alt} />
               </div>
             ) : (

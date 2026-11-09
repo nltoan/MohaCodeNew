@@ -232,6 +232,7 @@ export default function TinTuc() {
             showBorders={true}
             onInitNewRow={(e) => {
               rowData = null;
+              e.data.NgonNgu = 'vi';
               e.data.NgayXuatBan = new Date();
               e.data.NoiBat = 1;
               if (type === "infographic") {
@@ -334,6 +335,7 @@ export default function TinTuc() {
                       colSpan={2}
                     />
                     <Item dataField="TieuDe" colSpan={2} isRequired={true} />
+                    <Item dataField="NgonNgu" isRequired={true} />
                     <Item dataField="MoTa" colSpan={2} />
                     <Item dataField="NoiDung" colSpan={2} />
                     <Item dataField="TacGia" />
@@ -717,6 +719,9 @@ export default function TinTuc() {
 
             <Column dataField="ID" dataType="string" caption="ID" width={60} />
             <Column dataField="TieuDe" dataType="string" caption="Tiêu đề" />
+            <Column dataField="NgonNgu" dataType="string" caption="Ngôn ngữ" width={120}>
+              <Lookup dataSource={[{ id: 'vi', name: 'Tiếng Việt' }, { id: 'en', name: 'English' }]} valueExpr="id" displayExpr="name" />
+            </Column>
             <Column
               dataField="IDChuyenMuc"
               dataType="string"

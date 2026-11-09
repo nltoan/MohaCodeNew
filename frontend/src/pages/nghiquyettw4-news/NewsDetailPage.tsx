@@ -14,6 +14,9 @@ import { IconPdfFile } from '@/components/icons';
 import { getIdFromSlug, getNewURL } from '@/utils/getSlugKey';
 import { useTranslation } from 'react-i18next';
 import { useReactToPrint } from 'react-to-print';
+import { DublinCore } from '@/components/DublinCore';
+import { ArticleLanguageUnavailable } from '@/components/ArticleLanguageUnavailable';
+import { getLang } from '@/services';
 
 interface BannerItem {
   ID: number;
@@ -27,28 +30,33 @@ export const NewsDetailPage = () => {
   const contentRef = useRef(null);
   const { slug } = useParams<{ slug: string }>();
   const [detail, setDetail] = useState<any>(null);
+  const [loadingDetail, setLoadingDetail] = useState(true);
 
   const handlePrint = useReactToPrint({
     contentRef,
   });
 
   useEffect(() => {
+    let active = true;
+    setLoadingDetail(true);
+    setDetail(null);
     const fetchData = async () => {
       try {
         let id = getIdFromSlug(slug || '', 'nqid');
         if(!id){
           id = getIdFromSlug(slug || '', 'id');
           const res = await getDetailPost(id || '');
-          setDetail(res.data);
+          if (active) setDetail(res.data);
         } else {
           const res = await getDetailPostBynqid(id || '');
-          setDetail(res.data);
+          if (active) setDetail(res.data);
         }
       } catch (err) {
         console.error(err);
-      }
+      } finally { if (active) setLoadingDetail(false); }
     };
     fetchData();
+    return () => { active = false; };
   }, [slug]);
 
   const [pagination, setPagination] = useState({
@@ -59,6 +67,7 @@ export const NewsDetailPage = () => {
   });
 
   useEffect(() => {
+    if (getLang() === 'en') return;
     const fetchData = async () => {
       try {
         let id = getIdFromSlug(slug || '', 'nqid');
@@ -92,8 +101,12 @@ export const NewsDetailPage = () => {
     return detail?.TinTuc_Files;
   }, [detail?.TinTuc_Files]);
 
+  if (getLang() === 'en' && loadingDetail) return <div className="mh-detail-loading" aria-label="Loading article" />;
+  if (getLang() === 'en' && !detail) return <ArticleLanguageUnavailable />;
+
   return (
     <div className="mh-detail">
+      <DublinCore title={detail?.TieuDe} description={detail?.MoTa} creator={detail?.TacGia} date={detail?.NgayXuatBan} subject={detail?.TuKhoa} />
       <Container>
         <Row>
           <Col span={24}>

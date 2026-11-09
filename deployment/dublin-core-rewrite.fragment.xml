@@ -1,0 +1,15 @@
+<!-- Merge these rules immediately before the existing React Routes fallback.
+     Keep all existing redirect, media and bot rules. Requires IIS URL Rewrite. -->
+<rule name="DC snapshot" stopProcessing="true">
+  <match url="^((?:[a-z0-9-]+/)*[a-z0-9-]+)$" />
+  <conditions logicalGrouping="MatchAll">
+    <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+    <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+    <add input="{APPL_PHYSICAL_PATH}__dc\{R:1}\index.html" matchType="IsFile" />
+  </conditions>
+  <action type="Rewrite" url="/__dc/{R:1}/index.html" />
+</rule>
+<!-- Replace only the action of the existing React Routes rule with the line
+     below, after uploading index-no-dc.html. The root must continue to serve
+     the normal index.html, not this fallback. -->
+<!-- <action type="Rewrite" url="/index-no-dc.html" /> -->

@@ -1,6 +1,9 @@
 import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { resolveContentMedia } from '@/utils/image';
 import { portalCanonical } from '@/components/PortalSeo';
+import { DublinCore } from '@/components/DublinCore';
+import { ArticleLanguageUnavailable } from '@/components/ArticleLanguageUnavailable';
+import { getLang } from '@/services';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Col, Container, Image, Row } from 'react-bootstrap';
 import './NewsDetail.scss';
@@ -69,6 +72,7 @@ export const NewsDetailPage = () => {
   });
 
   useEffect(() => {
+    if (getLang() === 'en') return;
     const fetchData = async () => {
       try {
         let id = getIdFromSlug(slug || '', 'oid');
@@ -103,8 +107,10 @@ export const NewsDetailPage = () => {
   }, [detail?.TinTuc_Files]);
   const plainDescription = (detail?.MoTa || detail?.TieuDe || 'Tin tức, hoạt động và thông tin chính sách của Bộ Nội vụ.').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().slice(0, 200);
   const imageUrl = detail?.AnhDaiDienUrl ? getUrlImage(detail.AnhDaiDienUrl) : 'https://moha.gov.vn/images/quoc-huy.svg';
+  if (getLang() === 'en' && !loadingDetail && !detail) return <ArticleLanguageUnavailable />;
   return (
     <>
+      <DublinCore title={detail?.TieuDe} description={detail?.MoTa} creator={detail?.TacGia} date={detail?.NgayXuatBan} subject={detail?.TuKhoa} />
       <Helmet>
         <meta charSet="utf-8" />
         <title>{`${t('seo.moha')} - ${detail?.TieuDe ?? t('seo.home')}`}</title>

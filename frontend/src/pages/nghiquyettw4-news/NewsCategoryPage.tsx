@@ -1,5 +1,6 @@
 import { LoadingFallback } from '@/components/LoadingFallback';
 import { sanitizeHtml } from '@/utils/sanitizeHtml';
+import { DublinCore } from '@/components/DublinCore';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Col, Container, Image, Row } from 'react-bootstrap';
 import './NewsPage.scss';
@@ -70,6 +71,7 @@ export const NewsCategoryPage = () => {
 
   const [listStatus, setListStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [titlePage, setTitlePage] = useState('');
+  const [categoryMetadata, setCategoryMetadata] = useState<{ MoTa?: string; NgayTao?: string }>();
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -119,6 +121,7 @@ export const NewsCategoryPage = () => {
       const [main, ...cards] = response.topposts || [];
       setTopPost({ main, cards });
       setTitlePage(response.data?.TenChuyenMuc || 'Tin tức - sự kiện');
+      setCategoryMetadata(response.data);
     }).catch(() => { if (active) setLoadError(true); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -161,6 +164,7 @@ export const NewsCategoryPage = () => {
 
   return (
     <div className="mh-news">
+      <DublinCore title={titlePage} description={categoryMetadata?.MoTa} date={categoryMetadata?.NgayTao} dateKind="Created" />
       <Container>
         <Row>
           <Col xl={8}>

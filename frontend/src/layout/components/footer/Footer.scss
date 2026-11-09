@@ -3,6 +3,13 @@
   background-size: cover;
   background-position: center;
   padding: 24px 0;
+  &-qr {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    &:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  }
   &-inner {
     display: flex;
     align-items: flex-end;

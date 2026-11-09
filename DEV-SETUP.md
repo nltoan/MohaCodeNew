@@ -51,6 +51,8 @@ API chạy từ bản runtime `.dev/api`, lấy DLL từ `api/bin`. `Web.config`
 
 Portal được Vite chèn URL local khi chạy dev. Admin dùng URL local khi `NODE_ENV=development`. Build production giữ các URL được khai báo trong HTML gốc.
 
+Khi API local khởi động, `Dev.ps1` cũng chạy migration `20261109-TinTuc-NgonNgu.sql` trên LocalDB `MohaDev`. Lần đầu tạo cột, migration gán `vi` cho tin hiện có theo xác nhận nghiệp vụ; các lần chạy sau không ghi đè ngôn ngữ đã chọn. Trước khi triển khai production, xem `deployment/NGON-NGU-TIN-TUC.md`; không dùng LocalDB hoặc script tự khởi động để thao tác production.
+
 ## Build và kiểm tra
 
 ```powershell

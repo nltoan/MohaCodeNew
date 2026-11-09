@@ -1683,6 +1683,7 @@ warning 6002: The table/view 'CongTTDT_MOHA.dbo.sysdiagrams' does not have a pri
             <PropertyRef Name="ID" />
           </Key>
           <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="NgonNgu" Type="nvarchar" MaxLength="2" />
           <Property Name="TieuDe" Type="nvarchar" MaxLength="1000" />
           <Property Name="MoTa" Type="nvarchar(max)" />
           <Property Name="NoiDung" Type="nvarchar(max)" />
@@ -6670,6 +6671,7 @@ warning 6002: The table/view 'CongTTDT_MOHA.dbo.sysdiagrams' does not have a pri
             <PropertyRef Name="ID" />
           </Key>
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="NgonNgu" Type="String" MaxLength="2" FixedLength="false" Unicode="true" />
           <Property Name="TieuDe" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" />
           <Property Name="MoTa" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="NoiDung" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
@@ -9409,6 +9411,7 @@ warning 6002: The table/view 'CongTTDT_MOHA.dbo.sysdiagrams' does not have a pri
           <EntitySetMapping Name="TinTucs">
             <EntityTypeMapping TypeName="CongTTDT_MOHAModel.TinTuc">
               <MappingFragment StoreEntitySet="TinTuc">
+                <ScalarProperty Name="NgonNgu" ColumnName="NgonNgu" />
                 <ScalarProperty Name="Migrate_Source" ColumnName="Migrate_Source" />
                 <ScalarProperty Name="NoiBat" ColumnName="NoiBat" />
                 <ScalarProperty Name="NguoiTaoID" ColumnName="NguoiTaoID" />

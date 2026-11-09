@@ -12,6 +12,7 @@ import { getMenuNew, getPostsByCategory, getTopPostNews } from '@/services/news'
 import {  getNewURL } from '@/utils/getSlugKey';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
+import { DublinCore } from '@/components/DublinCore';
 import { getLang } from '@/services';
 import { APP_DATA_CONFIG } from '@/configs';
 interface BannerItem {
@@ -52,6 +53,7 @@ export const NewsPage = () => {
   const [topStatus, setTopStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [attempt, setAttempt] = useState(0);
   const [titlePage, setTitlePage] = useState(undefined);
+  const [categoryMetadata, setCategoryMetadata] = useState<{ MoTa?: string; NgayTao?: string }>();
 
   useEffect(() => {
     let active = true;
@@ -63,6 +65,7 @@ export const NewsPage = () => {
         if (!active) return;
           setTopPost({ main, cards: cards });
         setTitlePage(res.data.TenChuyenMuc);
+        setCategoryMetadata(res.data);
         if (active) setTopStatus('ready');
       } catch (err) {
         if (active) setTopStatus('error');
@@ -112,6 +115,7 @@ export const NewsPage = () => {
 
   return (
     <div className="mh-news">
+      <DublinCore title={titlePage} description={categoryMetadata?.MoTa} date={categoryMetadata?.NgayTao} dateKind="Created" />
       <Helmet>
         <title>{`${t('seo.moha')} - ${titlePage ?? t('seo.home')}`}</title>
         <meta name="description" content={`${titlePage || 'Tin tức Bộ Nội vụ'}: cập nhật tin tức, hoạt động và thông tin chính sách trên Cổng thông tin điện tử Bộ Nội vụ.`} />

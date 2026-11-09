@@ -1,11 +1,13 @@
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export function portalCanonical(pathname: string) {
   return new URL(pathname || '/', 'https://moha.gov.vn').href;
 }
 export function PortalSeo() {
   const { pathname } = useLocation();
+  const { i18n } = useTranslation();
   const descriptions: Record<string, string> = {
     '/': 'Cổng thông tin điện tử Bộ Nội vụ: tin tức, hoạt động, văn bản, chính sách và thông tin phục vụ người dân, doanh nghiệp.',
     '/tin-tuc': 'Tin tức và hoạt động của Bộ Nội vụ, cập nhật thông tin về chính sách và các lĩnh vực quản lý nhà nước của Bộ.',
@@ -29,12 +31,21 @@ export function PortalSeo() {
   titles['/bo-truong'] = 'Thông tin Bộ trưởng';
   titles['/nghi-quyet-tw4'] = 'Đảng bộ Bộ Nội vụ';
   const canonical = portalCanonical(pathname);
+  const title = titles[section] ? `${titles[section]} - Bộ Nội vụ` : 'Cổng thông tin điện tử Bộ Nội vụ';
   return <Helmet>
-    <title>{titles[section] ? `${titles[section]} - Bộ Nội vụ` : 'Cổng thông tin điện tử Bộ Nội vụ'}</title>
+    <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <link rel="canonical" href={canonical} />
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content="Bộ Nội vụ" />
+    <meta name="DC.Title" content={title} />
+    <meta name="DC.Creator" content="Bộ Nội vụ" />
+    <meta name="DC.Publisher" content="Bộ Nội vụ" />
+    <meta name="DC.Description" content={description} />
+    <meta name="DC.Identifier" content={canonical} />
+    <meta name="DC.Language" content={i18n.resolvedLanguage?.startsWith('en') ? 'eng' : 'vie'} />
+    <meta name="DC.Subject" content="Bộ Nội vụ; Nội vụ; Chính phủ; Việt Nam" />
+    {(pathname === '/' || pathname === '/trang-chu') && <meta name="DC.Date.Issued" content="2025-12-17" />}
   </Helmet>;
 }

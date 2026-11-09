@@ -110,7 +110,7 @@ export const HeaderUtils = ({
           ) : (
             <>
               <div className="mh-header-utils-search">
-                <button type="button" onClick={() => onSearch()}>
+                <button type="button" aria-label="Tìm kiếm" onClick={() => onSearch()}>
                   <IconSearch />
                 </button>
               </div>

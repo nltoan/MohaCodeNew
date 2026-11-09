@@ -138,7 +138,7 @@ export const HomeCategorySection = ({ notice, event }: HomeCategorySectionProps)
                       <CardSectionBanner title={b?.TenChuyenMuc} url={getNewURL('chuyen-muc', b?.TenChuyenMuc, b?.ID)}>
                         <Link to={getNewURL('tin-tuc', b?.TopPost?.TieuDe, b?.TopPost?.ID)} className="mh-home-cat-item">
                           <div className="mh-home-cat-item-image">
-                            <Image src={getUrlImage(b?.TopPost?.AnhDaiDienUrl)} alt={b?.TopPost?.TenAnhDaiDien} />
+                            <Image src={getUrlImage(b?.TopPost?.AnhDaiDienUrl)} alt={b?.TopPost?.TenAnhDaiDien || ''} />
                           </div>
                           <div className="mh-home-cat-item-info">
                             <div className="mh-home-cat-item-title">{b?.TopPost?.TieuDe}</div>

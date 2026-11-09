@@ -1,5 +1,6 @@
 import { LoadingFallback } from '@/components/LoadingFallback';
 import { sanitizeHtml } from '@/utils/sanitizeHtml';
+import { DublinCore } from '@/components/DublinCore';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Col, Container, Image, Row } from 'react-bootstrap';
 import './NewsPage.scss';
@@ -71,6 +72,7 @@ export const NewsPage = () => {
   const [topStatus, setTopStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [attempt, setAttempt] = useState(0);
   const [titlePage, setTitlePage] = useState('');
+  const [categoryMetadata, setCategoryMetadata] = useState<{ MoTa?: string; NgayTao?: string }>();
   const [speechSidebar, setSpeechSidebar] = useState<MinisterSidebarItem[]>([]);
   const [staticSidebar, setStaticSidebar] = useState<MinisterSidebarItem[]>([]);
 
@@ -111,6 +113,7 @@ export const NewsPage = () => {
         if (!active) return;
           setTopPost({ main, cards: cards });
         setTitlePage(res.data.TenChuyenMuc);
+        setCategoryMetadata(res.data);
         if (active) setTopStatus('ready');
       } catch (err) {
         if (active) setTopStatus('error');
@@ -147,6 +150,7 @@ export const NewsPage = () => {
 
   return (
     <div className="mh-news">
+      <DublinCore title={titlePage} description={categoryMetadata?.MoTa} date={categoryMetadata?.NgayTao} dateKind="Created" />
       <Container>
         <Row>
           <Col xl={8}>

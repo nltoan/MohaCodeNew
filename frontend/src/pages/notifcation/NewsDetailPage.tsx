@@ -14,6 +14,9 @@ import { getIdFromSlug, getNewURL } from '@/utils/getSlugKey';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import { useReactToPrint } from 'react-to-print';
+import { DublinCore } from '@/components/DublinCore';
+import { ArticleLanguageUnavailable } from '@/components/ArticleLanguageUnavailable';
+import { getLang } from '@/services';
 
 export const NewsDetailPage = () => {
   const { t } = useTranslation();
@@ -27,6 +30,7 @@ export const NewsDetailPage = () => {
   });
 
   useEffect(() => {
+    if (getLang() === 'en') return;
     const keyQuery = getIdFromSlug(slug || '');
     if (keyQuery) {
       const fetchData = async () => {
@@ -49,8 +53,11 @@ export const NewsDetailPage = () => {
     return detail?.ThongBao_Files;
   }, [detail?.ThongBao_Files]);
 
+  if (getLang() === 'en') return <ArticleLanguageUnavailable />;
+
   return (
     <div className="mh-detail">
+      <DublinCore title={detail?.TieuDe} description={detail?.MoTa || detail?.NoiDung} creator={detail?.DonViBanHanh} publisher={detail?.DonViBanHanh} date={detail?.NgayDang} />
       <Helmet>
         <title>
           {t('seo.moha')} - {detail?.TieuDe ?? t('seo.notify')}

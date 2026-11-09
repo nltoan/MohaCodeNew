@@ -12,6 +12,7 @@ import { getUrlPdfFile } from '@/utils/image';
 import { useTranslation } from 'react-i18next';
 import { IconDocumentDownload } from '@/components/icons';
 import { Helmet } from 'react-helmet-async';
+import { DublinCore } from '@/components/DublinCore';
 
 interface DocumentDetailState {
   title: string;
@@ -87,6 +88,7 @@ export const DraftLegalDetailPage = () => {
 
   return (
     <Row>
+      <DublinCore title={detail.title} description={detail.summary} creator={detail.issuingAuthority} publisher={detail.issuingAuthority} subject={detail.area} />
       <Helmet>
         <title>
           {t('seo.moha')} - {detail.title ?? t('seo.documentDetail')}

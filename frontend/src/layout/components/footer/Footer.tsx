@@ -55,9 +55,11 @@ export const Footer = () => {
               </p>
             </div>
             <div style={{order:3,display:"flex"}}>
-              {qr ? <Image loading="lazy" {...qr} onClick={() => setShowQRModal(true)} /> : <></>}
+              <button type="button" className="mh-footer-qr" aria-label="Mở mã QR của trang" onClick={() => setShowQRModal(true)}>
+                <Image loading="lazy" {...qr} alt="" />
+              </button>
               {SOCIALS_CONFIG.items.map((item) => (
-                <a key={item.url} href={item.url} title={item.title} target="_blank">
+                <a key={item.url} href={item.url} title={item.title} aria-label={item.title} target="_blank" rel="noopener noreferrer">
                   {typeof item.icon === 'string' ? <Image src={item.icon} alt={item.title} /> : item.icon}
                 </a>
               ))}
@@ -88,8 +90,8 @@ export const Footer = () => {
         </Container>
       </footer>
 
-      <Modal centered show={showQRModal} onHide={() => setShowQRModal(false)}>
-        <Modal.Header closeButton></Modal.Header>
+      <Modal centered show={showQRModal} onHide={() => setShowQRModal(false)} aria-labelledby="qr-modal-title">
+        <Modal.Header closeButton><Modal.Title id="qr-modal-title">Mã QR của trang</Modal.Title></Modal.Header>
         <Modal.Body>{qr ? <Image loading="lazy" {...bigqr} width="100%" /> : <></>}</Modal.Body>
       </Modal>
     </>

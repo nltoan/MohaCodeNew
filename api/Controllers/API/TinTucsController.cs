@@ -187,8 +187,12 @@ namespace API.Controllers
         [HttpPost]
         public async Task<HttpResponseMessage> Post(FormDataCollection form) {
             var model = new TinTuc();
+            model.NgonNgu = "vi";
             var values = JsonConvert.DeserializeObject<IDictionary>(form.Get("values"));
             PopulateModel(model, values);
+
+            if (model.NgonNgu != "vi" && model.NgonNgu != "en")
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Ngôn ngữ phải là vi hoặc en.");
 
             Validate(model);
             if (!ModelState.IsValid)
@@ -205,7 +209,7 @@ namespace API.Controllers
             var result = _context.TinTucs.Add(model);
             await _context.SaveChangesAsync();
             //
-            bool isVN = isVNLanguage((int)model.IDChuyenMuc);
+            bool isVN = model.NgonNgu == "vi";
             var blockCode = "BoxHot";
             if(isVN == false)
             {
@@ -413,6 +417,9 @@ namespace API.Controllers
             var values = JsonConvert.DeserializeObject<IDictionary>(form.Get("values"));
             PopulateModel(model, values);
 
+            if (model.NgonNgu != "vi" && model.NgonNgu != "en")
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Ngôn ngữ phải là vi hoặc en.");
+
             Validate(model);
             if (!ModelState.IsValid)
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, GetFullErrorMessage(ModelState));
@@ -549,6 +556,7 @@ namespace API.Controllers
         private void PopulateModel(TinTuc model, IDictionary values) {
             string ID = nameof(TinTuc.ID);
             string TIEU_DE = nameof(TinTuc.TieuDe);
+            string NGON_NGU = nameof(TinTuc.NgonNgu);
             string MO_TA = nameof(TinTuc.MoTa);
             string NOI_DUNG = nameof(TinTuc.NoiDung);
             string TAC_GIA = nameof(TinTuc.TacGia);
@@ -588,6 +596,10 @@ namespace API.Controllers
 
             if(values.Contains(TIEU_DE)) {
                 model.TieuDe = Convert.ToString(values[TIEU_DE]);
+            }
+
+            if (values.Contains(NGON_NGU)) {
+                model.NgonNgu = Convert.ToString(values[NGON_NGU])?.Trim().ToLowerInvariant();
             }
 
             if(values.Contains(MO_TA)) {

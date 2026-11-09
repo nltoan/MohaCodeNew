@@ -58,7 +58,7 @@ export const getUrlPathWithLang = (path: string, params?: Record<string, string 
 };
 
 export const getLang = (): 'vi' | 'en' => {
-  const lang = localStorage.getItem('i18nextLng') || 'vi';
+  const lang = (localStorage.getItem('i18nextLng') || 'vi').trim().toLowerCase();
   localStorage.getItem('i18nextLng') || localStorage.setItem('i18nextLng', 'vi');
-  return lang as 'vi' | 'en';
+  return lang === 'en' || lang.startsWith('en-') || lang.startsWith('en_') ? 'en' : 'vi';
 }

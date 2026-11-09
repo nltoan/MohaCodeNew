@@ -87,7 +87,7 @@ export const HomeMediaSection = ({ icon = <IconPlayFill />, title }: HomeMediaSe
               {mediaCategoryItem?.posts?.map((item) => (
                 <div className="mh-home-media-header-slide-card">
                   <Link to={item.url} className="mh-home-media-header-slide-card-image">
-                    <Image src={getUrlImage(item.image)} loading="lazy" />
+                    <Image src={getUrlImage(item.image)} alt="" loading="lazy" />
                     <div className="mh-home-media-header-slide-card-title">{item.title}</div>
                   </Link>
                 </div>

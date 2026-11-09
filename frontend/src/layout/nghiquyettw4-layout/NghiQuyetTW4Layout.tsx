@@ -17,10 +17,10 @@ export const NghiQuyetTW4Layout = () => {
 
   const [menus, setMenus] = useState<HeaderMenu[]>([]);
 
-  const [language, setLanguage] = useState({ label: 'English', value: 'en' });
   const [keyword, setKeyword] = useState('');
-  const handleLanguageChange = () => {
-    setLanguage(language.value == 'en' ? { label: 'Tiếng Việt', value: 'vi' } : { label: 'English', value: 'en' });
+  const handleLanguageChange = (lang: string) => {
+    localStorage.setItem('i18nextLng', lang);
+    window.location.href = '/nghi-quyet-tw4';
   };
   const handleKeywordChange = (e: ChangeEvent<HTMLInputElement>) => {
     setKeyword(e.target.value);
@@ -67,10 +67,9 @@ export const NghiQuyetTW4Layout = () => {
         nqtw4
         breadcrumbs={breadcrumbs}
         searchPlaceholder="Tìm kiếm"
-        language={language.label}
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
-        onLanguageClick={handleLanguageChange}
+        onLanguageChange={handleLanguageChange}
         onSearch={handleSearch}
       />
       <main className="mh-main-nqtw4" style={{ overflowX: 'hidden' }}>

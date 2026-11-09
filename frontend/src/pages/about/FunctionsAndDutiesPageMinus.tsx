@@ -12,6 +12,9 @@ import { getIdFromSlug } from '@/utils/getSlugKey';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import { useReactToPrint } from 'react-to-print';
+import { DublinCore } from '@/components/DublinCore';
+import { ArticleLanguageUnavailable } from '@/components/ArticleLanguageUnavailable';
+import { getLang } from '@/services';
 
 export const FunctionsAndDutiesPage = () => {
   const { t } = useTranslation();
@@ -24,6 +27,7 @@ export const FunctionsAndDutiesPage = () => {
   });
 
   useEffect(() => {
+    if (getLang() === 'en') return;
     let active = true;
     setData(undefined);
     const loadData = async () => {
@@ -45,10 +49,12 @@ export const FunctionsAndDutiesPage = () => {
     return () => { active = false; };
   }, [slug]);
 
+  if (getLang() === 'en') return <ArticleLanguageUnavailable />;
   if (!data) return <p className="py-4">{data === null ? 'Không tải được nội dung. Vui lòng thử lại.' : 'Đang tải nội dung…'}</p>;
 
   return (
     <>
+      <DublinCore title={data.TieuDe} description={data.MoTa} creator={data.TacGia} date={data.NgayXuatBan} subject={data.TuKhoa} />
       <Helmet>
         <title>{`${t('seo.moha')} - ${data.TieuDe}`}</title>
       </Helmet>

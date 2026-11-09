@@ -11,6 +11,7 @@ import { getIdFromSlug, getNewURL } from '@/utils/getSlugKey';
 import { getUrlImage } from '@/utils/image';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
+import { DublinCore } from '@/components/DublinCore';
 
 interface MediaItem {
   ID: number;
@@ -63,6 +64,7 @@ export const AudioAlbumDetailPage = () => {
 
   return (
     <div className="mh-gallery">
+      <DublinCore title={album?.TieuDe} description={album?.MoTa} date={album?.ThoiGianXuatBan} />
       <Helmet>
         <meta charSet="utf-8" />
         <title>{album?.TieuDe || t('seo.audioLibrary')}</title>

@@ -36,12 +36,12 @@ export const HomeCTASection = () => {
         <Row>
           <Col lg={8}>
             <div className="mh-home-cta-banner">
-              <ButtonImage
+              {banners[0]?.URL && <ButtonImage
                     key={banners[0]?.ID}
-                    linkProps={{ to: banners[0]?.URL }}
+                    linkProps={{ to: banners[0].URL, 'aria-label': banners[0].TenBanner || 'Xem thông tin' }}
                     label={""}
                     style={{ backgroundImage: `url(${getUrlImage(banners[0]?.AnhBannerUrl)})` }}
-                  />
+                  />}
             </div>
           </Col>
           <Col lg={4}>

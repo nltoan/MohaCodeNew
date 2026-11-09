@@ -48,6 +48,7 @@ export const HomeBanner = () => {
           response?.data?.data?.map((item: any) => ({
             url: item?.URL || '/',
             image: getUrlImage(item?.AnhBannerUrl) || '',
+            alt: item?.TenBanner || '',
             title: item?.TenBanner || '',
           })),
         );
@@ -114,7 +115,7 @@ export const HomeBanner = () => {
     infinite: true,
     slidesToShow: 1,
     slidesToScroll: 1,
-    autoplay: true,
+    autoplay: false,
     autoplaySpeed: 10000, // 5s chuyển 1 lần
     speed: 500, // animation 0.5s (khuyên dùng)
   };
