@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { CardSection, CardSectionTitle, CommonModal } from '@/components';
 import { IconEye, IconMessages } from '@/components/icons';
 import { useEffect, useState, type MouseEvent, type ReactNode } from 'react';
@@ -89,7 +90,7 @@ export const HomeOtherSection = ({ tab1, tab2, tab3 }: HomeOtherSectionProps) =>
         </Link>
         <Link to={getNewURL('van-ban', item.SoKyHieu, item.ID)} className="mh-home-other-item-description">
           <div className="mh-home-other-item-date">{vnFormatter(item.NgayBanHanh)}</div>
-          <div dangerouslySetInnerHTML={{ __html: item.TrichYeu ?? item.NoiDung }}></div>
+          <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.TrichYeu ?? item.NoiDung) }}></div>
         </Link>
         <div className="mh-home-other-item-action">
           <Link to={getNewURL('van-ban', item.SoKyHieu, item.ID)}>

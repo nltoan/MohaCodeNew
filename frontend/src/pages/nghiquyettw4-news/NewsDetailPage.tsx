@@ -1,3 +1,5 @@
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
+import { resolveContentMedia } from '@/utils/image';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Col, Container, Image, Row } from 'react-bootstrap';
 import './NewsDetail.scss';
@@ -84,7 +86,7 @@ export const NewsDetailPage = () => {
   }, [pagination.activePage, pagination.pageSize, slug]);
 
   const files = useMemo(() => {
-    if (!detail?.TinTuc_Files.length) {
+    if (!detail?.TinTuc_Files?.length) {
       return [];
     }
     return detail?.TinTuc_Files;
@@ -101,8 +103,8 @@ export const NewsDetailPage = () => {
                 viewCount={detail?.PageCount || 0}
                 onPrint={handlePrint}
               />
-              <div className="" dangerouslySetInnerHTML={{ __html: detail?.MoTa }}></div>
-              <div className="mh-detail-body" dangerouslySetInnerHTML={{ __html: detail?.NoiDung?.replace(/contenteditable="true"/g, 'contenteditable="false"') }}></div>
+              <div className="" dangerouslySetInnerHTML={{ __html: sanitizeHtml(detail?.MoTa) }}></div>
+              <div className="mh-detail-body" dangerouslySetInnerHTML={{ __html: sanitizeHtml(resolveContentMedia(detail?.NoiDung)?.replace(/contenteditable="true"/g, 'contenteditable="false"')) }}></div>
               <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 5 }}>Tài liệu liên quan:</div>
               {files.length > 0 ? (
                 <div
@@ -142,7 +144,7 @@ export const NewsDetailPage = () => {
                   </div>
                   <div className="mh-detail-sidebar-item-info">
                     <div className="mh-detail-sidebar-item-title">{item.TieuDe}</div>
-                    <div className="mh-detail-sidebar-item-date" dangerouslySetInnerHTML={{ __html: item.MoTa }}></div>
+                    <div className="mh-detail-sidebar-item-date" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.MoTa) }}></div>
                     <div className="mh-detail-sidebar-item-date">{vnFormatter(item.NgayXuatBan)}</div>
                   </div>
                 </Link>

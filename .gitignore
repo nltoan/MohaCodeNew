@@ -34,7 +34,8 @@ bld/
 [Ll]ogs/
 dist/
 build/
-/api/Upload
+/api/Upload/*
+!/api/Upload/web.config
 /api/UploadTemp
 
 # Visual Studio 2015/2017 cache/options directory

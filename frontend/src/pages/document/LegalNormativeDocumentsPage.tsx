@@ -46,7 +46,9 @@ export const LegalNormativeDocumentsPage = () => {
   const [effectDateFrom, setEffectDateFrom] = useState('');
   const [effectDateTo, setEffectDateTo] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const [pagination, setPagination] = useState<PaginationState>({
     documents: [],
     activePage: 1,
@@ -109,6 +111,7 @@ export const LegalNormativeDocumentsPage = () => {
 
   const loadData = async () => {
     setIsLoading(true);
+        setLoadError(false);
     try {
       const [documentAreas, documentSigners, documentSignerTitles, legalDocumentForms, legalIssuingAuthorities] = await Promise.all([
         getDocumentArea(),
@@ -152,6 +155,7 @@ export const LegalNormativeDocumentsPage = () => {
     const loadData = async () => {
       if (filters.LopVanBanID) {
         setIsLoading(true);
+        setLoadError(false);
 
         try {
           const data: { data: Document[]; totalCount: number } = await getDocumentList(
@@ -167,6 +171,7 @@ export const LegalNormativeDocumentsPage = () => {
             totalCount: data.totalCount,
           }));
         } catch (error) {
+          setLoadError(true);
           console.error('Error fetching data:', error);
         } finally {
           setIsLoading(false);
@@ -175,7 +180,7 @@ export const LegalNormativeDocumentsPage = () => {
     };
 
     loadData();
-  }, [filters, pagination.activePage, pagination.pageSize]);
+  }, [filters, pagination.activePage, pagination.pageSize, attempt]);
 
   useEffect(() => {
     if (!ID) return;
@@ -243,6 +248,8 @@ export const LegalNormativeDocumentsPage = () => {
       />
     </Form.Group>
   );
+
+  if (loadError) return <div role="alert" className="py-4">Không tải được dữ liệu. <button type="button" onClick={() => setAttempt(value => value + 1)}>Thử lại</button></div>;
 
   return (
     <>

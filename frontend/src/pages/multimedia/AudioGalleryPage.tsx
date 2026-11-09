@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import { Accordion, Col, Container, Image, Row } from 'react-bootstrap';
@@ -109,7 +110,7 @@ export const AudioGalleryPage = () => {
                           <Link to={getNewURL('audio', item.TieuDe, item?.ID)} className="mh-gallery-item-title">
                             {item?.TieuDe}
                           </Link>
-                          <div className="mh-gallery-item-description" dangerouslySetInnerHTML={{ __html: item?.MoTa }} />
+                          <div className="mh-gallery-item-description" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item?.MoTa) }} />
                         </div>
                         <div className="mh-gallery-item-date">{vnFormatter(item?.ThoiGianXuatBan)}</div>
                       </div>

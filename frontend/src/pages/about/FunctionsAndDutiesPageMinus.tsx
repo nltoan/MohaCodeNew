@@ -1,3 +1,5 @@
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
+import { resolveContentMedia } from '@/utils/image';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AboutBodyMinus } from './components/body/AboutBody';
 import { PageFooter, PageHeader } from '@/components';
@@ -22,22 +24,28 @@ export const FunctionsAndDutiesPage = () => {
   });
 
   useEffect(() => {
+    let active = true;
+    setData(undefined);
     const loadData = async () => {
+      try {
       let id = getIdFromSlug(slug || '', 'gtbtid');
       if (!id) {
         id = getIdFromSlug(slug || '', 'id');
+        if (!id) { if (active) setData(null); return; }
         const res = await axiosInstance.get(`/PostDetail?ID=${id}&lang=vi`);
-        setData(res.data.data);
+        if (active) setData(res.data.data);
       } else {
         const res = await axiosInstance.get(`/PostDetailBygtbtid?ID=${id}&lang=vi`);
-        setData(res.data.data);
+        if (active) setData(res.data.data);
       }
+      } catch { if (active) setData(null); }
     };
 
     loadData();
+    return () => { active = false; };
   }, [slug]);
 
-  if (!data) return null;
+  if (!data) return <p className="py-4">{data === null ? 'Không tải được nội dung. Vui lòng thử lại.' : 'Đang tải nội dung…'}</p>;
 
   return (
     <>
@@ -49,13 +57,13 @@ export const FunctionsAndDutiesPage = () => {
         <AboutBodyMinus>
           <div
             dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(data?.NoiDung?.replace(/contenteditable="true"/g, 'contenteditable="false"')),
+              __html: sanitizeHtml(DOMPurify.sanitize(resolveContentMedia(data?.NoiDung)?.replace(/contenteditable="true"/g, 'contenteditable="false"'))),
             }}
           />
         </AboutBodyMinus>
       </div>
       <PageFooter
-        files={data.TinTuc_Files.map((fileInfo: any) => {
+        files={(data.TinTuc_Files || []).filter((fileInfo: any) => fileInfo.File).map((fileInfo: any) => {
           const fileDetails = fileInfo.File;
 
           return {

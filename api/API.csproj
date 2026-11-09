@@ -234,6 +234,7 @@
   <ItemGroup>
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
+    <Content Include="Upload\web.config" />
     <Content Include="Models\ABL_AlbumAnh.js">
       <DependentUpon>ReactModel.tt</DependentUpon>
     </Content>
@@ -705,6 +706,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\API\HoiQuyController.cs" />
+    <Compile Include="Services\PasswordSecurity.cs" />
     <Compile Include="Services\HoiQuy\HoiQuyModels.cs" />
     <Compile Include="Services\HoiQuy\HoiQuyStore.cs" />
     <Compile Include="Services\HoiQuy\HoiQuyExcel.cs" />

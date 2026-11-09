@@ -1,3 +1,4 @@
+using API.OAuth.Providers;
 ﻿using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
 using Newtonsoft.Json;
@@ -17,7 +18,7 @@ using API.Models;
 
 namespace API.Controllers
 {
-    [Authorize]
+    [PermissionAuthorize("manage-role")]
     [Route("api/Permissions/{action}", Name = "PermissionsApi")]
     public class PermissionsController : ApiController
     {

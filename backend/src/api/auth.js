@@ -11,18 +11,18 @@ export async function signIn(email, password, code, type) {
     }
     // Send request
     const response = await fetch(
-      `${window.env.REACT_APP_API_URL}/Token?type=${type}&code=${code}`,
+      `${window.env.REACT_APP_API_URL}/Token?${new URLSearchParams({type, code: code || ""})}`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         },
-        body: `grant_type=password&username=${email}&password=${password}&code=${code}`,
+        body: new URLSearchParams({grant_type: "password", username: email, password, code: code || ""}).toString(),
       },
     );
     var data = await response.json();
     // console.log(data);
-    if (data.access_token == undefined && data.error == "invalid_grant") {
+    if (!response.ok || !data.access_token) {
       Notify(
         {
           message: `Đăng nhập không thành công!`,
@@ -46,9 +46,11 @@ export async function signIn(email, password, code, type) {
     cookies.set("access_token", data.access_token, {
       path: "/",
       maxAge: data.expires_in,
+      sameSite: "strict",
+      secure: window.location.protocol === "https:",
     });
     var data = await request(
-      `/User_Account/GetLoginUser?filter=["TenTruyCap","=","${email}"]`,
+      `/User_Account/GetLoginUser`,
     );
     if (data.data.length == 0) {
       return {

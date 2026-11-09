@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Button from 'devextreme-react/button';
 import { notify, request } from '../utils/api';
 import { Popup, TextArea } from 'devextreme-react';
-import parse from 'html-react-parser';;
+import parse from '../utils/safe-html';;
 
 export default function SendApprovePopup({ ID, action, onHidden }) {
   const [item, setItem] = useState();

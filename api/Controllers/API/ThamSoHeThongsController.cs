@@ -1,3 +1,4 @@
+using API.OAuth.Providers;
 ﻿using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
 using Newtonsoft.Json;
@@ -17,7 +18,7 @@ using API.Models;
 
 namespace API.Controllers
 {
-    [Authorize]
+    [PermissionAuthorize("manage-setting")]
     [Route("api/ThamSoHeThongs/{action}", Name = "ThamSoHeThongsApi")]
     public class ThamSoHeThongsController : ApiController
     {
@@ -43,7 +44,6 @@ namespace API.Controllers
                 i.Title,
                 i.ADConfig,
                 i.EmailAddress,
-                i.EmailPassword,
                 i.EmailHost,
                 i.EmailPort
             });
@@ -192,7 +192,7 @@ namespace API.Controllers
                 model.EmailAddress = Convert.ToString(values[EMAIL_ADDRESS]);
             }
 
-            if(values.Contains(EMAIL_PASSWORD)) {
+            if(values.Contains(EMAIL_PASSWORD) && !string.IsNullOrEmpty(Convert.ToString(values[EMAIL_PASSWORD]))) {
                 model.EmailPassword = Convert.ToString(values[EMAIL_PASSWORD]);
             }
 

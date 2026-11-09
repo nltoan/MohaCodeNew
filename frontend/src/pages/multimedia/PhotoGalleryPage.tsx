@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Accordion, Col, Container, Image, Row } from 'react-bootstrap';
 import './Gallery.scss';
@@ -115,7 +116,7 @@ export const PhotoGalleryPage = () => {
                           </Link>
                           <div
                             className="mh-gallery-item-description"
-                            dangerouslySetInnerHTML={{ __html: item?.MoTa }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(item?.MoTa) }}
                           />
                         </div>
                         <div className="mh-gallery-item-date">{vnFormatter(item?.ThoiGianXuatBan)}</div>

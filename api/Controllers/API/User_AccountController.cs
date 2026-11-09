@@ -1,3 +1,5 @@
+using API.OAuth.Providers;
+using Microsoft.AspNet.Identity;
 ﻿using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
 using Newtonsoft.Json;
@@ -17,13 +19,14 @@ using API.Models;
 
 namespace API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [Route("api/User_Account/{action}", Name = "User_AccountsApi")]
     public class User_AccountController : ApiController
     {
         private CongTTDT_MOHAEntities _context = new CongTTDT_MOHAEntities();
 
         [HttpGet]
+        [PermissionAuthorize("manage-user")]
         public async Task<HttpResponseMessage> GetLive(DataSourceLoadOptions loadOptions)
         {
             var banners = _context.User_Account.Where(x=>x.TrangThai != "deleted").Select(i => new {
@@ -36,13 +39,11 @@ namespace API.Controllers
                 i.LastLoginDate,
                 i.LastPasswordChangeDate,
                 i.LoaiTaiKhoan,
-                i.MatKhau,
                 i.NguoiLienHe_CMT_HoChieu,
                 i.NguoiLienHe_DiaChi,
                 i.NguoiLienHe_Email,
                 i.NguoiLienHe_HoVaTen,
                 i.NguoiLienHe_SoDienThoai,
-                i.PasswordAnswer,
                 i.PasswordQuestion,
                 i.SoCMND,
                 i.SoDienThoai,
@@ -57,6 +58,7 @@ namespace API.Controllers
             return Request.CreateResponse(await DataSourceLoader.LoadAsync(banners, loadOptions));
         }
         [HttpGet]
+        [PermissionAuthorize("manage-user")]
         public async Task<HttpResponseMessage> Get(DataSourceLoadOptions loadOptions)
         {
             var banners = _context.User_Account.Select(i => new {
@@ -69,13 +71,11 @@ namespace API.Controllers
                 i.LastLoginDate,
                 i.LastPasswordChangeDate,
                 i.LoaiTaiKhoan,
-                i.MatKhau,
                 i.NguoiLienHe_CMT_HoChieu,
                 i.NguoiLienHe_DiaChi,
                 i.NguoiLienHe_Email,
                 i.NguoiLienHe_HoVaTen,
                 i.NguoiLienHe_SoDienThoai,
-                i.PasswordAnswer,
                 i.PasswordQuestion,
                 i.SoCMND,
                 i.SoDienThoai,
@@ -92,12 +92,19 @@ namespace API.Controllers
         [HttpGet]
         public async Task<HttpResponseMessage> GetLoginUser(DataSourceLoadOptions loadOptions)
         {
-            var banners = _context.User_Account.Include(x=>x.Role.RolePermissions.Select(y=>y.Permission));
+            int currentId = Convert.ToInt32(User.Identity.GetUserId());
+            var banners = _context.User_Account.Where(x => x.UserID == currentId).Select(x => new {
+                x.UserID, x.TenDangKy, x.TenTruyCap, x.EmailAddress, x.IsTwoFA, x.IsReceiveEmail, x.RoleId,
+                Role = new { x.Role.ID, x.Role.Name, RolePermissions = x.Role.RolePermissions.Select(p => new {
+                    p.PermissionId, Permission = new { p.Permission.Name }
+                }) }
+            });
 
             return Request.CreateResponse(await DataSourceLoader.LoadAsync(banners, loadOptions));
         }
 
         [HttpPost]
+        [PermissionAuthorize("manage-user")]
         public async Task<HttpResponseMessage> Post(FormDataCollection form)
         {
             var model = new User_Account();
@@ -115,6 +122,7 @@ namespace API.Controllers
         }
 
         [HttpPut]
+        [PermissionAuthorize("manage-user")]
         public async Task<HttpResponseMessage> Put(FormDataCollection form)
         {
             var key = Convert.ToInt32(form.Get("key"));
@@ -135,6 +143,7 @@ namespace API.Controllers
         }
 
         [HttpDelete]
+        [PermissionAuthorize("manage-user")]
         public async Task Delete(FormDataCollection form)
         {
             var key = Convert.ToInt32(form.Get("key"));
@@ -231,7 +240,9 @@ namespace API.Controllers
 
             if (values.Contains(MATKHAU))
             {
-                model.MatKhau = Convert.ToString(values[MATKHAU]);
+                var password = Convert.ToString(values[MATKHAU]);
+                if (password.Length < 12 || password.Length > 255) ModelState.AddModelError(MATKHAU, "Mật khẩu mới cần từ 12 đến 255 ký tự.");
+                else model.MatKhau = API.Services.PasswordSecurity.Hash(password);
             }
 
             if (values.Contains(NGUOILIENHE_CMT_HOCHIEU))

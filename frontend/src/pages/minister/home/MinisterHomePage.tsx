@@ -21,7 +21,9 @@ import { APP_DATA_CONFIG, MINISTER_DATA_CONFIG } from '@/configs';
 
 import './MinisterHomePage.scss';
 import { vnFormatter } from '@/utils';
-import { t } from 'i18next';
+import { useTranslation } from 'react-i18next';
+import { LoadingFallback } from '@/components/LoadingFallback';
+import { DeferredSection } from '@/pages/home/components/DeferredSection';
 
 // --- Types ---
 interface NewsItem {
@@ -50,6 +52,11 @@ const mapResponseToItem = (item: any): NewsItem => ({
 });
 
 export const MinisterHomePage = () => {
+  const { t, i18n } = useTranslation();
+  const [attempt, setAttempt] = useState(0);
+  type Section = 'activities' | 'speech' | 'direction' | 'others';
+  const [status, setStatus] = useState<Record<Section, 'loading' | 'ready' | 'error'>>({ activities: 'loading', speech: 'loading', direction: 'loading', others: 'loading' });
+  const renderSection = (key: Section, content: React.ReactNode) => status[key] === 'loading' ? <LoadingFallback /> : status[key] === 'error' ? <div role="alert">Không tải được dữ liệu. <button type="button" onClick={() => setAttempt(value => value + 1)}>Thử lại</button></div> : content;
   // --- State ---
   const [banners, setBanners] = useState<BannerItem[]>([]);
   const [otherNews, setOtherNews] = useState<MinisterTopNewsProps>({ id: '', title: '', items: [] });
@@ -64,68 +71,39 @@ export const MinisterHomePage = () => {
 
   const subBanners = useMemo(() => banners.slice(1), [banners]);
 
-  // --- Effects ---
+  // Each section renders as soon as its own request completes.
   useEffect(() => {
-    const fetchPageData = async () => {
+    let active = true;
+    const language = getLang() === 'vi' ? 'VI' : 'EN';
+    setStatus({ activities: 'loading', speech: 'loading', direction: 'loading', others: 'loading' });
+    const loadNews = async (key: Section, config: { VI: string; EN: string }, count: number, title: string, setter: (value: any) => void) => {
       try {
-        const langConfig = getLang() === 'vi' ? APP_DATA_CONFIG.NOTI_BANNER.VI : APP_DATA_CONFIG.NOTI_BANNER.EN;
-
-        // Fetch all data in parallel for better performance
-        const [bannerRes, speechsNewsRes, activitiesNewsRes, directionNewsRes, otherNewsRes] = await Promise.all([
-          getHomeBanner(langConfig),
-          getPostsByCategory(getLang() === 'vi' ? MINISTER_DATA_CONFIG.HOME_SPEECH.VI : MINISTER_DATA_CONFIG.HOME_SPEECH.EN, 1, 10),
-          getPostsByCategory(getLang() === 'vi' ? MINISTER_DATA_CONFIG.HOME_ACTIVITIES.VI : MINISTER_DATA_CONFIG.HOME_ACTIVITIES.EN, 1, 4),
-          getPostsByCategory(getLang() === 'vi' ? MINISTER_DATA_CONFIG.HOME_DIRECTION.VI : MINISTER_DATA_CONFIG.HOME_DIRECTION.EN, 1, 3),
-          getPostsByCategory(getLang() === 'vi' ? MINISTER_DATA_CONFIG.HOME_OTHERS.VI : MINISTER_DATA_CONFIG.HOME_OTHERS.EN, 1, 10)
-        ]);
-
-        if (bannerRes.status === HttpStatusCode.Ok) {
-          const bannerData = bannerRes.data.data.map((f: any) => ({
-            title: f.TenBanner,
-            url: f.URL,
-            image: getUrlImage(f.AnhBannerUrl),
-          }));
-          setBanners(bannerData);
+        const id = config[language];
+        let response;
+        try {
+          response = await getPostsByCategory(id, 1, count);
+        } catch {
+          // Recover one transient API failure without requiring a page refresh.
+          if (!active) return;
+          response = await getPostsByCategory(id, 1, count);
         }
-
-        if (speechsNewsRes?.data) {
-          setSpeechsNews({
-            id: getLang() === 'vi' ? MINISTER_DATA_CONFIG.HOME_SPEECH.VI : MINISTER_DATA_CONFIG.HOME_SPEECH.EN,
-            title: t('minister.home_page.speech'),
-            items: speechsNewsRes.data.map(mapResponseToItem)
-          });
-        }
-
-        if (activitiesNewsRes?.data) {
-          setActivitiesNews({
-            id: getLang() === 'vi' ? MINISTER_DATA_CONFIG.HOME_ACTIVITIES.VI : MINISTER_DATA_CONFIG.HOME_ACTIVITIES.EN,
-            title: t('minister.home_page.activities'),
-            items: activitiesNewsRes.data.map(mapResponseToItem)
-          });
-        }
-
-        if (directionNewsRes?.data) {
-          setDirectionNews({
-            id: getLang() === 'vi' ? MINISTER_DATA_CONFIG.HOME_DIRECTION.VI : MINISTER_DATA_CONFIG.HOME_DIRECTION.EN,
-            title: t('minister.home_page.direction'),
-            items: directionNewsRes.data.map(mapResponseToItem)
-          });
-        }
-
-        if (otherNewsRes?.data) {
-          setOtherNews({
-            id: getLang() === 'vi' ? MINISTER_DATA_CONFIG.HOME_OTHERS.VI : MINISTER_DATA_CONFIG.HOME_OTHERS.EN,
-            title: t('minister.home_page.others'),
-            items: otherNewsRes.data.map(mapResponseToItem)
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching Minister Home Page data:', error);
+        if (!Array.isArray(response?.data)) throw new Error('Invalid news response');
+        if (!active) return;
+        setter({ id, title, items: response.data.map(mapResponseToItem) });
+        setStatus(previous => ({ ...previous, [key]: 'ready' }));
+      } catch {
+        if (active) setStatus(previous => ({ ...previous, [key]: 'error' }));
       }
     };
-
-    fetchPageData();
-  }, []);
+    void loadNews('activities', MINISTER_DATA_CONFIG.HOME_ACTIVITIES, 4, t('minister.home_page.activities'), setActivitiesNews);
+    void loadNews('speech', MINISTER_DATA_CONFIG.HOME_SPEECH, 10, t('minister.home_page.speech'), setSpeechsNews);
+    void loadNews('direction', MINISTER_DATA_CONFIG.HOME_DIRECTION, 3, t('minister.home_page.direction'), setDirectionNews);
+    void loadNews('others', MINISTER_DATA_CONFIG.HOME_OTHERS, 10, t('minister.home_page.others'), setOtherNews);
+    void getHomeBanner(APP_DATA_CONFIG.NOTI_BANNER[language]).then(response => {
+      if (active && response.status === HttpStatusCode.Ok) setBanners((response.data.data || []).map((item: any) => ({ title: item.TenBanner, url: item.URL, image: getUrlImage(item.AnhBannerUrl) })));
+    }).catch(() => { if (active) setBanners([]); });
+    return () => { active = false; };
+  }, [attempt, i18n.resolvedLanguage, t]);
 
   return (
     <div className="mh-minister">
@@ -141,10 +119,10 @@ export const MinisterHomePage = () => {
         <Container>
           <Row>
             <Col xl={8}>
-              <MinisterTopNews title={activitiesNews.title} id={activitiesNews.id} items={activitiesNews.items} />
+              {renderSection('activities', <MinisterTopNews title={activitiesNews.title} id={activitiesNews.id} items={activitiesNews.items} />)}
             </Col>
             <Col xl={4}>
-              <MinisterSidebar items={speechsNews.items} id={speechsNews.id} title={speechsNews.title} />
+              {renderSection('speech', <MinisterSidebar items={speechsNews.items} id={speechsNews.id} title={speechsNews.title} />)}
             </Col>
           </Row>
         </Container>
@@ -158,16 +136,16 @@ export const MinisterHomePage = () => {
         <Container>
           <Row>
             <Col xl={8}>
-              <MinisterTopCategory title={directionNews.title} id={directionNews.id} items={directionNews.items} />
+              {renderSection('direction', <MinisterTopCategory title={directionNews.title} id={directionNews.id} items={directionNews.items} />)}
             </Col>
             <Col xl={4}>
-              <MinisterSidebar title={otherNews.title} id={otherNews.id} items={otherNews.items} />
+              {renderSection('others', <MinisterSidebar title={otherNews.title} id={otherNews.id} items={otherNews.items} />)}
             </Col>
           </Row>
         </Container>
       </div>
 
-      <MediaSection />
+      <DeferredSection><MediaSection /></DeferredSection>
     </div>
   );
 };

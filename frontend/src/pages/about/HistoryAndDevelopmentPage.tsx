@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Link } from 'react-router-dom';
 import { Loading, PageFooter } from '@/components';
@@ -5,7 +6,7 @@ import { AboutBody } from './components/body/AboutBody';
 import { IconPdfFile } from '@/components/icons';
 import { useEffect, useState } from 'react';
 import { getHistory, getLeadersByTerm } from '@/services/about';
-import { getUrlImage } from '@/utils/image';
+import { getUrlImage, getUrlPdfFile } from '@/utils/image';
 
 export const HistoryAndDevelopmentPage = () => {
   const [histories, setHistories] = useState<any>([]);
@@ -44,12 +45,14 @@ export const HistoryAndDevelopmentPage = () => {
 
   return (
     <>
+      <Helmet><title>Lịch sử hình thành và phát triển - Bộ Nội vụ</title></Helmet>
       <AboutBody>
+        <h1 className="h3 mb-4">Lịch sử hình thành và phát triển</h1>
         <div className="mh-about-document">
           {histories.map((item: any, idx: number) => (
             <div className="mh-about-document-item" key={idx}>
               <div className="mh-about-document-item-name">{item.TenThoiKy}</div>
-              <Link to={item.link}>
+              <Link to={getUrlPdfFile(item.link)} target="_blank" rel="noopener noreferrer">
                 <IconPdfFile />
                 <span>Tải về</span>
               </Link>

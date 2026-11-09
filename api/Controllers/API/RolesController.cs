@@ -20,7 +20,7 @@ using Newtonsoft.Json.Linq;
 namespace API.Controllers
 {
     //[PermissionAuthorize("manage-role")]
-    [Authorize]
+    [PermissionAuthorize("manage-role")]
     [Route("api/Roles/{action}", Name = "RolesApi")]
     public class RolesController : ApiController
     {

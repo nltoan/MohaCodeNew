@@ -1,3 +1,5 @@
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
+import { resolveContentMedia } from '@/utils/image';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AboutBody } from './components/body/AboutBody';
 import { PageFooter, PageHeader } from '@/components';
@@ -52,7 +54,7 @@ export const FunctionsAndDutiesPage = () => {
           <div
             className={isHistory ? 'mh-about-history' : undefined}
             dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize((isHistory ? data?.NoiDung?.replace(/&nbsp;|\u00a0/g, ' ') : data?.NoiDung)?.replace(/contenteditable="true"/g, 'contenteditable="false"')),
+              __html: sanitizeHtml(DOMPurify.sanitize(resolveContentMedia(isHistory ? data?.NoiDung?.replace(/&nbsp;|\u00a0/g, ' ') : data?.NoiDung)?.replace(/contenteditable="true"/g, 'contenteditable="false"'))),
             }}
           />
         </AboutBody>

@@ -1,0 +1,11 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');const {createRequire}=require('node:module');const {chromium}=createRequire(path.join(process.env.LOCALAPPDATA,'MohaDev/browser-tests/package.json'))('playwright');
+(async()=>{const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});try{
+const p=await browser.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.addInitScript(()=>localStorage.setItem('i18nextLng','vi'));
+const payload='<p>SECURITY_SAFE_TEXT</p><img src="/security-missing.png" onerror="window.__SECURITY_XSS=true"><svg onload="window.__SECURITY_XSS=true"></svg><a href="javascript:window.__SECURITY_XSS=true">unsafe link</a><script>window.__SECURITY_XSS=true</script>';
+await p.route('**/api/Public/PostDetail?*',r=>r.fulfill({contentType:'application/json',body:JSON.stringify({data:{ID:15368,TieuDe:'Kiểm tra bảo mật',MoTa:payload,NoiDung:payload,TinTuc_Files:[],PageCount:1,NgayXuatBan:'2026-10-02'}})}));
+await p.route('**/api/Public/Search?*',r=>r.fulfill({contentType:'application/json',body:JSON.stringify({data:[{ID:15368,TieuDe:'Kết quả kiểm tra',MoTa:payload,NgayXuatBan:'2026-10-02',Type:'tin-tuc'}],totalCount:1})}));
+for(const route of ['/tin-tuc/security---id15368','/bo-truong/tin-tuc/security---id15368','/nghi-quyet-tw4/tin-tuc/security---id15368','/tim-kiem/security']){
+await p.goto('http://localhost:5175'+route,{waitUntil:'domcontentloaded'});await p.getByText('SECURITY_SAFE_TEXT',{exact:true}).first().waitFor({timeout:30000});await p.waitForTimeout(250);
+const result=await p.evaluate(()=>({ran:window.__SECURITY_XSS===true,attributes:document.querySelectorAll('main [onerror],main [onload],main a[href^="javascript:"]').length,scripts:document.querySelectorAll('main script').length}));assert.deepEqual(result,{ran:false,attributes:0,scripts:0},route);console.log('PASS XSS sanitized '+route)}
+assert.deepEqual(errors,[]);console.log('PASS injected HTML retains text and blocks event handlers, scripts and javascript URLs; API responses mocked, no stored payloads');
+}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

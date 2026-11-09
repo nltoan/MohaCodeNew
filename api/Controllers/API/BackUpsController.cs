@@ -25,7 +25,7 @@ using System.Web;
 namespace API.Controllers
 {
     //[PermissionAuthorize("manage-backup")]
-    [Authorize]
+    [PermissionAuthorize("manage-backup")]
     [Route("api/BackUps/{action}", Name = "BackUpsApi")]
     public class BackUpsController : ApiController
     {
@@ -34,7 +34,13 @@ namespace API.Controllers
         [HttpGet]
         public HttpResponseMessage Download(string path)
         {
-            byte[] fileBytes = System.IO.File.ReadAllBytes(path);
+            if (string.IsNullOrEmpty(path)) return Request.CreateResponse(HttpStatusCode.BadRequest);
+            var root = Path.GetFullPath(HttpContext.Current.Server.MapPath("~/Upload/BackUp")) + Path.DirectorySeparatorChar;
+            var fullPath = Path.GetFullPath(path);
+            if (!fullPath.StartsWith(root, StringComparison.OrdinalIgnoreCase) || !string.Equals(Path.GetExtension(fullPath), ".bak", StringComparison.OrdinalIgnoreCase))
+                return Request.CreateResponse(HttpStatusCode.Forbidden);
+            if (!System.IO.File.Exists(fullPath)) return Request.CreateResponse(HttpStatusCode.NotFound);
+            byte[] fileBytes = System.IO.File.ReadAllBytes(fullPath);
 
             var stream = new MemoryStream();
             // processing the stream.

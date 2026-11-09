@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState, useCallback } from 'react';
 import { Col, Row, Table } from 'react-bootstrap';
@@ -170,7 +171,7 @@ export const DocumentDetailPage = () => {
                     <div
                       className="mt-3"
                       dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(detail.content),
+                        __html: sanitizeHtml(DOMPurify.sanitize(detail.content)),
                       }}
                     />
                   </td>

@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { Container, FormControl, Image } from 'react-bootstrap';
 import { CardSection, Loading, Pagination } from '@/components';
 import { IconPdfFile } from '@/components/icons';
@@ -144,7 +145,7 @@ export const SearchPage = () => {
                       <Link to={getNewURL('tin-tuc', item.TieuDe, item?.ID)} className="mh-searchbox-item-title">
                         {item?.TieuDe}
                       </Link>
-                      <div className="mh-searchbox-item-description" dangerouslySetInnerHTML={{ __html: item?.MoTa }} />
+                      <div className="mh-searchbox-item-description" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item?.MoTa) }} />
                     </div>
                     <div className="mh-searchbox-item-date">{vnFormatter(item?.NgayXuatBan)}</div>
                   </div>
@@ -168,7 +169,7 @@ export const SearchPage = () => {
                       >
                         {item?.TieuDe}
                       </Link>
-                      <div className="mh-searchbox-item-description" dangerouslySetInnerHTML={{ __html: item?.MoTa }} />
+                      <div className="mh-searchbox-item-description" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item?.MoTa) }} />
                     </div>
                   </div>
                 )}

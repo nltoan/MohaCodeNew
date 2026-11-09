@@ -19,7 +19,7 @@ export default function Profile() {
     e.preventDefault();
     let res = await requestXForm(`Home/UpdateProfile`, {
       method: "POST",
-      body: `values=${JSON.stringify(formData)}`,
+      body: new URLSearchParams({ values: JSON.stringify(formData) }).toString(),
     });
     if (res.status == "ko") {
       notify(`Cập nhật thông tin không thành công! : ${res.error}`, "error");
@@ -59,7 +59,8 @@ export default function Profile() {
               <TabbedItem colSpan={2}>
                 <Tab title="Thông tin cá nhân" colCount={2}>
                   <SimpleItem dataField="Email" colSpan={2} label="Email" />
-                  <SimpleItem dataField="Password" editorType="dxTextBox">
+                  <SimpleItem dataField="CurrentPassword" editorType="dxTextBox" editorOptions={{ mode: "password" }}><Label text="Mật khẩu hiện tại" /></SimpleItem>
+                  <SimpleItem dataField="Password" editorType="dxTextBox" editorOptions={{ mode: "password" }}>
                     <Label text="Mật khẩu" />
                   </SimpleItem>
                   <SimpleItem name="ConfirmPassword" editorType="dxTextBox">

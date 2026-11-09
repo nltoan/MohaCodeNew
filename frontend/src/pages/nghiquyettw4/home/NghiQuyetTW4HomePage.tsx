@@ -17,7 +17,9 @@ import { NghiQuyetTW4_DATA_CONFIG } from '@/configs';
 
 import './NghiQuyetTW4HomePage.scss';
 import { vnFormatter } from '@/utils';
-import { t } from 'i18next';
+import { useTranslation } from 'react-i18next';
+import { LoadingFallback } from '@/components/LoadingFallback';
+import type { ReactNode } from 'react';
 
 // --- Types ---
 interface NewsItem {
@@ -40,6 +42,11 @@ const mapResponseToItem = (item: any): NewsItem => ({
 });
 
 export const NghiQuyetTW4HomePage = () => {
+  const { t, i18n } = useTranslation();
+  type Section = 'news' | 'reports' | 'capture' | 'direction' | 'protection' | 'contest';
+  const [status, setStatus] = useState<Partial<Record<Section, 'loading' | 'ready' | 'error'>>>({});
+  const [attempt, setAttempt] = useState(0);
+  const renderSection = (key: Section, content: ReactNode) => !status[key] || status[key] === 'loading' ? <LoadingFallback /> : status[key] === 'error' ? <div role="alert">Không tải được dữ liệu. <button type="button" onClick={() => setAttempt(value => value + 1)}>Thử lại</button></div> : content;
   // --- State ---
   const [captureNews, setCaptureNews] = useState<NghiQuyetTW4TopNewsProps>({ id: '', title: '', items: [] });
   const [reportsNews, setReportsNews] = useState<NghiQuyetTW4TopNewsProps>({ id: '', title: '', items: [] });
@@ -48,74 +55,35 @@ export const NghiQuyetTW4HomePage = () => {
   const [protectionNews, setProtectionNews] = useState<NghiQuyetTW4TopNewsProps>({ id: '', items: [], title: '' });
   const [contestNews, setContestNews] = useState<NghiQuyetTW4TopCategoryProps>({ id: '', items: [], title: '' });
 
-  // --- Effects ---
   useEffect(() => {
-    const fetchPageData = async () => {
+    let active = true;
+    const language = getLang() === 'vi' ? 'VI' : 'EN';
+    setStatus({});
+    const load = async (key: Section, config: { VI: string; EN: string }, count: number, label: string, setter: (value: any) => void) => {
       try {
-        // Fetch all data in parallel for better performance
-        const [reportsNewsRes, captureNewsRes, directionNewsRes, protectionNewsRes, contestNewsRes, newsRes] = await Promise.all([
-          getPostsByCategory(getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_REPORT.VI : NghiQuyetTW4_DATA_CONFIG.HOME_REPORT.EN, 1, 5),
-          getPostsByCategory(getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_CAPTURE.VI : NghiQuyetTW4_DATA_CONFIG.HOME_CAPTURE.EN, 1, 5),
-          getPostsByCategory(getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_DIRECTION.VI : NghiQuyetTW4_DATA_CONFIG.HOME_DIRECTION.EN, 1, 5),
-          getPostsByCategory(getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_PROTECTION.VI : NghiQuyetTW4_DATA_CONFIG.HOME_PROTECTION.EN, 1, 4),
-          getPostsByCategory(getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_CONTEST.VI : NghiQuyetTW4_DATA_CONFIG.HOME_CONTEST.EN, 1, 3),
-          getPostsByCategory(getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_NEWS.VI : NghiQuyetTW4_DATA_CONFIG.HOME_NEWS.EN, 1, 10)
-        ]);
-
-        if (reportsNewsRes?.data) {
-          setReportsNews({
-            id: getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_REPORT.VI : NghiQuyetTW4_DATA_CONFIG.HOME_REPORT.EN,
-            title: t('nghiquyettw4.home_page.report'),
-            items: reportsNewsRes.data.map(mapResponseToItem)
-          });
+        const id = config[language];
+        let response;
+        try { response = await getPostsByCategory(id, 1, count); }
+        catch {
+          if (!active) return;
+          response = await getPostsByCategory(id, 1, count);
         }
-
-        if (captureNewsRes?.data) {
-          setCaptureNews({
-            id: getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_CAPTURE.VI : NghiQuyetTW4_DATA_CONFIG.HOME_CAPTURE.EN,
-            title: t('nghiquyettw4.home_page.documentaryPhotography'),
-            items: captureNewsRes.data.map(mapResponseToItem)
-          });
-        }
-
-        if (directionNewsRes?.data) {
-          setDirectionNews({
-            id: getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_DIRECTION.VI : NghiQuyetTW4_DATA_CONFIG.HOME_DIRECTION.EN,
-            title: t('nghiquyettw4.home_page.direction'),
-            items: directionNewsRes.data.map(mapResponseToItem)
-          });
-        }
-
-        if (protectionNewsRes?.data) {
-          setProtectionNews({
-            id: getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_PROTECTION.VI : NghiQuyetTW4_DATA_CONFIG.HOME_PROTECTION.EN,
-            title: t('nghiquyettw4.home_page.protection'),
-            items: protectionNewsRes.data.map(mapResponseToItem)
-          });
-        }
-
-        if (contestNewsRes?.data) {
-          setContestNews({
-            id: getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_CONTEST.VI : NghiQuyetTW4_DATA_CONFIG.HOME_CONTEST.EN,
-            title: t('nghiquyettw4.home_page.contest'),
-            items: contestNewsRes.data.map(mapResponseToItem)
-          });
-        }
-
-        if (newsRes?.data) {
-          setNews({
-            id: getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_NEWS.VI : NghiQuyetTW4_DATA_CONFIG.HOME_NEWS.EN,
-            title: t('nghiquyettw4.home_page.news'),
-            items: newsRes.data.map(mapResponseToItem)
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching NghiQuyetTW4 Home Page data:', error);
+        if (!Array.isArray(response?.data)) throw new Error('Invalid news response');
+        if (!active) return;
+        setter({ id, title: t(label), items: response.data.map(mapResponseToItem) });
+        setStatus(previous => ({ ...previous, [key]: 'ready' }));
+      } catch {
+        if (active) setStatus(previous => ({ ...previous, [key]: 'error' }));
       }
     };
-
-    fetchPageData();
-  }, []);
+    void load('news', NghiQuyetTW4_DATA_CONFIG.HOME_NEWS, 10, 'nghiquyettw4.home_page.news', setNews);
+    void load('reports', NghiQuyetTW4_DATA_CONFIG.HOME_REPORT, 5, 'nghiquyettw4.home_page.report', setReportsNews);
+    void load('capture', NghiQuyetTW4_DATA_CONFIG.HOME_CAPTURE, 5, 'nghiquyettw4.home_page.documentaryPhotography', setCaptureNews);
+    void load('direction', NghiQuyetTW4_DATA_CONFIG.HOME_DIRECTION, 5, 'nghiquyettw4.home_page.direction', setDirectionNews);
+    void load('protection', NghiQuyetTW4_DATA_CONFIG.HOME_PROTECTION, 4, 'nghiquyettw4.home_page.protection', setProtectionNews);
+    void load('contest', NghiQuyetTW4_DATA_CONFIG.HOME_CONTEST, 3, 'nghiquyettw4.home_page.contest', setContestNews);
+    return () => { active = false; };
+  }, [attempt, i18n.resolvedLanguage, t]);
 
   return (
     <div className="mh-nqtw4">
@@ -129,10 +97,10 @@ export const NghiQuyetTW4HomePage = () => {
         <Container>
           <Row>
             <Col xl={8}>
-              <NghiQuyetTW4TopNews title={news.title} id={news.id} items={news.items} />
+              {renderSection('news', <NghiQuyetTW4TopNews title={news.title} id={news.id} items={news.items} />)}
             </Col>
             <Col xl={4}>
-              <NghiQuyetTW4Sidebar items={reportsNews.items} id={reportsNews.id} title={reportsNews.title} />
+              {renderSection('reports', <NghiQuyetTW4Sidebar items={reportsNews.items} id={reportsNews.id} title={reportsNews.title} />)}
             </Col>
           </Row>
         </Container>
@@ -142,10 +110,10 @@ export const NghiQuyetTW4HomePage = () => {
         <Container>
           <Row>
             <Col xl={8}>
-              <NghiQuyetTW4TopNews title={protectionNews.title} id={protectionNews.id} items={protectionNews.items} />
+              {renderSection('protection', <NghiQuyetTW4TopNews title={protectionNews.title} id={protectionNews.id} items={protectionNews.items} />)}
             </Col>
             <Col xl={4}>
-              <NghiQuyetTW4Sidebar items={directionNews.items} id={directionNews.id} title={directionNews.title} />
+              {renderSection('direction', <NghiQuyetTW4Sidebar items={directionNews.items} id={directionNews.id} title={directionNews.title} />)}
             </Col>
           </Row>
         </Container>
@@ -155,10 +123,10 @@ export const NghiQuyetTW4HomePage = () => {
         <Container>
           <Row>
             <Col xl={8}>
-              <NghiQuyetTW4TopCategory title={contestNews.title} id={contestNews.id} items={contestNews.items} />
+              {renderSection('contest', <NghiQuyetTW4TopCategory title={contestNews.title} id={contestNews.id} items={contestNews.items} />)}
             </Col>
             <Col xl={4}>
-              <NghiQuyetTW4Sidebar title={captureNews.title} id={captureNews.id} items={captureNews.items} />
+              {renderSection('capture', <NghiQuyetTW4Sidebar title={captureNews.title} id={captureNews.id} items={captureNews.items} />)}
             </Col>
           </Row>
         </Container>

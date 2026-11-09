@@ -1,3 +1,5 @@
+import { getMinisterMenus } from '@/services/minister';
+import { getMenus } from '@/services/nghiquyettw4';
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { getCtxAppConfig } from '@/services/config';
@@ -8,8 +10,9 @@ export function PortalSectionIndex({ prefix, title }: { prefix: string; title: s
   const [target, setTarget] = useState<string>();
   useEffect(() => {
     let active = true;
-    getCtxAppConfig().then(response => {
-      const items = response.data?.data;
+    const loadMenu = prefix.startsWith('/bo-truong/') ? getMinisterMenus : prefix.startsWith('/nghi-quyet-tw4/') ? getMenus : getCtxAppConfig;
+    loadMenu().then(response => {
+      const items = response.data?.childs || response.data?.data;
       const item = Array.isArray(items) ? items.find(item => item.URL?.startsWith(prefix)) : undefined;
       if (active) setTarget(item?.URL || '');
     }).catch(() => { if (active) setTarget(''); });

@@ -103,7 +103,9 @@ namespace API.Controllers
         public async Task<HttpResponseMessage> UpdateProfile(FormDataCollection form)
         {
             var values = JsonConvert.DeserializeObject<IDictionary>(form.Get("values"));
-            var ID = Convert.ToInt32(values["UserID"]);
+            var ID = Convert.ToInt32(User.Identity.GetUserId());
+            if (values.Contains("UserID") && Convert.ToInt32(values["UserID"]) != ID)
+                return Request.CreateResponse(HttpStatusCode.Forbidden);
             var aUser = _context.User_Account.Where(x => x.UserID == ID).FirstOrDefault();
             if (aUser == null)
             {
@@ -126,20 +128,25 @@ namespace API.Controllers
                 }
                 aUser.IsTwoFA = isTwoFA;
             }
-            if (values.Contains("Password"))
+            if (values.Contains("Password") && !string.IsNullOrEmpty(Convert.ToString(values["Password"])))
             {
                 string Password = Convert.ToString(values["Password"]);
-                aUser.MatKhau = Password;
+                if (!values.Contains("CurrentPassword") || !API.Services.PasswordSecurity.Verify(Convert.ToString(values["CurrentPassword"]), aUser.MatKhau))
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { status = "ko", error = "Mật khẩu hiện tại không đúng." });
+                if (Password.Length < 12 || Password.Length > 255)
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { status = "ko", error = "Mật khẩu mới cần từ 12 đến 255 ký tự." });
+                aUser.MatKhau = API.Services.PasswordSecurity.Hash(Password);
             }
             _context.SaveChanges();
             return Request.CreateResponse(HttpStatusCode.OK, new { status = "ok"});
         }
-        private static Random random = new Random();
+
         public static string RandomString(int length)
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+            var bytes = new byte[length];
+            using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create()) rng.GetBytes(bytes);
+            return new string(bytes.Select(b => chars[b % chars.Length]).ToArray());
         }
         [HttpGet]
         public async Task<HttpResponseMessage> GenerateAuthenticateSecret()
@@ -148,7 +155,8 @@ namespace API.Controllers
             var username = User.Identity.GetUserName();
             var userId = Convert.ToInt32(User.Identity.GetUserId());
             var aUser = _context.User_Account.Where(x => x.UserID == userId).FirstOrDefault();
-            aUser.Authenticator_Secret = RandomString(8);
+            if (aUser.IsTwoFA == 1) return Request.CreateResponse(HttpStatusCode.Conflict);
+            aUser.Authenticator_Secret = RandomString(32);
             await _context.SaveChangesAsync();
 
             SetupCode setupInfo = tfa.GenerateSetupCode("moha.gov.vn", username, aUser.Authenticator_Secret, false, 3);

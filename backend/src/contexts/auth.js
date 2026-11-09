@@ -42,7 +42,7 @@ function AuthProvider(props) {
     localStorage.removeItem("user");
     localStorage.removeItem("access_token");
     const cookies = new Cookies();
-    cookies.remove("access_token");
+    cookies.remove("access_token", { path: "/" });
     setUser(undefined);
   }, []);
 

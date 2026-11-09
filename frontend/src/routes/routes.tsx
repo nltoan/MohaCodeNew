@@ -38,7 +38,6 @@ const HistoryAndDevelopmentPage = lazy(() =>
 
 const NewsPage = lazy(() => import('@/pages/news/NewsPage').then((m) => ({ default: m.NewsPage })));
 const MinisNewsPage = lazy(() => import('@/pages/minister-news/NewsPage').then((m) => ({ default: m.NewsPage })));
-const NghiQuyetNewsPage = lazy(() => import('@/pages/nghiquyettw4-news/NewsPage').then((m) => ({ default: m.NewsPage })));
 
 const NewsCategoryPage = lazy(() =>
   import('@/pages/news/NewsCategoryPage').then((m) => ({
@@ -201,7 +200,7 @@ export const ministerRouters = [
         children: [
           {
             index: true,
-            element: withSuspense(() => <FunctionsAndDutiesPageMinus />),
+            element: withSuspense(() => <PortalSectionIndex prefix="/bo-truong/gioi-thieu-bo-truong/" title="Giới thiệu Bộ trưởng" />),
           },
           {
             path: ':slug',
@@ -229,7 +228,7 @@ export const ministerRouters = [
         children: [
           {
             index: true,
-            element: withSuspense(() => <MinisNewsCategoryPage />),
+            element: withSuspense(() => <PortalSectionIndex prefix="/bo-truong/chuyen-muc/" title="Chuyên mục Bộ trưởng" />),
           },
           {
             path: ':slug',
@@ -261,7 +260,7 @@ export const nghiquyettw4Routers = [
         children: [
           {
             index: true,
-            element: withSuspense(() => <NghiQuyetNewsPage />),
+            element: withSuspense(() => <PortalSectionIndex prefix="/nghi-quyet-tw4/chuyen-muc/tin-tuc" title="Tin tức - sự kiện Đảng bộ" />),
           },
           {
             path: ':slug',
@@ -275,7 +274,7 @@ export const nghiquyettw4Routers = [
         children: [
           {
             index: true,
-            element: withSuspense(() => <NghiQuyetNewsCategoryPage />),
+            element: withSuspense(() => <PortalSectionIndex prefix="/nghi-quyet-tw4/chuyen-muc/tin-tuc" title="Chuyên mục Đảng bộ" />),
           },
           {
             path: ':slug',
@@ -313,16 +312,32 @@ export const appRoutes = [
             element: <PortalSectionIndex prefix="/gioi-thieu/chuc-nang-nhiem-vu/" title="Giới thiệu Bộ Nội vụ" />,
           },
           {
+            path: 'chuc-nang-nhiem-vu',
+            element: <PortalSectionIndex prefix="/gioi-thieu/chuc-nang-nhiem-vu/" title="Chức năng, nhiệm vụ" />,
+          },
+          {
             path: 'chuc-nang-nhiem-vu/:slug',
             element: withSuspense(() => <FunctionsAndDutiesPage />),
+          },
+          {
+            path: 'lich-su-bo',
+            element: <PortalSectionIndex prefix="/gioi-thieu/lich-su-bo/" title="Lịch sử Bộ Nội vụ" />,
           },
           {
             path: 'lich-su-bo/:slug',
             element: withSuspense(() => <FunctionsAndDutiesPage />),
           },
           {
+            path: 'lanh-dao-bo',
+            element: <PortalSectionIndex prefix="/gioi-thieu/lanh-dao-bo/" title="Lãnh đạo Bộ" />,
+          },
+          {
             path: 'lanh-dao-bo/:slug',
             element: withSuspense(() => <MinisterialLeadershipPage />),
+          },
+          {
+            path: 'co-cau-to-chuc',
+            element: <PortalSectionIndex prefix="/gioi-thieu/co-cau-to-chuc/" title="Cơ cấu tổ chức" />,
           },
           {
             path: 'co-cau-to-chuc/:slug',
@@ -384,7 +399,7 @@ export const appRoutes = [
         children: [
           {
             index: true,
-            element: withSuspense(() => <NewsCategoryPage />),
+            element: withSuspense(() => <PortalSectionIndex prefix="/chuyen-muc/" title="Chuyên mục" />),
           },
           {
             path: ':slug',

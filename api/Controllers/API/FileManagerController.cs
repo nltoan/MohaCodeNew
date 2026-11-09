@@ -1,3 +1,8 @@
+using API.OAuth.Providers;
+using System.Web.Http.Filters;
+using System.Web.Http.Controllers;
+using System.Security.Claims;
+using Newtonsoft.Json.Linq;
 ﻿using API.Models;
 using DevExtreme.AspNet.Mvc.FileManagement;
 using Newtonsoft.Json;
@@ -21,10 +26,42 @@ using System.Web.Http;
 
 namespace API.Controllers
 {
-    [Authorize]
+    public sealed class MediaUploadValidationAttribute : ActionFilterAttribute
+    {
+        public override void OnActionExecuting(HttpActionContext context)
+        {
+            // Validate before any upload handler writes a file, including direct legacy upload endpoints.
+            var request = HttpContext.Current.Request;
+            foreach (string key in request.Files) {
+                var file = request.Files[key];
+                if (!FileManagerController.SafeUploadName(file.FileName) || file.ContentLength <= 0 || file.ContentLength > 80 * 1024 * 1024)
+                    { context.Response = context.Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid upload file."); return; }
+            }
+            if (!string.IsNullOrEmpty(request.Form["chunkMetadata"])) {
+                try {
+                    var metadata = JObject.Parse(request.Form["chunkMetadata"]);
+                    Guid guid;
+                    if (!FileManagerController.SafeUploadName((string)metadata["FileName"]) || !Guid.TryParse((string)metadata["FileGuid"], out guid) ||
+                        (int)metadata["TotalCount"] < 1 || (int)metadata["TotalCount"] > 10000 || (int)metadata["Index"] < 0 || (int)metadata["Index"] >= (int)metadata["TotalCount"])
+                        { context.Response = context.Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid upload metadata."); return; }
+                } catch { { context.Response = context.Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid upload metadata."); return; } }
+            }
+        }
+    }
+    [PermissionAuthorize("manage-library", "manage-tintuc", "manage-vanban", "manage-nckh", "manage-banner", "manage-setting", "manage-sukien")]
+    [MediaUploadValidation]
     [Route("api/FileManager/{action}", Name = "FileManagersApi")]
     public class FileManagerController : ApiController
     {
+        static readonly string[] SafeUploadExtensions = {
+            ".jpg", ".jpeg", ".png", ".gif", ".tiff", ".tif", ".webp", ".avif", ".bmp", ".ico",
+            ".zip", ".rar", ".7z", ".tar", ".gz", ".mp4", ".mov", ".avi", ".mkv", ".webm", ".mp3", ".wav", ".aac", ".flac", ".mpeg",
+            ".pdf", ".docx", ".doc", ".rtf", ".txt", ".xlsx", ".xls", ".csv", ".pptx", ".ppt"
+        };
+        internal static bool SafeUploadName(string name) {
+            return !string.IsNullOrWhiteSpace(name) && name.Length <= 200 && name.IndexOfAny(new[] { '/', '\\', ':', '<', '>', '\"', '|', '?', '*' }) < 0 &&
+                name == Path.GetFileName(name) && SafeUploadExtensions.Contains(Path.GetExtension(name), StringComparer.OrdinalIgnoreCase);
+        }
         public FileManagerController()
         {
 
@@ -103,7 +140,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest, new { error = ex.Message });
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new { error = "Không xử lý được file." });
             }
         }
         [HttpPost]
@@ -224,7 +261,7 @@ namespace API.Controllers
 
                     string[] allExtensions = {
                             // Images
-                            ".jpg", ".jpeg", ".png", ".gif", ".tiff", ".tif", ".psd", ".svg", ".webp", ".avif",
+                            ".jpg", ".jpeg", ".png", ".gif", ".tiff", ".tif", ".psd", ".webp", ".avif",
                             // Compression
                             ".zip", ".rar", ".7z", ".tar", ".gz", ".iso", ".dmg",
                             // Media (Video & Audio)
@@ -241,7 +278,7 @@ namespace API.Controllers
                     if (!Directory.Exists(tempFileLocation))
                         Directory.CreateDirectory(tempFileLocation);
 
-                    var tempFilePath = Path.Combine(tempFileLocation, metaDataObject.FileGuid + ".tmp");
+                    var tempFilePath = Path.Combine(tempFileLocation, ((System.Security.Claims.ClaimsPrincipal)User).FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value + "-" + metaDataObject.FileGuid + ".tmp");
 
                     // Appends the chunk to the file
                     AppendContentToFile(tempFilePath, file);
@@ -268,7 +305,7 @@ namespace API.Controllers
             }
             catch(Exception ex)
             {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Không xử lý được file.");
             }
             return Request.CreateResponse(HttpStatusCode.Created, new { });
         }
@@ -284,7 +321,7 @@ namespace API.Controllers
             {
                 string[] allExtensions = {
                             // Images
-                            ".jpg", ".jpeg", ".png", ".gif", ".tiff", ".tif", ".psd", ".svg", ".webp", ".avif",
+                            ".jpg", ".jpeg", ".png", ".gif", ".tiff", ".tif", ".psd", ".webp", ".avif",
                         };
 
                 if (!allExtensions.Contains(Path.GetExtension(file.FileName)))
@@ -300,9 +337,9 @@ namespace API.Controllers
                     jsonResponse = "{\"fileName\": \"" + newFileName +"\",\"uploaded\": 1,\"url\": \"" + fileUrlInFrontEnd + "\"}";
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                jsonResponse = "{\"error\":{\"number\":105,\"message\":\"" + ex.Message + "\"}}";
+                jsonResponse = "{\"error\":{\"number\":105,\"message\":\"Không thể tải tệp lên.\"}}";
             }
             var response = Request.CreateResponse(HttpStatusCode.OK);
             response.Content = new StringContent(jsonResponse, Encoding.UTF8, "application/json");
@@ -331,6 +368,15 @@ namespace API.Controllers
             FileSystemCommand command;
             Enum.TryParse(request["command"], out command);
             string arguments = request["arguments"];
+            if (command == FileSystemCommand.UploadChunk || command == FileSystemCommand.Rename) {
+                try {
+                    var args = JToken.Parse(arguments);
+                    var names = ((JContainer)args).Descendants().OfType<JProperty>().Where(p => p.Name.Equals("fileName", StringComparison.OrdinalIgnoreCase) || p.Name.Equals("name", StringComparison.OrdinalIgnoreCase)).Select(p => p.Value.ToString()).ToArray();
+                    if (names.Length == 0 || names.Any(n => !SafeUploadName(n)))
+                        return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid file name.");
+                } catch { return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid upload arguments."); }
+            }
+
             var config = new FileSystemConfiguration
             {
                 Request = request,

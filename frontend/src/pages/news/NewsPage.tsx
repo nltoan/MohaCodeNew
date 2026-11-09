@@ -1,3 +1,5 @@
+import { LoadingFallback } from '@/components/LoadingFallback';
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Accordion, Col, Container, Image, ListGroup, Row } from 'react-bootstrap';
 import './NewsPage.scss';
@@ -46,38 +48,53 @@ export const NewsPage = () => {
     pageSize: 10,
   });
 
+  const [listStatus, setListStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [topStatus, setTopStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [attempt, setAttempt] = useState(0);
   const [titlePage, setTitlePage] = useState(undefined);
 
   useEffect(() => {
+    let active = true;
+    setTopStatus('loading');
     const fetchData = async () => {
       try {
         const res = await getTopPostNews(keyQuery!, 4);
         const [main, ...cards] = res.topposts;
-        setTopPost({ main, cards: cards });
+        if (!active) return;
+          setTopPost({ main, cards: cards });
         setTitlePage(res.data.TenChuyenMuc);
+        if (active) setTopStatus('ready');
       } catch (err) {
+        if (active) setTopStatus('error');
         console.error(err);
       }
     };
 
     fetchData();
-  }, [keyQuery]);
+    return () => { active = false; };
+  }, [keyQuery, attempt]);
 
   useEffect(() => {
+    let active = true;
+    setListStatus('loading');
     const fetchData = async () => {
       try {
         const resNew = await getPostsByCategory(keyQuery!, pagination.activePage, pagination.pageSize);
-        setPagination((prev) => ({
+        if (!active) return;
+          setPagination((prev) => ({
           ...prev,
           news: resNew.data,
           totalPages: Math.ceil(resNew.totalCount / prev.pageSize),
         }));
+        if (active) setListStatus('ready');
       } catch (err) {
+        if (active) setListStatus('error');
         console.error(err);
       }
     };
     fetchData();
-  }, [pagination.activePage, pagination.pageSize, keyQuery]);
+    return () => { active = false; };
+  }, [pagination.activePage, pagination.pageSize, keyQuery, attempt]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -144,7 +161,9 @@ export const NewsPage = () => {
               <div className="mh-news-header">
                 <h1>{titlePage}</h1>
               </div>
-              {!topPost?.main?.ID && <div className="text-center">{t('common.no_data')}</div>}
+              {(topStatus === 'loading' || listStatus === 'loading') && <LoadingFallback />}
+              {(topStatus === 'error' || listStatus === 'error') && <div role="alert">Không tải được dữ liệu. <button type="button" onClick={() => setAttempt(value => value + 1)}>Thử lại</button></div>}
+              {topStatus === 'ready' && listStatus === 'ready' && !topPost?.main?.ID && pagination.news.length === 0 && <div className="text-center">{t('common.no_data')}</div>}
               {topPost?.main?.ID && (
                 <div className="mh-news-body">
                   <div className="mh-news-banner">
@@ -202,7 +221,7 @@ export const NewsPage = () => {
                           <Link to={getNewURL('tin-tuc', item.TieuDe, item?.ID)} className="mh-news-item-title">
                             {item?.TieuDe}
                           </Link>
-                          <div className="mh-news-item-description" dangerouslySetInnerHTML={{ __html: item?.MoTa }} />
+                          <div className="mh-news-item-description" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item?.MoTa) }} />
                         </div>
                         <div className="mh-news-item-date">{vnFormatter(item?.NgayXuatBan)}</div>
                       </div>

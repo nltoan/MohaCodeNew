@@ -1,3 +1,6 @@
+using API.Services;
+using System.Web;
+using System.Web.Caching;
 ﻿using Microsoft.Owin.Security.OAuth;
 using System.Threading.Tasks;
 using System.Security.Claims;
@@ -14,6 +17,7 @@ namespace API.OAuth.Providers
 {
     public class SimpleAuthorizationServerProvider : OAuthAuthorizationServerProvider
     {
+        static readonly object AttemptLock = new object();
 
         public override async System.Threading.Tasks.Task ValidateClientAuthentication(OAuthValidateClientAuthenticationContext context)
         {
@@ -25,18 +29,26 @@ namespace API.OAuth.Providers
             // CORS set setting
             //context.OwinContext.Response.Headers.Add("Access-Control-Allow-Origin", new[] { "*" });
             var type = context.Request.Query.Get("type"); 
-            if (string.IsNullOrEmpty(context.UserName) || string.IsNullOrEmpty(context.Password))
+            if (string.IsNullOrEmpty(context.UserName) || context.UserName.Length > 255 || string.IsNullOrEmpty(context.Password) || context.Password.Length > 1000)
             {
                 context.SetError("invalid_grant", "Username hay mật khẩu không đúng!");
                 return;
             }
 
-            CongTTDT_MOHAEntities _context = new CongTTDT_MOHAEntities();
+            var attemptKey = "login-attempt:" + context.UserName.ToLowerInvariant();
+            lock (AttemptLock) {
+                var count = (int?)HttpRuntime.Cache[attemptKey] ?? 0;
+                if (count >= 10) { context.SetError("invalid_grant", "Vui lòng thử lại sau một phút."); return; }
+                HttpRuntime.Cache.Insert(attemptKey, count + 1, null, DateTime.UtcNow.AddMinutes(1), Cache.NoSlidingExpiration);
+            }
+            using (var _context = new CongTTDT_MOHAEntities())
+            {
             try
             {
                 if (type == "password")
                 {
-                    var model = await _context.User_Account.FirstOrDefaultAsync(item => item.TenTruyCap == context.UserName && item.MatKhau == context.Password);
+                    var model = await _context.User_Account.FirstOrDefaultAsync(item => item.TenTruyCap == context.UserName);
+                    if (model == null || model.TrangThai != "active" || !PasswordSecurity.Verify(context.Password, model.MatKhau)) { context.SetError("invalid_grant", "Username hay mật khẩu không đúng!"); return; }
                     var role = await _context.Roles.FirstOrDefaultAsync(item => item.ID == model.RoleId);
                     if(model == null || role == null)
                     {
@@ -60,77 +72,30 @@ namespace API.OAuth.Providers
                     identity.AddClaim(new Claim(ClaimTypes.Name, model.TenTruyCap));
                     identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, model.UserID.ToString()));
 
+                    if (!PasswordSecurity.IsHash(model.MatKhau)) {
+                        model.MatKhau = PasswordSecurity.Hash(context.Password);
+                        await _context.SaveChangesAsync();
+                    }
+                    HttpRuntime.Cache.Remove(attemptKey);
                     context.Validated(identity);
                     context.Request.Context.Authentication.SignIn(identity);
                     return;
                 }
                 if (type == "ldap")
                 {
-                    var email = context.UserName;
-                    var tmp = await _context.ADConfigs.FirstOrDefaultAsync(item => item.Name == email);
-                    if (tmp == null)
-                    {
-                        context.SetError("invalid_grant", "Username hay mật khẩu không đúng!");
-                        return;
-                    }
-                    var cauhinh = _context.ThamSoHeThongs.FirstOrDefault(); 
-                    if (cauhinh == null || string.IsNullOrEmpty(cauhinh.ADConfig) == true)
-                    {
-                        context.SetError("invalid_grant", "Error config!");
-                        return;
-                    }
-                    //var ldapHost = cauhinh.ADConfig;// "192.168.137.18";
-                    //int ldapPort = LdapConnection.DefaultPort;
-                    //int ldapVersion = LdapConnection.LdapV3;
-                    //LdapConnection conn = new LdapConnection();
-                    //conn.Connect(ldapHost, ldapPort);
-                    //conn.Bind(ldapVersion, email, context.Password);
-                    //conn.Disconnect();
-
-                    var model = await _context.User_Account.Include(x=>x.Role).FirstOrDefaultAsync(item => item.TenTruyCap == email);
-                    if (model == null)
-                    {
-                        //Tao User
-                        var role = await _context.Roles.FirstOrDefaultAsync(item => item.ID == 2);
-                        model = new User_Account();
-                        model.TenDangKy = email;
-                        model.TenTruyCap = email;
-                        model.TrangThai = "active";
-                        model.EmailAddress = email;
-                        model.RoleId = role.ID;
-                        _context.User_Account.Add(model);
-                        await _context.SaveChangesAsync();
-
-                    }
-                    var code = context.Request.Query.Get("code");
-                    if (model.IsTwoFA == 1)
-                    {
-                        // verify
-                        TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
-                        bool result = tfa.ValidateTwoFactorPIN(Encoding.UTF8.GetBytes(model.Authenticator_Secret), code);
-                        if (!result)
-                        {
-                            context.SetError("invalid_grant", "Mã xác nhận không đúng!");
-                            return;
-                        }
-                    }
-
-                    var identity = new ClaimsIdentity(context.Options.AuthenticationType);
-                    identity.AddClaim(new Claim("role", model.Role.Name));
-                    identity.AddClaim(new Claim(ClaimTypes.Name, model.TenTruyCap));
-                    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, model.UserID.ToString()));
-                    context.Validated(identity);
-                    context.Request.Context.Authentication.SignIn(identity);
+                    // LDAP binding was disabled in the legacy implementation. Fail closed until a verified LDAP provider is configured.
+                    context.SetError("invalid_grant", "LDAP chưa được cấu hình xác thực an toàn.");
                     return;
                 }
             }
             catch (Exception ex)
             {
                 //context.SetError("invalid_grant", "Username hay mật khẩu không đúng!");
-                context.SetError("invalid_grant", ex.Message);
+                context.SetError("invalid_grant", "Username hay mật khẩu không đúng!");
                 return;
             }
             context.SetError("invalid_grant", "Username hay mật khẩu không đúng!");
+            }
         }
     }
 }

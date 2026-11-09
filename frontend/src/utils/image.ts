@@ -19,3 +19,17 @@ const getUrlPdfFile = (url: string) => {
 };
 
 export { getUrlImage, getUrlPdfFile };
+
+// CMS article bodies contain site-relative media paths; resolve them against the media host.
+export const resolveContentMedia = (html?: string): string => {
+  if (!html) return '';
+  const body = new DOMParser().parseFromString(html, 'text/html');
+  body.querySelectorAll('[src], a[href]').forEach(element => {
+    const attribute = element.hasAttribute('src') ? 'src' : 'href';
+    const value = element.getAttribute(attribute);
+    if (value && /^\/?Media_Share\//i.test(value)) {
+      element.setAttribute(attribute, getUrlImage(value));
+    }
+  });
+  return body.body.innerHTML;
+};

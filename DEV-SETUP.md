@@ -111,3 +111,15 @@ Vẫn deploy portal tĩnh, không SSR/Node.js trên production. Dùng scripts/Pr
 ## Kiểm tra thêm các phần portal (02/10/2026)
 
 Đã sửa tìm kiếm (encoding, phân trang, retry và phản hồi đến trễ), landing giới thiệu/văn bản theo menu, bộ lọc văn bản mobile, URL media/attachment, thư viện rỗng/lỗi, bảng lịch sử, album, chi tiết đề tài, metadata chuyên đề và trang không tồn tại. Test local production build tại http://localhost:5175/. Chạy scripts/Audit-PortalSections.cjs, scripts/Test-PortalSections.cjs và scripts/Test-PortalMediaUrls.cjs bằng Node đã cài. Các bài test trình duyệt cố định tiếng Việt; dữ liệu multimedia tiếng Anh local hiện rỗng. Báo cáo phạm vi và giới hạn tại .dev/portal-sections-report.md. Chưa deploy; cách chép portal tĩnh không đổi, không cần migration mới cho bản này.
+
+## Tự khởi động local trên Windows
+
+Tác vụ Task Scheduler `MohaDev-Local` chạy `scripts/AutoStart-Dev.ps1` ẩn khi tài khoản Windows hiện tại đăng nhập. Dùng quyền thường, không lưu mật khẩu; LocalDB thuộc tài khoản này nên không chạy dưới SYSTEM hoặc trước khi đăng nhập. Bật LocalDB MohaDev, API 55104, portal dev 5173, admin 5174 và preview production build 5175. Preview cần frontend/dist đã build; không tự build mỗi lần đăng nhập.
+
+Supervisor kiểm tra định kỳ khoảng 30 giây, bật lại tiến trình bị dừng và kiểm tra kết nối DB/API. Nếu API hỏng 3 lượt liên tiếp, chỉ restart IIS Express được quản lý. Không dừng tiến trình lạ chiếm port. `Dev.ps1 -Action Start` có thể gọi lại khi một phần môi trường đã chạy; chỉ khởi động phần thiếu. Log: `.dev/autostart.log`, `.dev/autostart-start.log` và log từng dịch vụ trong `.dev`.
+
+Đăng ký trên máy mới: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Install-DevAutoStart.ps1`. Kiểm tra một lần khi supervisor chưa chạy: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/AutoStart-Dev.ps1 -Once`.
+
+Để dừng local và không tự bật lại: chạy `Disable-ScheduledTask -TaskName MohaDev-Local`, `Stop-ScheduledTask -TaskName MohaDev-Local`, rồi `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Dev.ps1 -Action Stop`. Bật lại bằng `Enable-ScheduledTask -TaskName MohaDev-Local` và `Start-ScheduledTask -TaskName MohaDev-Local`.
+
+Đã thử dừng riêng API/preview: supervisor tự bật lại bằng PID mới, portal/admin giữ PID cũ và các URL local trở lại HTTP 200. Không reboot máy trong kiểm tra này. API có thể cần thời gian warm-up sau khi khởi động.

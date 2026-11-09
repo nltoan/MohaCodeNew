@@ -1,3 +1,5 @@
+import { LoadingFallback } from '@/components/LoadingFallback';
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Col, Container, Image, Row } from 'react-bootstrap';
 import './NewsPage.scss';
@@ -66,7 +68,11 @@ export const NewsCategoryPage = () => {
     pageSize: 10,
   });
 
+  const [listStatus, setListStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [titlePage, setTitlePage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const [speechSidebar, setSpeechSidebar] = useState<NghiQuyetTW4SidebarItem[]>([]);
   const [staticSidebar, setStaticSidebar] = useState<NghiQuyetTW4SidebarItem[]>([]);
 
@@ -98,36 +104,36 @@ export const NewsCategoryPage = () => {
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        let id = getIdFromSlug(slug || '', 'nqid');
-        if(!id){
-          id = getIdFromSlug(slug || '', 'id');
-          const res = await getTopPostNews(id!, 4);
-          const [main, ...cards] = res.topposts;
-          setTopPost({ main, cards: cards });
-          setTitlePage(res.data.TenChuyenMuc);
-        } else {
-          const res = await getTopPostNewsBynqid(id!, 4);
-          const [main, ...cards] = res.topposts;
-          setTopPost({ main, cards: cards });
-          setTitlePage(res.data.TenChuyenMuc);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchData();
-  }, [keyQuery]);
+    let active = true;
+    setLoading(true);
+    setLoadError(false);
+    setTopPost({ main: {} as BannerItem, cards: [] });
+    const id = getIdFromSlug(slug || '', 'nqid');
+    const fetchTop = () => id ? getTopPostNewsBynqid(id, 4) : getTopPostNews(keyQuery, 4);
+    const request = fetchTop().catch(() => {
+      if (!active) throw new Error('Section no longer active');
+      return fetchTop();
+    });
+    request.then(response => {
+      if (!active) return;
+      const [main, ...cards] = response.topposts || [];
+      setTopPost({ main, cards });
+      setTitlePage(response.data?.TenChuyenMuc || 'Tin tức - sự kiện');
+    }).catch(() => { if (active) setLoadError(true); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [keyQuery, slug, attempt]);
 
   useEffect(() => {
+    let active = true;
+    setListStatus('loading');
     const fetchData = async () => {
       try {
         let id = getIdFromSlug(slug || '', 'nqid');
         if(!id){
           id = getIdFromSlug(slug || '', 'id');
           const resNew = await getPostsByCategory(id!, pagination.activePage, pagination.pageSize);
+          if (!active) return;
           setPagination((prev) => ({
             ...prev,
             news: resNew.data,
@@ -135,18 +141,22 @@ export const NewsCategoryPage = () => {
           }));
         } else {
           const resNew = await getPostsByCategoryBynqid(id!, pagination.activePage, pagination.pageSize);
+          if (!active) return;
           setPagination((prev) => ({
             ...prev,
             news: resNew.data,
             totalPages: Math.ceil(resNew.totalCount / prev.pageSize),
           }));
         }
+        if (active) setListStatus('ready');
       } catch (err) {
+        if (active) setListStatus('error');
         console.error(err);
       }
     };
     fetchData();
-  }, [pagination.activePage, pagination.pageSize, keyQuery]);
+    return () => { active = false; };
+  }, [pagination.activePage, pagination.pageSize, keyQuery, attempt]);
 
 
   return (
@@ -158,7 +168,9 @@ export const NewsCategoryPage = () => {
               <div className="mh-news-header">
                 <h1>{titlePage}</h1>
               </div>
-              {!topPost?.main?.ID && <div className="text-center">{t('common.no_data')}</div>}
+              {(loading || listStatus === 'loading') && <LoadingFallback />}
+              {(loadError || listStatus === 'error') && <div role="alert">Không tải được dữ liệu. <button type="button" onClick={() => setAttempt(value => value + 1)}>Thử lại</button></div>}
+              {!loading && !loadError && listStatus === 'ready' && !topPost?.main?.ID && pagination.news.length === 0 && <div className="text-center">{t('common.no_data')}</div>}
               {topPost?.main?.ID && (
                 <div className="mh-news-body">
                   <div className="mh-news-banner">
@@ -199,7 +211,7 @@ export const NewsCategoryPage = () => {
                           <Link to={getNewURL('nghi-quyet-tw4/tin-tuc', item.TieuDe, item?.ID)} className="mh-news-item-title">
                             {item?.TieuDe}
                           </Link>
-                          <div className="mh-news-item-description" dangerouslySetInnerHTML={{ __html: item?.MoTa }} />
+                          <div className="mh-news-item-description" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item?.MoTa) }} />
                         </div>
                         <div className="mh-news-item-date">{vnFormatter(item?.NgayXuatBan)}</div>
                       </div>

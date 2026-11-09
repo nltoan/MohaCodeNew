@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { Helmet } from 'react-helmet-async';
 import { Container, Image } from 'react-bootstrap';
 import './Gallery.scss';
@@ -88,7 +89,7 @@ export const VideoAlbumDetailPage = () => {
                       <Link to={getNewURL('video', item.TieuDe, item?.ID)} className="mh-gallery-item-title">
                         {item?.TieuDe}
                       </Link>
-                      <div className="mh-gallery-item-description" dangerouslySetInnerHTML={{ __html: item?.MoTa }} />
+                      <div className="mh-gallery-item-description" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item?.MoTa) }} />
                     </div>
                     <div className="mh-gallery-item-date">{vnFormatter(item?.ThoiGianXuatBan)}</div>
                   </div>

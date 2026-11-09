@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { useEffect, useState, useCallback } from 'react';
 import { Col, Container, Row, Table } from 'react-bootstrap';
 import { CardSection, Loading } from '@/components';
@@ -110,7 +111,7 @@ export const ScientificResearchDetailPage = () => {
                     <div
                       className="mt-3"
                       dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(detail?.noidung?.replace(/contenteditable="true"/g, 'contenteditable="false"')),
+                        __html: sanitizeHtml(DOMPurify.sanitize(detail?.noidung?.replace(/contenteditable="true"/g, 'contenteditable="false"'))),
                       }}
                     />
                   </td>

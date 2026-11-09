@@ -1,3 +1,5 @@
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
+import { resolveContentMedia } from '@/utils/image';
 import { portalCanonical } from '@/components/PortalSeo';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Col, Container, Image, Row } from 'react-bootstrap';
@@ -128,7 +130,7 @@ export const NewsDetailPage = () => {
             <div
               style={{ fontSize: fontSize }}
               className="mh-detail-body"
-              dangerouslySetInnerHTML={{ __html: detail?.NoiDung }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(resolveContentMedia(detail?.NoiDung)) }}
             ></div>
           </div>
         </div>
@@ -152,11 +154,11 @@ export const NewsDetailPage = () => {
                       setFontSize(fontSize + 2);
                     }}
                   />
-                  <div style={{ fontSize: fontSize, fontWeight:"bold", paddingBottom:"20px" }} dangerouslySetInnerHTML={{ __html: detail?.MoTa }}></div>
+                  <div style={{ fontSize: fontSize, fontWeight:"bold", paddingBottom:"20px" }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(detail?.MoTa) }}></div>
                   <div
                     style={{ fontSize: fontSize }}
                     className="mh-detail-body"
-                    dangerouslySetInnerHTML={{ __html: detail?.NoiDung?.replace(/contenteditable="true"/g, 'contenteditable="false"') }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(resolveContentMedia(detail?.NoiDung)?.replace(/contenteditable="true"/g, 'contenteditable="false"')) }}
                   ></div>
                   {files.length > 0 && 
                     <>
@@ -202,7 +204,7 @@ export const NewsDetailPage = () => {
                         <div className="mh-detail-sidebar-item-title">{item.TieuDe}</div>
                         <div
                           className="mh-detail-sidebar-item-date"
-                          dangerouslySetInnerHTML={{ __html: item.MoTa }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.MoTa) }}
                         ></div>
                         <div className="mh-detail-sidebar-item-date">{vnFormatter(item.NgayXuatBan)}</div>
                       </div>

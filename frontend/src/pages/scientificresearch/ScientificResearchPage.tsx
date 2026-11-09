@@ -15,6 +15,8 @@ export interface ScientificResearch {
 export const ScientificResearchPage = () => {
   const { t } = useTranslation()
 
+  const [loadError, setLoadError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [pagination, setPagination] = useState<PaginationState<ScientificResearch>>({
     data: [] as ScientificResearch[],
@@ -27,12 +29,14 @@ export const ScientificResearchPage = () => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
+        setLoadError(false);
         const res: { data: ScientificResearch[], totalCount: number } = await getScientificResearchs(pagination.activePage, pagination.pageSize)
 
         if (!res) return;
 
         setPagination((prev) => ({ ...prev, data: res.data, totalPages: Math.ceil(res.totalCount / prev.pageSize) }));
       } catch (err) {
+        setLoadError(true);
         console.error('Error fetching scientific researchs:', err);
       } finally {
         setIsLoading(false);
@@ -40,11 +44,13 @@ export const ScientificResearchPage = () => {
     };
 
     fetchData();
-  }, [pagination.activePage, pagination.pageSize]);
+  }, [pagination.activePage, pagination.pageSize, attempt]);
 
   if (isLoading) {
     return <Loading />;
   }
+
+  if (loadError) return <div role="alert" className="py-4">Không tải được dữ liệu. <button type="button" onClick={() => setAttempt(value => value + 1)}>Thử lại</button></div>;
 
   return (
     <div className="mh-scientificresearch">

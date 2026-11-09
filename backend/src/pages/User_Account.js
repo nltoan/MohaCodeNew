@@ -70,7 +70,7 @@ export default function User_Account() {
             <Form>
               <Item dataField="TenDangKy" />
               <Item dataField="TenTruyCap" disabled={true} />
-              <Item dataField="MatKhau" />
+              <Item dataField="MatKhau" editorOptions={{ mode: "password" }} />
               <Item dataField="DiaChi" />
               <Item dataField="SoDienThoai" />
               <Item dataField="EmailAddress" />

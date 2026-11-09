@@ -22,6 +22,8 @@ export interface Document {
 export const DraftLegalDocumentsPage = () => {
   const { t } = useTranslation()
 
+  const [loadError, setLoadError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [pagination, setPagination] = useState<PaginationState<Document>>({
     data: [] as Document[],
@@ -36,12 +38,14 @@ export const DraftLegalDocumentsPage = () => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
+        setLoadError(false);
         const res: { data: Document[], totalCount: number } = await getDraftLegalDocumentList(pagination.activePage, pagination.pageSize)
 
         if (!res) return;
 
         setPagination((prev) => ({ ...prev, data: res.data, totalPages: Math.ceil(res.totalCount / prev.pageSize) }));
       } catch (err) {
+        setLoadError(true);
         console.error('Error fetching directive documents:', err);
       } finally {
         setIsLoading(false);
@@ -49,11 +53,13 @@ export const DraftLegalDocumentsPage = () => {
     };
 
     fetchData();
-  }, [pagination.activePage, pagination.pageSize, slug]);
+  }, [pagination.activePage, pagination.pageSize, slug, attempt]);
 
   if (isLoading) {
     return <Loading />;
   }
+
+  if (loadError) return <div role="alert" className="py-4">Không tải được dữ liệu. <button type="button" onClick={() => setAttempt(value => value + 1)}>Thử lại</button></div>;
 
   return (
     <div className="mh-document-content">

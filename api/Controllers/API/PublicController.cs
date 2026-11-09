@@ -36,6 +36,7 @@ using System.Xml.Linq;
 
 namespace API.Controllers
 {
+    [AllowAnonymous]
     [Route("api/Public/{action}", Name = "PublicApi")]
     public class PublicController : ApiController
     {
@@ -43,6 +44,7 @@ namespace API.Controllers
         private readonly string QueryByChuyenMucHienThiThem = "EXISTS (SELECT 1 FROM {0} nt WHERE (',' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ChuyenMucHienThiThem, '[', ''), ']', ''),' ',''),CHAR(13),''),CHAR(9),''),CHAR(10),'') + ',') LIKE '%,' + CAST(nt.ID AS NVARCHAR(max)) + ',%')";
         private CongTTDT_MOHAEntities _context = new CongTTDT_MOHAEntities();
 
+        [NonAction]
         public string ReadPdfFile(string fileName)
         {
             StringBuilder text = new StringBuilder();
@@ -195,7 +197,8 @@ namespace API.Controllers
         [HttpGet]
         public async Task<HttpResponseMessage> TTS(int ID)
         {
-            var tintuc = _context.TinTucs.Find(ID);
+            var tintuc = _context.TinTucs.FirstOrDefault(x => x.ID == ID && x.TrangThai == "public");
+            if (tintuc == null) return Request.CreateResponse(HttpStatusCode.NotFound);
             var filePath = System.IO.Path.Combine(HttpContext.Current.Server.MapPath("~/tts"), "newmp3files", ID + ".mp3");
             if (System.IO.File.Exists(filePath))
             {
@@ -220,57 +223,13 @@ namespace API.Controllers
         [HttpGet]
         public HttpResponseMessage Proxy(string url)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            Stream receiveStream = response.GetResponseStream();
-
-            HttpResponseMessage response2 = new HttpResponseMessage(HttpStatusCode.OK);
-            response2.Content = new StreamContent(receiveStream);
-            response2.Content.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment");
-            response2.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(response.ContentType);
-            return response2;
+            return Request.CreateResponse(HttpStatusCode.Gone, new { Message = "Endpoint disabled." });
         }
 
         [HttpPost]
         public async Task<HttpResponseMessage> SendMail(FormDataCollection form)
         {
-
-            var cauhinh = _context.ThamSoHeThongs.FirstOrDefault();
-            if (cauhinh != null
-                && !string.IsNullOrEmpty(cauhinh.EmailHost)
-                && !string.IsNullOrEmpty(cauhinh.EmailPort)
-                && !string.IsNullOrEmpty(cauhinh.EmailAddress)
-                && !string.IsNullOrEmpty(cauhinh.EmailPassword)
-            )
-            {
-                //Send email thay doi
-                var smtpClient = new SmtpClient(cauhinh.EmailHost)
-                {
-                    Port = Convert.ToInt32(cauhinh.EmailPort),
-                    Credentials = new NetworkCredential(cauhinh.EmailAddress, cauhinh.EmailPassword),
-                    EnableSsl = true,
-                };
-                string fromUser = Convert.ToString(form.Get("fromUser"));
-                string toUser = Convert.ToString(form.Get("toUser"));
-                string fromEmail = Convert.ToString(form.Get("fromEmail"));
-                string toEmail = Convert.ToString(form.Get("toEmail"));
-                string title = Convert.ToString(form.Get("title"));
-                string address = Convert.ToString(form.Get("address"));
-                string content = Convert.ToString(form.Get("content"));
-                var mailMessage = new MailMessage
-                {
-                    From = new MailAddress(cauhinh.EmailAddress),
-                    Subject = title,
-                    Body = String.Format("Người dùng {0} gửi đến {1} bài viết tại {2} với nội dung nhắn như sau: <br /> {3}", fromUser, toUser, address, content),
-                    IsBodyHtml = true,
-                };
-                mailMessage.To.Add(new MailAddress(toEmail));
-
-                smtpClient.Send(mailMessage);
-            }
-
-
-            return Request.CreateResponse(HttpStatusCode.OK, new { status = "ok" });
+            return Request.CreateResponse(HttpStatusCode.Gone, new { Message = "Endpoint disabled." });
         }
 
         [HttpGet]
@@ -684,7 +643,7 @@ namespace API.Controllers
             var post = _context.TinTucs
                 .Include(s => s.ChuyenMuc)
                 .Include(s => s.TinTuc_Files.Select(x => x.File))
-                .Where(x => x.ID == ID)
+                .Where(x => x.ID == ID && x.TrangThai == "public")
                 .FirstOrDefault();
             if (post == null)
             {
@@ -851,8 +810,11 @@ namespace API.Controllers
         {
             var post = _context.TinTucs
                 .Include(s => s.ChuyenMuc)
-                .Where(x => x.ID == ID)
+                .Where(x => x.ID == ID && x.TrangThai == "public")
                 .FirstOrDefault();
+
+            if (post == null)
+                return Request.CreateResponse(HttpStatusCode.NotFound);
 
             var related = _context.CollectionFromSql(@"
                 with name_tree as 
@@ -994,41 +956,7 @@ namespace API.Controllers
         [HttpGet]
         public async Task<HttpResponseMessage> SendMail()
         {
-
-            var cauhinh = _context.ThamSoHeThongs.FirstOrDefault();
-            if (cauhinh != null
-                && !string.IsNullOrEmpty(cauhinh.EmailHost)
-                && !string.IsNullOrEmpty(cauhinh.EmailPort)
-                && !string.IsNullOrEmpty(cauhinh.EmailAddress)
-                && !string.IsNullOrEmpty(cauhinh.EmailPassword)
-            )
-            {
-                //Send email thay doi
-                var smtpClient = new SmtpClient(cauhinh.EmailHost)
-                {
-                    Port = Convert.ToInt32(cauhinh.EmailPort),
-                    Credentials = new NetworkCredential(cauhinh.EmailAddress, cauhinh.EmailPassword),
-                    EnableSsl = true,
-                };
-                var mailMessage = new MailMessage
-                {
-                    From = new MailAddress(cauhinh.EmailAddress),
-                    Subject = "Thông báo có sự thay đổi nội dung tin tức",
-                    Body = "Bài viết  có sự thay đổi <br /> Truy cập link sau: <a href='http://123.31.19.244:3333/baiviet/</a>",
-                    IsBodyHtml = true,
-                };
-                string[] arrEmails = _context.User_Account
-                    .Where(x => !string.IsNullOrEmpty(x.EmailAddress))
-                    .Select(x => x.EmailAddress).ToArray();
-                foreach (string i in arrEmails)
-                {
-                    mailMessage.To.Add(i);
-                }
-
-                smtpClient.Send(mailMessage);
-            }
-
-            return Request.CreateResponse(HttpStatusCode.OK, new { });
+            return Request.CreateResponse(HttpStatusCode.Gone, new { Message = "Endpoint disabled." });
         }
         [HttpGet]
         public async Task<HttpResponseMessage> BoxHighLight(int limit, string lang = "")
@@ -2253,7 +2181,7 @@ namespace API.Controllers
         [Route("api/Public/GetBotMetaForTinTuc")]
         public async Task<HttpResponseMessage> GetBotMetaForTinTuc(int id)
         {
-            var article = _context.TinTucs.FirstOrDefault(x => x.ID == id);
+            var article = _context.TinTucs.FirstOrDefault(x => x.ID == id && x.TrangThai == "public");
 
             if (article == null)
             {
@@ -2277,20 +2205,20 @@ namespace API.Controllers
                 <html>
                 <head>
                     <meta charset='utf-8' />
-                    <title>{article.TieuDe}</title>
-                    <meta name='description' content='{plainDescription}' />
-                    <meta property='og:title' content='{article.TieuDe}' />
-                    <meta property='og:description' content='{plainDescription}' />
-                    <meta property='og:image' content='{imageUrl}' />
+                    <title>{HttpUtility.HtmlEncode(article.TieuDe)}</title>
+                    <meta name='description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta property='og:title' content='{HttpUtility.HtmlEncode(article.TieuDe)}' />
+                    <meta property='og:description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta property='og:image' content='{HttpUtility.HtmlEncode(imageUrl)}' />
                     <meta property='og:type' content='article' />
                     <meta name='twitter:card' content='summary_large_image' />
-                    <meta name='twitter:title' content='{article.TieuDe}' />
-                    <meta name='twitter:description' content='{plainDescription}' />
-                    <meta name='twitter:image' content='{imageUrl}' />
+                    <meta name='twitter:title' content='{HttpUtility.HtmlEncode(article.TieuDe)}' />
+                    <meta name='twitter:description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta name='twitter:image' content='{HttpUtility.HtmlEncode(imageUrl)}' />
                 </head>
                 <body>
-                    <h1>{article.TieuDe}</h1>
-                    <p>{plainDescription}</p>
+                    <h1>{HttpUtility.HtmlEncode(article.TieuDe)}</h1>
+                    <p>{HttpUtility.HtmlEncode(plainDescription)}</p>
                 </body>
                 </html>";
 
@@ -2320,20 +2248,20 @@ namespace API.Controllers
                 <html>
                 <head>
                     <meta charset='utf-8' />
-                    <title>{article.TieuDe}</title>
-                    <meta name='description' content='{plainDescription}' />
-                    <meta property='og:title' content='{article.TieuDe}' />
-                    <meta property='og:description' content='{plainDescription}' />
-                    <meta property='og:image' content='{imageUrl}' />
+                    <title>{HttpUtility.HtmlEncode(article.TieuDe)}</title>
+                    <meta name='description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta property='og:title' content='{HttpUtility.HtmlEncode(article.TieuDe)}' />
+                    <meta property='og:description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta property='og:image' content='{HttpUtility.HtmlEncode(imageUrl)}' />
                     <meta property='og:type' content='article' />
                     <meta name='twitter:card' content='summary_large_image' />
-                    <meta name='twitter:title' content='{article.TieuDe}' />
-                    <meta name='twitter:description' content='{plainDescription}' />
-                    <meta name='twitter:image' content='{imageUrl}' />
+                    <meta name='twitter:title' content='{HttpUtility.HtmlEncode(article.TieuDe)}' />
+                    <meta name='twitter:description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta name='twitter:image' content='{HttpUtility.HtmlEncode(imageUrl)}' />
                 </head>
                 <body>
-                    <h1>{article.TieuDe}</h1>
-                    <p>{plainDescription}</p>
+                    <h1>{HttpUtility.HtmlEncode(article.TieuDe)}</h1>
+                    <p>{HttpUtility.HtmlEncode(plainDescription)}</p>
                 </body>
                 </html>";
 
@@ -2363,20 +2291,20 @@ namespace API.Controllers
                 <html>
                 <head>
                     <meta charset='utf-8' />
-                    <title>{article.SoKyHieu}</title>
-                    <meta name='description' content='{plainDescription}' />
-                    <meta property='og:title' content='{article.SoKyHieu}' />
-                    <meta property='og:description' content='{plainDescription}' />
-                    <meta property='og:image' content='{imageUrl}' />
+                    <title>{HttpUtility.HtmlEncode(article.SoKyHieu)}</title>
+                    <meta name='description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta property='og:title' content='{HttpUtility.HtmlEncode(article.SoKyHieu)}' />
+                    <meta property='og:description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta property='og:image' content='{HttpUtility.HtmlEncode(imageUrl)}' />
                     <meta property='og:type' content='article' />
                     <meta name='twitter:card' content='summary_large_image' />
-                    <meta name='twitter:title' content='{article.SoKyHieu}' />
-                    <meta name='twitter:description' content='{plainDescription}' />
-                    <meta name='twitter:image' content='{imageUrl}' />
+                    <meta name='twitter:title' content='{HttpUtility.HtmlEncode(article.SoKyHieu)}' />
+                    <meta name='twitter:description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta name='twitter:image' content='{HttpUtility.HtmlEncode(imageUrl)}' />
                 </head>
                 <body>
-                    <h1>{article.SoKyHieu}</h1>
-                    <p>{plainDescription}</p>
+                    <h1>{HttpUtility.HtmlEncode(article.SoKyHieu)}</h1>
+                    <p>{HttpUtility.HtmlEncode(plainDescription)}</p>
                 </body>
                 </html>";
 
@@ -2406,20 +2334,20 @@ namespace API.Controllers
                 <html>
                 <head>
                     <meta charset='utf-8' />
-                    <title>{article.TieuDe}</title>
-                    <meta name='description' content='{plainDescription}' />
-                    <meta property='og:title' content='{article.TieuDe}' />
-                    <meta property='og:description' content='{plainDescription}' />
-                    <meta property='og:image' content='{imageUrl}' />
+                    <title>{HttpUtility.HtmlEncode(article.TieuDe)}</title>
+                    <meta name='description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta property='og:title' content='{HttpUtility.HtmlEncode(article.TieuDe)}' />
+                    <meta property='og:description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta property='og:image' content='{HttpUtility.HtmlEncode(imageUrl)}' />
                     <meta property='og:type' content='article' />
                     <meta name='twitter:card' content='summary_large_image' />
-                    <meta name='twitter:title' content='{article.TieuDe}' />
-                    <meta name='twitter:description' content='{plainDescription}' />
-                    <meta name='twitter:image' content='{imageUrl}' />
+                    <meta name='twitter:title' content='{HttpUtility.HtmlEncode(article.TieuDe)}' />
+                    <meta name='twitter:description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta name='twitter:image' content='{HttpUtility.HtmlEncode(imageUrl)}' />
                 </head>
                 <body>
-                    <h1>{article.TieuDe}</h1>
-                    <p>{plainDescription}</p>
+                    <h1>{HttpUtility.HtmlEncode(article.TieuDe)}</h1>
+                    <p>{HttpUtility.HtmlEncode(plainDescription)}</p>
                 </body>
                 </html>";
 
@@ -2449,20 +2377,20 @@ namespace API.Controllers
                 <html>
                 <head>
                     <meta charset='utf-8' />
-                    <title>{article.TenDeTai}</title>
-                    <meta name='description' content='{plainDescription}' />
-                    <meta property='og:title' content='{article.TenDeTai}' />
-                    <meta property='og:description' content='{plainDescription}' />
-                    <meta property='og:image' content='{imageUrl}' />
+                    <title>{HttpUtility.HtmlEncode(article.TenDeTai)}</title>
+                    <meta name='description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta property='og:title' content='{HttpUtility.HtmlEncode(article.TenDeTai)}' />
+                    <meta property='og:description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta property='og:image' content='{HttpUtility.HtmlEncode(imageUrl)}' />
                     <meta property='og:type' content='article' />
                     <meta name='twitter:card' content='summary_large_image' />
-                    <meta name='twitter:title' content='{article.TenDeTai}' />
-                    <meta name='twitter:description' content='{plainDescription}' />
-                    <meta name='twitter:image' content='{imageUrl}' />
+                    <meta name='twitter:title' content='{HttpUtility.HtmlEncode(article.TenDeTai)}' />
+                    <meta name='twitter:description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta name='twitter:image' content='{HttpUtility.HtmlEncode(imageUrl)}' />
                 </head>
                 <body>
-                    <h1>{article.TenDeTai}</h1>
-                    <p>{plainDescription}</p>
+                    <h1>{HttpUtility.HtmlEncode(article.TenDeTai)}</h1>
+                    <p>{HttpUtility.HtmlEncode(plainDescription)}</p>
                 </body>
                 </html>";
 
@@ -2498,20 +2426,20 @@ namespace API.Controllers
                 <html>
                 <head>
                     <meta charset='utf-8' />
-                    <title>{article.TieuDe}</title>
-                    <meta name='description' content='{plainDescription}' />
-                    <meta property='og:title' content='{article.TieuDe}' />
-                    <meta property='og:description' content='{plainDescription}' />
-                    <meta property='og:image' content='{imageUrl}' />
+                    <title>{HttpUtility.HtmlEncode(article.TieuDe)}</title>
+                    <meta name='description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta property='og:title' content='{HttpUtility.HtmlEncode(article.TieuDe)}' />
+                    <meta property='og:description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta property='og:image' content='{HttpUtility.HtmlEncode(imageUrl)}' />
                     <meta property='og:type' content='article' />
                     <meta name='twitter:card' content='summary_large_image' />
-                    <meta name='twitter:title' content='{article.TieuDe}' />
-                    <meta name='twitter:description' content='{plainDescription}' />
-                    <meta name='twitter:image' content='{imageUrl}' />
+                    <meta name='twitter:title' content='{HttpUtility.HtmlEncode(article.TieuDe)}' />
+                    <meta name='twitter:description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta name='twitter:image' content='{HttpUtility.HtmlEncode(imageUrl)}' />
                 </head>
                 <body>
-                    <h1>{article.TieuDe}</h1>
-                    <p>{plainDescription}</p>
+                    <h1>{HttpUtility.HtmlEncode(article.TieuDe)}</h1>
+                    <p>{HttpUtility.HtmlEncode(plainDescription)}</p>
                 </body>
                 </html>";
 
@@ -2547,20 +2475,20 @@ namespace API.Controllers
                 <html>
                 <head>
                     <meta charset='utf-8' />
-                    <title>{article.TieuDe}</title>
-                    <meta name='description' content='{plainDescription}' />
-                    <meta property='og:title' content='{article.TieuDe}' />
-                    <meta property='og:description' content='{plainDescription}' />
-                    <meta property='og:image' content='{imageUrl}' />
+                    <title>{HttpUtility.HtmlEncode(article.TieuDe)}</title>
+                    <meta name='description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta property='og:title' content='{HttpUtility.HtmlEncode(article.TieuDe)}' />
+                    <meta property='og:description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta property='og:image' content='{HttpUtility.HtmlEncode(imageUrl)}' />
                     <meta property='og:type' content='article' />
                     <meta name='twitter:card' content='summary_large_image' />
-                    <meta name='twitter:title' content='{article.TieuDe}' />
-                    <meta name='twitter:description' content='{plainDescription}' />
-                    <meta name='twitter:image' content='{imageUrl}' />
+                    <meta name='twitter:title' content='{HttpUtility.HtmlEncode(article.TieuDe)}' />
+                    <meta name='twitter:description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta name='twitter:image' content='{HttpUtility.HtmlEncode(imageUrl)}' />
                 </head>
                 <body>
-                    <h1>{article.TieuDe}</h1>
-                    <p>{plainDescription}</p>
+                    <h1>{HttpUtility.HtmlEncode(article.TieuDe)}</h1>
+                    <p>{HttpUtility.HtmlEncode(plainDescription)}</p>
                 </body>
                 </html>";
 
@@ -2596,20 +2524,20 @@ namespace API.Controllers
                 <html>
                 <head>
                     <meta charset='utf-8' />
-                    <title>{article.TieuDe}</title>
-                    <meta name='description' content='{plainDescription}' />
-                    <meta property='og:title' content='{article.TieuDe}' />
-                    <meta property='og:description' content='{plainDescription}' />
-                    <meta property='og:image' content='{imageUrl}' />
+                    <title>{HttpUtility.HtmlEncode(article.TieuDe)}</title>
+                    <meta name='description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta property='og:title' content='{HttpUtility.HtmlEncode(article.TieuDe)}' />
+                    <meta property='og:description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta property='og:image' content='{HttpUtility.HtmlEncode(imageUrl)}' />
                     <meta property='og:type' content='article' />
                     <meta name='twitter:card' content='summary_large_image' />
-                    <meta name='twitter:title' content='{article.TieuDe}' />
-                    <meta name='twitter:description' content='{plainDescription}' />
-                    <meta name='twitter:image' content='{imageUrl}' />
+                    <meta name='twitter:title' content='{HttpUtility.HtmlEncode(article.TieuDe)}' />
+                    <meta name='twitter:description' content='{HttpUtility.HtmlEncode(plainDescription)}' />
+                    <meta name='twitter:image' content='{HttpUtility.HtmlEncode(imageUrl)}' />
                 </head>
                 <body>
-                    <h1>{article.TieuDe}</h1>
-                    <p>{plainDescription}</p>
+                    <h1>{HttpUtility.HtmlEncode(article.TieuDe)}</h1>
+                    <p>{HttpUtility.HtmlEncode(plainDescription)}</p>
                 </body>
                 </html>";
 

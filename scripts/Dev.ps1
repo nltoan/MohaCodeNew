@@ -26,7 +26,7 @@ if ($Action -eq 'Build') {
     return
 }
 if ($Action -eq 'Test') {
-    foreach ($url in @('http://localhost:5173', 'http://localhost:5174', 'http://localhost:55104/api/Public/Menu?lang=vi')) {
+    foreach ($url in @('http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:55104/api/Public/Menu?lang=vi')) {
         $deadline = (Get-Date).AddMinutes(5)
         do {
             try {
@@ -55,39 +55,57 @@ if ($Action -eq 'Stop') {
     }
     return
 }
+$processes = @()
 if (Test-Path $stateFile) {
-    $running = @(Get-Content $stateFile -Raw | ConvertFrom-Json | Where-Object {
-        $process = Get-Process -Id $_.Id -ErrorAction SilentlyContinue
-        $process -and $process.StartTime.ToUniversalTime().Ticks -eq ([datetime]$_.StartTime).ToUniversalTime().Ticks
-    })
-    if ($running.Count -gt 0) { throw 'Dev processes are already running. Use -Action Stop before restarting.' }
+    foreach ($entry in (Get-Content $stateFile -Raw | ConvertFrom-Json)) {
+        $process = Get-Process -Id $entry.Id -ErrorAction SilentlyContinue
+        if ($process -and $process.StartTime.ToUniversalTime().Ticks -eq ([datetime]$entry.StartTime).ToUniversalTime().Ticks) {
+            $processes += $entry
+        }
+    }
 }
-foreach ($port in @(5173,5174,55104)) {
-    if (Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue) { throw "Port $port is already in use." }
+# Adopt the preview started separately by the existing local workflow.
+if (!($processes | Where-Object Name -eq 'preview') -and (Test-Path "$runtime\portal-preview.pid")) {
+    $previewId = [int](Get-Content "$runtime\portal-preview.pid" -Raw)
+    $previewCommand = Get-CimInstance Win32_Process -Filter "ProcessId = $previewId"
+    if ($previewCommand.CommandLine -like '*Serve-PortalPreview.mjs*') {
+        $previewProcess = Get-Process -Id $previewId
+        $processes += [PSCustomObject]@{Name='preview';Id=$previewId;StartTime=$previewProcess.StartTime.ToUniversalTime().ToString('o')}
+    }
+}
+foreach ($service in @(@{Name='portal';Port=5173},@{Name='admin';Port=5174},@{Name='preview';Port=5175},@{Name='api';Port=55104})) {
+    if (!($processes | Where-Object Name -eq $service.Name) -and (Get-NetTCPConnection -LocalPort $service.Port -State Listen -ErrorAction SilentlyContinue)) {
+        throw "Port $($service.Port) is occupied by an unmanaged process; will not stop it."
+    }
 }
 if (!(Test-Path $iis)) { throw 'IIS Express is not installed.' }
 if (!(Test-Path (Join-Path $root 'api\bin\API.dll'))) { throw 'Build API first: scripts/Dev.ps1 -Action Build' }
 $localDb = 'C:\Program Files\Microsoft SQL Server\160\Tools\Binn\SqlLocalDB.exe'
 & $localDb start MohaDev
 if ($LASTEXITCODE -ne 0) { throw 'Initialize the dev database first.' }
-& (Join-Path $PSScriptRoot 'Initialize-HoiQuy.ps1')
 $apiRoot = Join-Path $runtime 'api'
+if (!($processes | Where-Object Name -eq 'api')) {
+& (Join-Path $PSScriptRoot 'Initialize-HoiQuy.ps1')
 New-Item -ItemType Directory -Path $apiRoot -Force | Out-Null
 Copy-Item (Join-Path $root 'api\Global.asax') $apiRoot -Force
 Copy-Item (Join-Path $root 'api\bin') $apiRoot -Recurse -Force
 foreach ($folder in @('Upload\Thumb', 'UploadTemp', 'tts\newmp3files')) {
     New-Item -ItemType Directory -Path (Join-Path $apiRoot $folder) -Force | Out-Null
 }
+Copy-Item (Join-Path $root 'api\Upload\web.config') (Join-Path $apiRoot 'Upload\web.config') -Force
 [xml]$config = Get-Content (Join-Path $root 'api\Web.config') -Raw
 $db = $config.configuration.connectionStrings.add | Where-Object name -eq 'CongTTDT_MOHAEntities'
 $db.connectionString = 'metadata=res://*/Models.MohaModel.csdl|res://*/Models.MohaModel.ssdl|res://*/Models.MohaModel.msl;provider=System.Data.SqlClient;provider connection string="data source=(localdb)\MohaDev;initial catalog=CongTTDT_MOHA_Dev;integrated security=True;MultipleActiveResultSets=True;App=EntityFramework"'
 ($config.configuration.appSettings.add | Where-Object key -eq 'frontendSiteUrl').value = 'http://localhost:5173'
+($config.configuration.appSettings.add | Where-Object key -eq 'AllowedCorsOrigins').value = 'http://localhost:5173,http://localhost:5174,http://localhost:5175'
+($config.configuration.appSettings.add | Where-Object key -eq 'AllowInsecureOAuthHttp').value = 'true'
 $config.Save((Join-Path $apiRoot 'Web.config'))
+}
 $env:PORT = '5174'
 $env:HOST = 'localhost'
 $env:BROWSER = 'none'
-$processes = @()
 function Start-DevProcess($Name, $File, $Arguments, $WorkingDirectory) {
+    if ($script:processes | Where-Object Name -eq $Name) { return }
     $process = Start-Process -FilePath $File -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -WindowStyle Hidden -PassThru `
         -RedirectStandardOutput (Join-Path $runtime "$Name.stdout.log") -RedirectStandardError (Join-Path $runtime "$Name.stderr.log")
     $script:processes += [PSCustomObject]@{ Name=$Name; Id=$process.Id; StartTime=$process.StartTime.ToUniversalTime().ToString('o') }
@@ -96,7 +114,13 @@ function Start-DevProcess($Name, $File, $Arguments, $WorkingDirectory) {
 Start-DevProcess 'api' $iis ('/path:"' + $apiRoot + '" /port:55104 /clr:v4.0 /systray:false') $root
 Start-DevProcess 'portal' $node 'node_modules\vite\bin\vite.js' (Join-Path $root 'frontend')
 Start-DevProcess 'admin' $node 'node_modules\react-scripts\scripts\start.js' (Join-Path $root 'backend')
+if (Test-Path "$root\frontend\dist\index.html") {
+    Start-DevProcess 'preview' $node 'scripts\Serve-PortalPreview.mjs' $root
+    ($processes | Where-Object Name -eq 'preview').Id | Set-Content "$runtime\portal-preview.pid"
+}
+$processes | ConvertTo-Json | Set-Content $stateFile
 Write-Host 'Portal: http://localhost:5173'
 Write-Host 'Admin:  http://localhost:5174'
 Write-Host 'API:    http://localhost:55104/api/Public/Menu?lang=vi'
+Write-Host 'Preview: http://localhost:5175'
 Write-Host "Logs:   $runtime"

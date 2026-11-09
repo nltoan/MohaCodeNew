@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useState, useEffect } from 'react';
 import { Col, Image, Modal, Row, Table, Spinner } from 'react-bootstrap';
@@ -230,7 +231,7 @@ export const MinisterialLeadershipPage = () => {
                   <div
                     className="mt-3"
                     dangerouslySetInnerHTML={{
-                      __html: DOMPurify.sanitize(detail.TieuSuBanThan),
+                      __html: sanitizeHtml(DOMPurify.sanitize(detail.TieuSuBanThan)),
                     }}
                   />
                 )}

@@ -1,4 +1,4 @@
-import parse from "html-react-parser";
+import parse from '../utils/safe-html';
 import HtmlDiff from "htmldiff-js";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";

@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { Container, Image, type ImageProps } from 'react-bootstrap';
 import './HeaderTop.scss';
 import imgLeft from '@/assets/images/background/header-left-bg.png';
@@ -29,7 +30,7 @@ export const HeaderTop = ({ minister, nqtw4, image, imageRight, title }: HeaderT
             </div>
             <BrandingHeading
               className="mh-header-top-title"
-              dangerouslySetInnerHTML={{ __html: title.replace(/(?:\r\n|\r|\n)/g, '<br>') }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(title.replace(/(?:\r\n|\r|\n)/g, '<br>')) }}
             ></BrandingHeading>
             {imageRight ? (
               <div className="mh-header-top-img">

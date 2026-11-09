@@ -20,7 +20,7 @@ namespace API.Services.HoiQuy
             { context.Response = context.Request.CreateResponse(HttpStatusCode.Forbidden); return; }
             using (var db = new CongTTDT_MOHAEntities())
             {
-                if (db.User_Account.Any(u => u.UserID == id && u.Role.RolePermissions.Any(p => p.Permission.Name == "manage-hoiquy"))) return;
+                if (db.User_Account.Any(u => u.UserID == id && u.TrangThai == "active" && u.Role.RolePermissions.Any(p => p.Permission.Name == "manage-hoiquy"))) return;
             }
             context.Response = context.Request.CreateResponse(HttpStatusCode.Forbidden);
         }
