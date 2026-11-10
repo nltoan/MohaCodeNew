@@ -2,6 +2,6 @@ Gộp vào header Content-Security-Policy hiện hữu của portal, không tạ
 
 script-src: giữ 'self', các hash và nguồn hiện có; thêm https://www.googletagmanager.com
 connect-src: giữ toàn bộ nguồn API/EMC hiện có; thêm https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com
-img-src: giữ nguồn hiện có; thêm https://*.google-analytics.com nếu bị chặn request ảnh GA.
+img-src: CHỈ khi header hiện hữu đã có chỉ thị img-src thì thêm https://*.google-analytics.com vào đó. Nếu chưa có img-src (ảnh đang dùng default-src) thì thêm nguồn này vào default-src; không tạo img-src mới chỉ chứa GA vì sẽ chặn toàn bộ ảnh khác.
 
 window.env đã chuyển vào /runtime-config.js, tải đồng bộ trước bundle. Không cần unsafe-inline. Khi deploy chép file này trước index.html và purge cache cả hai. Header CSP đang do server/proxy cấp nên cập nhật code không tự sửa được header đó. Không thay default-src hoặc bỏ nguồn API hiện có chỉ để thêm GA.

@@ -199,6 +199,6 @@ export const sendComment = async (id: string, data:any) => {
     return res?.data.Message;
   }
   catch(error:any){
-    return error.response.data.Message;
+    return error?.response?.data?.Message;
   }
 }

@@ -32,7 +32,7 @@ try {
  await admin.addInitScript(({token,user})=>{localStorage.setItem('access_token',token);localStorage.setItem('user',JSON.stringify(user));},{token,user});
  await admin.goto('http://localhost:5174/HoiQuy/Import',{timeout:180000});
  await admin.getByText('Hội và Quỹ Trung ương — Import Excel').waitFor({timeout:180000});
- await admin.locator('#hqa-file').setInputFiles(process.argv[2] || 'C:/Users/toanlee/Desktop/DanhSach_HoiQuy_TrungUong_20260930_142742.xlsx');
+ await admin.locator('#hqa-file').setInputFiles(process.argv[2] || path.join(process.env.USERPROFILE || '', 'Desktop', 'DanhSach_HoiQuy_TrungUong_20260930_142742.xlsx'));
  const previewResponse=admin.waitForResponse(r=>r.url().includes('/HoiQuy/UploadComplete?'),{timeout:180000});
  await admin.getByRole('button',{name:'Đọc file và xem trước'}).click();
  const response=await previewResponse; const preview=await response.json();
@@ -57,7 +57,7 @@ try {
  await admin.screenshot({path:path.join(output,'admin-result.png'),fullPage:true,animations:'disabled'});
  const repeat=await fetch(`${api}/HoiQuy/Commit`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({Token:preview.Token})}); assert.equal(repeat.status,400);
  pass('Admin imports 718 eligible rows, skips 8; commit token cannot be replayed');
- const bytes=await fs.readFile(process.argv[2] || 'C:/Users/toanlee/Desktop/DanhSach_HoiQuy_TrungUong_20260930_142742.xlsx');
+ const bytes=await fs.readFile(process.argv[2] || path.join(process.env.USERPROFILE || '', 'Desktop', 'DanhSach_HoiQuy_TrungUong_20260930_142742.xlsx'));
  const upload=new FormData(); upload.append('file',new Blob([bytes]),'HoiQuy.xlsx'); upload.append('includeLogos','false');
  const repeatPreview=await fetch(`${api}/HoiQuy/Preview`,{method:'POST',headers:{Authorization:`Bearer ${token}`},body:upload}); assert.equal(repeatPreview.status,200);
  const repeatToken=(await repeatPreview.json()).Token;

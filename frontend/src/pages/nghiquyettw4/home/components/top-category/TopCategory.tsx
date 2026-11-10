@@ -33,7 +33,7 @@ export const NghiQuyetTW4TopCategory = ({ id, title, items }: NghiQuyetTW4TopCat
     return <>{t('common.no_data')}</>;
   }
   return (
-    <CardSectionBanner title={title} url={getNewURL('bo-truong/chuyen-muc', title, id)} className="mh-nqtw4-cat">
+    <CardSectionBanner title={title} url={getNewURL('nghi-quyet-tw4/chuyen-muc', title, id)} className="mh-nqtw4-cat">
       <div className="mh-nqtw4-cat-slide">
         <NghiQuyetTW4MainCard data={activeItem} />
         <button type="button" className="mh-nqtw4-cat-arrow prev" onClick={handlePrev}>

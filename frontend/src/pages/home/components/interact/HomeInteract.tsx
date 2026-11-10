@@ -69,7 +69,7 @@ export const HomeInteractSection = ({ title }: HomeInteractSectionProps) => {
               return {
                 linkProps: { to: f.URL },
                 style: {
-                  backgroundImage: `url(${getUrlImage(f.AnhBannerUrl)}`,
+                  backgroundImage: `url(${getUrlImage(f.AnhBannerUrl)})`,
                 },
                 label: f.TenBanner,
               };
@@ -139,7 +139,7 @@ export const HomeInteractSection = ({ title }: HomeInteractSectionProps) => {
                   <ul className="mh-home-interact-items">
                     {phanAnhKienNghi?.length > 0 && phanAnhKienNghi.map((item, idx) => (
                       <li key={idx}>
-                        <Link target="_blank" to={item.link}>
+                        <Link target="_blank" rel="noopener noreferrer" to={item.link}>
                           <IconMessageQuestion width={32} height={32} />
                           <div>
                             <b>{item.title}</b>
@@ -155,7 +155,7 @@ export const HomeInteractSection = ({ title }: HomeInteractSectionProps) => {
                   <ul className="mh-home-interact-items">
                     {phanAnhKienNghiCuaCuTri?.length > 0 && phanAnhKienNghiCuaCuTri.map((item, idx) => (
                       <li key={idx}>
-                        <Link target="_blank" to={item.link}>
+                        <Link target="_blank" rel="noopener noreferrer" to={item.link}>
                           <IconMessageQuestion width={32} height={32} />
                           <div>
                             <b>{item.title}</b>

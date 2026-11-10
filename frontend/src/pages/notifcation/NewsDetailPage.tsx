@@ -86,7 +86,7 @@ export const NewsDetailPage = () => {
                 >
                   {files.map((file: any) => {
                     return (
-                      <a href={getUrlPdfFile(file.File.LinkLuuTru)} target="_blank" className={`mh-page-footer-file`}>
+                      <a href={getUrlPdfFile(file.File.LinkLuuTru)} target="_blank" rel="noopener noreferrer" className={`mh-page-footer-file`}>
                         <IconPdfFile />
                         <span>{file.File.Ten}</span>
                       </a>

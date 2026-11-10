@@ -36,6 +36,8 @@ New-Item -ItemType Directory -Path $bin -Force | Out-Null
 & 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe' (Join-Path $root 'api\API.csproj') /t:Rebuild /p:Configuration=Release "/p:OutputPath=$bin\" /m:2 /nologo /verbosity:minimal /clp:ErrorsOnly
 if($LASTEXITCODE){throw 'API Release build failed'}
 Get-ChildItem $bin -Filter '*.pdb' | Remove-Item
+# API.dll.config la ban sao Web.config (co chuoi ket noi); IIS khong doc file nay nen khong dong goi.
+Remove-Item (Join-Path $bin 'API.dll.config') -ErrorAction SilentlyContinue
 Copy-Item (Join-Path $root 'api\Global.asax') (Join-Path $release 'api-update')
 Copy-Item (Join-Path $root 'frontend\dist') (Join-Path $release 'portal') -Recurse
 # Khung HTML cho API MetadataPage: phai khop tuyet doi voi assets cua portal vua build.
@@ -44,8 +46,8 @@ Copy-Item (Join-Path $release 'portal\index.html') (Join-Path $release 'api-upda
 Copy-Item (Join-Path $root 'backend\build') (Join-Path $release 'admin-candidate') -Recurse
 Get-ChildItem (Join-Path $release 'admin-candidate') -Filter '*.map' -Recurse | Remove-Item
 Copy-Item (Join-Path $root 'deployment') (Join-Path $release 'deployment') -Recurse
-Copy-Item (Join-Path $root 'db\migrations\20261001-HoiQuy.sql') (Join-Path $release 'deployment')
-foreach($migration in @('20261109-TinTuc-NgonNgu.sql','20261110-MatKhauMacDinh.sql')){Copy-Item (Join-Path $root ('db\migrations\'+$migration)) (Join-Path $release 'deployment')}
+# Dong goi moi migration trong db\migrations de khong sot file moi.
+Get-ChildItem (Join-Path $root 'db\migrations') -Filter '*.sql' | Copy-Item -Destination (Join-Path $release 'deployment')
 # IIS configurations are merge samples; never replace a production Web.config.
 foreach($app in @('portal','admin-candidate')){
  $webConfig=Join-Path $release ($app+'\web.config')
@@ -58,7 +60,7 @@ foreach($app in @('portal','admin-candidate')){
 $portalIndex=Join-Path $release 'portal\runtime-config.js'
 $html=[IO.File]::ReadAllText($portalIndex).Replace('http://mohaapi.tefli.vn/api/Public/',$config.ApiUrl.TrimEnd('/')+'/api/Public/').Replace('http://moha.tefli.vn/',$config.MediaUrl.TrimEnd('/')+'/')
 [IO.File]::WriteAllText($portalIndex,$html)
-if($gaId -and $html -notmatch [regex]::Escape($gaId)){throw 'Portal Analytics ID does not match production.json; update frontend/index.html and rebuild'}
+if($gaId -and $html -notmatch [regex]::Escape($gaId)){throw 'Portal Analytics ID does not match production.json; update frontend/public/runtime-config.js and rebuild'}
 $adminIndex=Join-Path $release 'admin-candidate\index.html'
 $adminUrl=if($adminReady){$config.AdminUrl.TrimEnd('/')}else{'https://ADMIN-HOST-UNCONFIRMED.invalid'}
 $html=[IO.File]::ReadAllText($adminIndex).Replace('http://mohaapi.tefli.vn',$config.ApiUrl.TrimEnd('/')).Replace('http://mohabackend.tefli.vn',$adminUrl).Replace('http://moha.tefli.vn',$config.PortalUrl.TrimEnd('/'))

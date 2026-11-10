@@ -8,7 +8,7 @@ export default function ApprovePopup({ ID, onHidden }) {
   const [item, setItem] = useState();
   const [id, setId] = useState(ID);
   const [popupApproveVisible, setPopupApproveVisible] = useState();
-  const [comment, setComment] = useState();
+  const [comment, setComment] = useState("");
   useEffect(() => {
     setId(ID);
   }, [ID]);
@@ -53,9 +53,9 @@ export default function ApprovePopup({ ID, onHidden }) {
                   type="success"
                   onClick={async (e) => {
                     const item = await request(
-                      `/TinTucs/Action?ID=${ID}&action=approve&comment=${comment}`,
+                      `/TinTucs/Action?ID=${ID}&action=approve&comment=${encodeURIComponent(comment ?? "")}`,
                     );
-                    if (item.isOk == false) {
+                    if (!item || item.isOk === false) {
                       notify("Phê duyệt thất bại!", "error");
                       return;
                     }
@@ -69,9 +69,9 @@ export default function ApprovePopup({ ID, onHidden }) {
                   type="danger"
                   onClick={async (e) => {
                     const item = await request(
-                      `/TinTucs/Action?ID=${ID}&action=reject&comment=${comment}`,
+                      `/TinTucs/Action?ID=${ID}&action=reject&comment=${encodeURIComponent(comment ?? "")}`,
                     );
-                    if (item.isOk == false) {
+                    if (!item || item.isOk === false) {
                       notify("Hủy phê duyệt thất bại!", "error");
                       return;
                     }

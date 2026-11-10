@@ -55,7 +55,7 @@ export const AboutSidebar = ({ notice }: AboutSidebarProps) => {
               return {
                 linkProps: { to: f.URL },
                 style: {
-                  backgroundImage: `url(${getUrlImage(f.AnhBannerUrl)}`,
+                  backgroundImage: `url(${getUrlImage(f.AnhBannerUrl)})`,
                 },
                 label: f.TenBanner,
               };

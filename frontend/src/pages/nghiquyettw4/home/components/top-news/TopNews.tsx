@@ -25,7 +25,7 @@ export const NghiQuyetTW4TopNews = ({ id, title, items }: NghiQuyetTW4TopNewsPro
     return <>{t("common.no_data")}</>;
   }
   return (
-    <CardSectionBanner className="mh-nqtw4-news" title={title} url={getNewURL('bo-truong/chuyen-muc', title, id)}>
+    <CardSectionBanner className="mh-nqtw4-news" title={title} url={getNewURL('nghi-quyet-tw4/chuyen-muc', title, id)}>
       <Row>
         <Col lg={4}>
           <div className="mh-nqtw4-news-card">

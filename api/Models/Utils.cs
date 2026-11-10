@@ -8,6 +8,7 @@ using System.Data.Common;
 using System.Data.Entity;
 using System.Dynamic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace API.Models
 {
@@ -43,6 +44,21 @@ namespace API.Models
             }
         }
 
+        // Ten cot/selector tu client chi duoc la dinh danh don gian; gia tri duoc nhan doi dau nhay don.
+        private static readonly Regex SafeIdentifier = new Regex(@"^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.CultureInvariant);
+        private static readonly string[] ComparisonOperators = { "=", "<>", "<", ">", "<=", ">=" };
+
+        private static string SafeColumn(string name)
+        {
+            if (name == null || !SafeIdentifier.IsMatch(name)) throw new ArgumentException("Invalid field name in load options.");
+            return name;
+        }
+
+        private static string SqlLiteral(string value)
+        {
+            return (value ?? "").Replace("'", "''");
+        }
+
         public static string GetQuery(IList data)
         {
             var retStr = "";
@@ -59,9 +75,9 @@ namespace API.Models
 
             if (!isNestedArr && data.Count == 3)
             {
-                var first = (string)data[0];
-                var middle = (string)data[1];
-                var second = Convert.ToString(data[2]);
+                var first = SafeColumn(Convert.ToString(data[0]));
+                var middle = Convert.ToString(data[1]);
+                var second = SqlLiteral(Convert.ToString(data[2]));
                 if (middle == "contains") {
                     return string.Format(" LOWER(ttttmp1.{0}) like LOWER(N'%{1}%') ", first, second);
                 }
@@ -84,8 +100,9 @@ namespace API.Models
                     return "ttttmp1." + first + " is not null ";
                 }
                 if (middle == "<>"){
-                    return "not ttttmp1." + first + " <=> '"+ second + "' ";
+                    return " (ttttmp1." + first + " <> '" + second + "' OR ttttmp1." + first + " IS NULL) ";
                 }
+                if (!ComparisonOperators.Contains(middle)) throw new ArgumentException("Unsupported filter operator.");
                 return string.Format(" ttttmp1.{0} {1} '{2}' ", first, middle,second);
             }
             // dump($data);
@@ -98,7 +115,10 @@ namespace API.Models
                 }
                 else
                 {
-                    retStr += " "+ data[i] + " ";
+                    var connector = Convert.ToString(data[i]).Trim().ToLowerInvariant();
+                    if (connector == "!") connector = "not";
+                    if (connector != "and" && connector != "or" && connector != "not") throw new ArgumentException("Unsupported filter connector.");
+                    retStr += " " + connector + " ";
                 }
             }
 
@@ -119,6 +139,7 @@ namespace API.Models
             if(loadOptions.Group != null)
             {
                 var aGroup = loadOptions.Group[0];
+                SafeColumn(aGroup.Selector);
                 var groupBy = string.Format(" GROUP BY {0} ORDER BY {1} {2} ", aGroup.Selector, aGroup.Selector, (aGroup.Desc == true)?" desc ": " asc ");
 
 
@@ -156,7 +177,7 @@ namespace API.Models
                     {
                         tmpQuery += ",";
                     }
-                    tmpQuery += loadOptions.Sort[0].Selector + (loadOptions.Sort[0].Desc ? " desc " : " asc ");
+                    tmpQuery += SafeColumn(aOption.Selector) + (aOption.Desc ? " desc " : " asc ");
                 }
             }
             else

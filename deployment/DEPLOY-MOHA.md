@@ -16,11 +16,12 @@ Gói này cập nhật ba phần: portal React, admin React, API ASP.NET Framewo
 | admin-candidate | Bundle admin. Nếu manifest.AdminReady=false, phải chốt REACT_APP_BACKEND_URL/các cấu hình của admin đang chạy trước khi triển khai. |
 | api-update/bin | DLL build Release. Sao lưu và đối chiếu toàn bộ dependency với phiên bản API đang chạy. |
 | api-update/Global.asax | File khởi động tương ứng với API.MvcApplication. |
-| deployment/20261001-HoiQuy.sql | Migration bổ sung; không chứa dữ liệu khách hàng hoặc mật khẩu. |
+| deployment/2026*.sql | Toàn bộ migration trong db/migrations (HoiQuy, TinTuc-NgonNgu, MatKhauMacDinh); chạy theo thứ tự tên file trước khi cập nhật API. |
+| api-update/App_Data/portal-index.html | Khung HTML cho API MetadataPage; phải khớp bundle portal trong cùng gói. |
 | deployment/api-upload.config.fragment.xml | Phần cấu hình cần gộp vào Web.config API hiện có. |
 | deployment/*.web.config.sample.xml | Mẫu tham khảo URL Rewrite; không chép đè cấu hình production. |
 | deployment/Verify-HoiQuy.sql | Kiểm tra DB sau migration/import. |
-| import-data | Excel gốc để import bằng admin. Giữ ngoài web root công khai. |
+| import-data | Chỉ có khi đóng gói với -IncludeImportData: Excel gốc để import bằng admin. Giữ ngoài web root công khai. |
 | manifest.json | SHA256 và kích thước từng file, commit nguồn, trạng thái cấu hình admin. |
 
 Gói không chứa Web.config API, chuỗi kết nối production, database backup, LocalDB hoặc tài khoản test. Node.js/pnpm/MSBuild dùng trên máy build; production không cần Vite, CRA dev server hoặc Node để phục vụ hai bundle tĩnh.
@@ -92,7 +93,7 @@ Portal dùng /runtime-config.js cùng tên miền thay cho script cấu hình in
 
 Admin import nay gọi UploadStart, UploadChunk và UploadComplete; mỗi phần tối đa 4 MiB, có tiến độ và thử lại tối đa ba lần. Tổng file tối đa 80 MiB. API giữ phần upload trong bộ nhớ cache, một phiên mỗi tài khoản, hết hạn sau 30 phút hoặc được thay bởi phiên mới; không ghi file tạm ra ổ đĩa. Triển khai API trước admin. Không cần nâng giới hạn request lên 81 MiB cho luồng mới; proxy/WAF vẫn phải cho phép request 4 MiB và thời gian đọc Excel ở UploadComplete. Luồng này vẫn yêu cầu một worker hoặc affinity như phần API ở trên. Dự trù RAM cho các tài khoản upload đồng thời; không recycle worker trong lúc import. Migration DB không đổi.
 
-Mã đo lường mới: G-R36X6C2E0S. Portal đã tích hợp qua frontend/src/services/analytics.ts và cấu hình trong frontend/index.html. Chỉ bản production trên moha.gov.vn hoặc www.moha.gov.vn khởi tạo thẻ; localhost, staging và admin không gửi dữ liệu vào tài sản này.
+Mã đo lường mới: G-R36X6C2E0S. Portal đã tích hợp qua frontend/src/services/analytics.ts và cấu hình trong frontend/public/runtime-config.js. Chỉ bản production trên moha.gov.vn hoặc www.moha.gov.vn khởi tạo thẻ; localhost, staging và admin không gửi dữ liệu vào tài sản này.
 
 Trong luồng web Google Analytics, kiểm tra Đo lường nâng cao > Lượt xem trang > Cài đặt nâng cao bật đo khi lịch sử trình duyệt thay đổi để ghi nhận chuyển trang React. Không chèn thêm đoạn gtag vào IIS/template hay Google Tag Manager cho cùng mã vì sẽ trùng lượt xem.
 

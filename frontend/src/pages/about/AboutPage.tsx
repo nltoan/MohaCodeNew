@@ -32,9 +32,9 @@ export const AboutPage = () => {
       linkProps: { to: '/tra-cuu-hoi-quy' },
     },
     buttons: [
-      { linkProps: { to: '/#' }, style: { backgroundImage: `url(${buttonBg1}` }, label: 'CHUYỂN ĐỔI SỐ' },
-      { linkProps: { to: '/#' }, style: { backgroundImage: `url(${buttonBg2}` }, label: 'Chương trình, đề án, dự án' },
-      { linkProps: { to: '/#' }, style: { backgroundImage: `url(${buttonBg3}` }, label: 'Công ước quốc tế' },
+      { linkProps: { to: '/#' }, style: { backgroundImage: `url(${buttonBg1})` }, label: 'CHUYỂN ĐỔI SỐ' },
+      { linkProps: { to: '/#' }, style: { backgroundImage: `url(${buttonBg2})` }, label: 'Chương trình, đề án, dự án' },
+      { linkProps: { to: '/#' }, style: { backgroundImage: `url(${buttonBg3})` }, label: 'Công ước quốc tế' },
     ],
   };
 

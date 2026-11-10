@@ -13,11 +13,11 @@ export const Footer = () => {
   const { t } = useTranslation();
   const [showQRModal, setShowQRModal] = useState(false);
   const qr = {
-    src: `https://api.qrserver.com/v1/create-qr-code/?size=48x48&data=${window.location.href}`,
+    src: `https://api.qrserver.com/v1/create-qr-code/?size=48x48&data=${encodeURIComponent(window.location.href)}`,
     alt: 'QR trang',
   };
   const bigqr = {
-    src: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${window.location.href}`,
+    src: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(window.location.href)}`,
     alt: 'QR trang',
   };
   const certificate = APP_CONFIG.footer.certificate;

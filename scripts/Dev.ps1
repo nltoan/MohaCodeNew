@@ -91,8 +91,18 @@ $localDb = 'C:\Program Files\Microsoft SQL Server\160\Tools\Binn\SqlLocalDB.exe'
 if ($LASTEXITCODE -ne 0) { throw 'Initialize the dev database first.' }
 $apiRoot = Join-Path $runtime 'api'
 if (!($processes | Where-Object Name -eq 'api')) {
-& (Join-Path $PSScriptRoot 'Initialize-HoiQuy.ps1')
-& (Join-Path $PSScriptRoot 'Initialize-TinTucNgonNgu.ps1')
+# Apply every idempotent migration in name order so new files are never missed locally.
+$migrationConnection = New-Object System.Data.SqlClient.SqlConnection 'Data Source=(localdb)\MohaDev;Initial Catalog=CongTTDT_MOHA_Dev;Integrated Security=True;Connect Timeout=10'
+try {
+    $migrationConnection.Open()
+    foreach ($migration in (Get-ChildItem (Join-Path $root 'db\migrations') -Filter '*.sql' | Sort-Object Name)) {
+        $migrationCommand = $migrationConnection.CreateCommand()
+        $migrationCommand.CommandTimeout = 120
+        $migrationCommand.CommandText = [IO.File]::ReadAllText($migration.FullName)
+        [void]$migrationCommand.ExecuteNonQuery()
+        Write-Host "Migration applied: $($migration.Name)"
+    }
+} finally { $migrationConnection.Dispose() }
 New-Item -ItemType Directory -Path $apiRoot -Force | Out-Null
 Copy-Item (Join-Path $root 'api\Global.asax') $apiRoot -Force
 Copy-Item (Join-Path $root 'api\bin') $apiRoot -Recurse -Force

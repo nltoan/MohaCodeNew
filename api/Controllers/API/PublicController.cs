@@ -399,7 +399,7 @@ namespace API.Controllers
             }
             var data = _context.CauHinhs.Where(x => x.Ma == lan).Select(x => x.GiaTri).FirstOrDefault();
             var response = Request.CreateResponse(HttpStatusCode.OK);
-            response.Content = new StringContent(data, Encoding.UTF8, "application/json");
+            response.Content = new StringContent(data ?? "{}", Encoding.UTF8, "application/json");
             return response;
         }
 
@@ -707,7 +707,7 @@ namespace API.Controllers
                 )
                 SELECT "+ limitSql + @" vb.*, ht.TenHinhThucVanBan, lv.TenLinhVuc, cq.TenCoQuanBanHanh, vblv.LinhVucID, vbcq.CoQuanBanHanhID, vblvb.LopVanBanID 
                 from VanBan vb
-                left join HinhThucVanBan ht on ht.ID = vb.ID
+                left join HinhThucVanBan ht on ht.ID = vb.ID_HinhThucVanBan
                 left join VanBan_LopVanBan vblvb on vblvb.VanBanID = vb.ID
                 left join LopVanBan lvb on vblvb.LopVanBanID = lvb.ID
                 left join VanBan_LinhVuc vblv on vblv.VanBanID = vb.ID
@@ -731,7 +731,7 @@ namespace API.Controllers
             var data = _context.CollectionFromSql(@"
                 select vb.*, ht.TenHinhThucVanBan, lv.TenLinhVuc, cq.TenCoQuanBanHanh, vblv.LinhVucID, vbcq.CoQuanBanHanhID, vblvb.LopVanBanID 
                 from VanBan vb
-                left join HinhThucVanBan ht on ht.ID = vb.ID
+                left join HinhThucVanBan ht on ht.ID = vb.ID_HinhThucVanBan
                 left join VanBan_LopVanBan vblvb on vblvb.VanBanID = vb.ID
                 left join LopVanBan lvb on vblvb.LopVanBanID = lvb.ID
                 left join VanBan_LinhVuc vblv on vblv.VanBanID = vb.ID
@@ -756,7 +756,7 @@ namespace API.Controllers
             var data = _context.CollectionFromSql(@"
                 select vb.*, ht.TenHinhThucVanBan, lv.TenLinhVuc, cq.TenCoQuanBanHanh, vblv.LinhVucID, vbcq.CoQuanID
                 from VanBanDuThao vb
-                left join HinhThucVanBan ht on ht.ID = vb.ID
+                left join HinhThucVanBan ht on ht.ID = vb.ID_HinhThucVanBan
                 left join VanBanDuThao_LinhVucs vblv on vblv.VanBanDuThaoID = vb.ID
                 left join LinhVuc lv on lv.ID = vblv.LinhVucID
                 left join VanBanDuThao_CoQuanBanHanhs vbcq on vbcq.VanBanDuThaoID = vb.ID

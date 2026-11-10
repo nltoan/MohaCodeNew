@@ -45,13 +45,13 @@ Chạy từ thư mục gốc repo:
 .\scripts\Dev.ps1 -Action Stop
 ```
 
-Script chạy ba tiến trình nền, ghi PID và log vào `.dev/`. Admin có thể mất vài phút để biên dịch lần đầu. Có thể theo dõi `.dev/admin.stdout.log` và `.dev/admin.stderr.log`.
+Script chạy API, portal, admin (và preview 5175 nếu đã có `frontend/dist`) dưới dạng tiến trình nền, ghi PID và log vào `.dev/`. Admin có thể mất vài phút để biên dịch lần đầu. Có thể theo dõi `.dev/admin.stdout.log` và `.dev/admin.stderr.log`.
 
 API chạy từ bản runtime `.dev/api`, lấy DLL từ `api/bin`. `Web.config` của bản runtime dùng database dev; chuỗi kết nối triển khai trong `api/Web.config` được giữ nguyên. Sau khi sửa C#, build rồi dừng/chạy lại để cập nhật runtime.
 
 Portal được Vite chèn URL local khi chạy dev. Admin dùng URL local khi `NODE_ENV=development`. Build production giữ các URL được khai báo trong HTML gốc.
 
-Khi API local khởi động, `Dev.ps1` cũng chạy migration `20261109-TinTuc-NgonNgu.sql` trên LocalDB `MohaDev`. Lần đầu tạo cột, migration gán `vi` cho tin hiện có theo xác nhận nghiệp vụ; các lần chạy sau không ghi đè ngôn ngữ đã chọn. Trước khi triển khai production, xem `deployment/NGON-NGU-TIN-TUC.md`; không dùng LocalDB hoặc script tự khởi động để thao tác production.
+Khi API local khởi động, `Dev.ps1` chạy toàn bộ migration trong `db/migrations` (theo thứ tự tên file, đều idempotent) trên LocalDB `MohaDev`, gồm `20261109-TinTuc-NgonNgu.sql`. Lần đầu tạo cột, migration gán `vi` cho tin hiện có theo xác nhận nghiệp vụ; các lần chạy sau không ghi đè ngôn ngữ đã chọn. Trước khi triển khai production, xem `deployment/NGON-NGU-TIN-TUC.md`; không dùng LocalDB hoặc script tự khởi động để thao tác production.
 
 ## Build và kiểm tra
 
@@ -61,7 +61,7 @@ Khi API local khởi động, `Dev.ps1` cũng chạy migration `20261109-TinTuc-
 & "$env:LOCALAPPDATA\MohaDev\node-v22.23.3-win-x64\node.exe" .\scripts\Smoke-Test.mjs
 ```
 
-`Test` kiểm tra HTTP của hai giao diện và JSON của API. Smoke test dùng Chrome headless/Playwright để kiểm tra portal tải API local, màn hình login admin và phản hồi từ chối tài khoản không hợp lệ. Ảnh và kết quả nằm trong `.dev/test-results/`.
+`Test` kiểm tra HTTP của portal, admin, preview 5175 (cần `frontend/dist` đã build) và JSON của API. Smoke test dùng Chrome headless/Playwright để kiểm tra portal tải API local, màn hình login admin và phản hồi từ chối tài khoản không hợp lệ. Ảnh và kết quả nằm trong `.dev/test-results/`.
 
 Cài lại dependency khi cần:
 

@@ -9,8 +9,9 @@ type Challenge = { Token: string; Image: string };
 const api = () => `${(axiosInstance.defaults.baseURL || '').replace(/Public\/?$/i, '').replace(/\/$/, '')}/HoiQuy`;
 async function get<T>(path: string): Promise<T> {
   const response = await fetch(`${api()}/${path}`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.Message || 'Không thể kết nối máy chủ. Vui lòng thử lại.');
+  // Trang lỗi 502/HTML không phải JSON: không để lộ lỗi parse ra giao diện.
+  const data = await response.json().catch(() => null);
+  if (!response.ok || data === null) throw new Error(data?.Message || 'Không thể kết nối máy chủ. Vui lòng thử lại.');
   return data;
 }
 function OrganizationLogo({ id, name }: { id: number; name: string }) {

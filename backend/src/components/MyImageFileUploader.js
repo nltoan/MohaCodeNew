@@ -6,8 +6,9 @@ export default function MyImageFileUploader({ cellInfo }) {
   const [image, setImage] = useState();
   useEffect(() => {
     (async function () {
+      if (!cellInfo.value) return;
       const data2 = await request(`Public/FileDetail?ID=${cellInfo.value}`);
-      setImage(`${pathImg(data2.data?.LinkLuuTru)}`);
+      if (data2?.data?.LinkLuuTru) setImage(`${pathImg(data2.data.LinkLuuTru)}`);
     })();
   }, []);
   const onUploaded = (e, cellInfo) => {

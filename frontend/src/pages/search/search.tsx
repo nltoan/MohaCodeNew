@@ -155,7 +155,7 @@ export const SearchPage = () => {
                     <Link
                       to={getUrlPdfFile(item?.AnhDaiDienUrl)}
                       key={item?.AnhDaiDienUrl}
-                      target="_blank"
+                      target="_blank" rel="noopener noreferrer"
                       className="mh-searchbox-item-image"
                     >
                       <IconPdfFile />
@@ -164,7 +164,7 @@ export const SearchPage = () => {
                       <Link
                         to={getUrlPdfFile(item?.AnhDaiDienUrl)}
                         key={item?.AnhDaiDienUrl + '1'}
-                        target="_blank"
+                        target="_blank" rel="noopener noreferrer"
                         className="mh-searchbox-item-title"
                       >
                         {item?.TieuDe}

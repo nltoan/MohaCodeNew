@@ -34,7 +34,7 @@ export default function ActionPopup({ ID, action, onHidden }) {
                 const item = await request(
                   `/TinTucs/Action?ID=${ID}&action=${action}`,
                 );
-                if (item.isOk == false) {
+                if (!item || item.isOk === false) {
                   notify("Thao tác thất bại!", "error");
                   return;
                 }

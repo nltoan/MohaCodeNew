@@ -122,12 +122,9 @@ namespace API.Controllers
         }
 
         [HttpDelete]
-        public async Task Delete(FormDataCollection form) {
-            var key = Convert.ToInt32(form.Get("key"));
-            var model = await _context.Roles.FirstOrDefaultAsync(item => item.ID == key);
-
-            _context.Roles.Remove(model);
-            await _context.SaveChangesAsync();
+        public HttpResponseMessage Delete() {
+            // Ban sao chep truoc day xoa nham ban ghi Role theo ID. Xoa file backup chua duoc ho tro.
+            return Request.CreateErrorResponse(HttpStatusCode.MethodNotAllowed, "Deleting backups is not supported.");
         }
 
         protected override void Dispose(bool disposing) {

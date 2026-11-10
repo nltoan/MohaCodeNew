@@ -270,7 +270,7 @@ namespace API.Controllers
                             ".pdf", ".docx", ".doc", ".rtf", ".txt", ".xlsx", ".xls", ".csv", ".pptx", ".ppt"
                         };
 
-                    if (!allExtensions.Contains(Path.GetExtension(metaDataObject.FileName)))
+                    if (!allExtensions.Contains(Path.GetExtension(metaDataObject.FileName), StringComparer.OrdinalIgnoreCase))
                     {
                         return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "file extension is invalid");
                     }
@@ -324,7 +324,7 @@ namespace API.Controllers
                             ".jpg", ".jpeg", ".png", ".gif", ".tiff", ".tif", ".psd", ".webp", ".avif",
                         };
 
-                if (!allExtensions.Contains(Path.GetExtension(file.FileName)))
+                if (!allExtensions.Contains(Path.GetExtension(file.FileName), StringComparer.OrdinalIgnoreCase))
                 {
                     jsonResponse = "{\"error\":{\"number\":105,\"message\":\"Invalid file extension.\"}}";
                 }

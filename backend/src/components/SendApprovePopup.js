@@ -7,7 +7,7 @@ import parse from '../utils/safe-html';;
 export default function SendApprovePopup({ ID, action, onHidden }) {
   const [item, setItem] = useState();
   const [id, setId] = useState(ID);
-  const [comment, setComment] = useState();
+  const [comment, setComment] = useState("");
   const [popupVisible, setPopupVisible] = useState();
   useEffect(() => {
     setId(ID);
@@ -53,9 +53,9 @@ export default function SendApprovePopup({ ID, action, onHidden }) {
                   type="success"
                   onClick={async (e) => {
                     const item = await request(
-                      `/TinTucs/Action?ID=${ID}&action=${action}&comment=${comment}`,
+                      `/TinTucs/Action?ID=${ID}&action=${action}&comment=${encodeURIComponent(comment ?? "")}`,
                     );
-                    if (item.isOk == false) {
+                    if (!item || item.isOk === false) {
                       notify("Thao tác thất bại!", "error");
                       return;
                     }
