@@ -1,3 +1,5 @@
+> Chỉ áp dụng cho upload nguyên file kiểu cũ qua `HoiQuy/Preview` (quản trị hiện upload theo từng phần 4 MiB).
+
 # Sửa lỗi import production
 
 Bản mới đã đổi admin sang UploadStart/UploadChunk/UploadComplete, mỗi request chứa tối đa 4 MiB. Triển khai API trước admin. Hướng dẫn tăng lên 81 MiB bên dưới chỉ dành cho luồng Preview upload nguyên file cũ. Luồng mới không cần cấu hình đó nếu server cho phép 4 MiB. Dữ liệu tạm nằm trong RAM cache API tối đa 30 phút, một phiên mỗi tài khoản; yêu cầu worker/affinity như DEPLOY-MOHA.md.

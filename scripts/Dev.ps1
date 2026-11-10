@@ -114,6 +114,9 @@ foreach ($folder in @('Upload\Thumb', 'UploadTemp', 'tts\newmp3files')) {
     New-Item -ItemType Directory -Path (Join-Path $apiRoot $folder) -Force | Out-Null
 }
 Copy-Item (Join-Path $root 'api\Upload\web.config') (Join-Path $apiRoot 'Upload\web.config') -Force
+# Optional secrets (git-ignored); api\Web.config reads them via appSettings file=.
+$localSettings = Join-Path $root 'api\appSettings.local.config'
+if (Test-Path $localSettings) { Copy-Item $localSettings (Join-Path $apiRoot 'appSettings.local.config') -Force }
 [xml]$config = Get-Content (Join-Path $root 'api\Web.config') -Raw
 $db = $config.configuration.connectionStrings.add | Where-Object name -eq 'CongTTDT_MOHAEntities'
 $db.connectionString = 'metadata=res://*/Models.MohaModel.csdl|res://*/Models.MohaModel.ssdl|res://*/Models.MohaModel.msl;provider=System.Data.SqlClient;provider connection string="data source=(localdb)\MohaDev;initial catalog=CongTTDT_MOHA_Dev;integrated security=True;MultipleActiveResultSets=True;App=EntityFramework"'

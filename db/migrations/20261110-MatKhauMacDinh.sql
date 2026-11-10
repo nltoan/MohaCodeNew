@@ -16,7 +16,7 @@ COMMIT TRANSACTION;
 -- Danh dau cac tai khoan DANG DUNG mat khau mac dinh (sua danh sach theo thuc te roi chay):
 -- UPDATE dbo.User_Account
 -- SET MatKhauMacDinh = 1, SoLanDangNhapMacDinh = 0
--- WHERE TenTruyCap IN (N'kiennt', N'nhungnt', N'minhpn', N'thangnx', N'hangttp', N'cuongtt');
+-- WHERE TenTruyCap IN (N'<tai_khoan_1>', N'<tai_khoan_2>');
 --
 -- Xem truoc cac tai khoan con luu mat khau dang chu thuong (chua bam) de can nhac danh dau:
 -- SELECT UserID, TenTruyCap, TrangThai FROM dbo.User_Account

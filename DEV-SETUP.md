@@ -26,7 +26,9 @@ Node và pnpm được thêm vào PATH của tài khoản; mở terminal mới �
 
 Instance dành riêng cho dự án: `(localdb)\MohaDev`.
 Database: `CongTTDT_MOHA_Dev`, dùng Windows Authentication.
-Backup đã restore: `db/CongTTDT_MOHA_20260331.zip` (SQL Server 2022, 145 bảng).
+Backup đã restore trên máy dev ban đầu: `CongTTDT_MOHA_20260331.zip` (SQL Server 2022, 145 bảng).
+
+Backup (`db/*.zip|7z|bak`) không còn trong git (đã git-ignore; vẫn còn trong lịch sử git). Lấy file backup từ chủ dự án qua kênh riêng, đặt vào `db/` hoặc truyền `-BackupPath <đường dẫn>`. Không commit backup.
 
 Khởi tạo trên một môi trường chưa có database:
 
@@ -34,7 +36,7 @@ Khởi tạo trên một môi trường chưa có database:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Initialize-DevDatabase.ps1
 ```
 
-Script chọn backup có tên mới nhất trong `db/`, giải nén và restore. Nếu database dev đã tồn tại, script giữ nguyên dữ liệu; không tự ghi đè. Data/log và backup đã giải nén nằm trong `%LOCALAPPDATA%\MohaDev`.
+Script chọn backup có tên mới nhất trong `db/` (hoặc file chỉ định bằng `-BackupPath`), giải nén và restore. Nếu `db/` không có backup và không truyền `-BackupPath`, script dừng với thông báo nói rõ cách lấy backup. Nếu database dev đã tồn tại, script giữ nguyên dữ liệu; không tự ghi đè. Data/log và backup đã giải nén nằm trong `%LOCALAPPDATA%\MohaDev`.
 
 Backup có data file khoảng 2,2 GB và log file khoảng 13,5 GB; cần đủ dung lượng để restore dù archive nhỏ.
 
@@ -49,7 +51,7 @@ Chạy từ thư mục gốc repo:
 
 Script chạy API, portal, admin (và preview 5175 nếu đã có `frontend/dist`) dưới dạng tiến trình nền, ghi PID và log vào `.dev/`. Admin có thể mất vài phút để biên dịch lần đầu. Có thể theo dõi `.dev/admin.stdout.log` và `.dev/admin.stderr.log`.
 
-API chạy từ bản runtime `.dev/api`, lấy DLL từ `api/bin`. `Web.config` của bản runtime dùng database dev; chuỗi kết nối triển khai trong `api/Web.config` được giữ nguyên. Sau khi sửa C#, build rồi dừng/chạy lại để cập nhật runtime.
+API chạy từ bản runtime `.dev/api`, lấy DLL từ `api/bin`. `Web.config` của bản runtime dùng database dev; `api/Web.config` được giữ nguyên (mật khẩu DB trong đó là `CHANGE_ME`). Các khóa tùy chọn (ví dụ reCAPTCHA) đặt trong `api/appSettings.local.config` (git-ignored, không commit); `Dev.ps1` chép file này vào `.dev/api` khi có. Tạo file này theo mẫu `<appSettings>` và lấy giá trị từ chủ dự án. Sau khi sửa C#, build rồi dừng/chạy lại để cập nhật runtime.
 
 Portal được Vite chèn URL local khi chạy dev. Admin dùng URL local khi `NODE_ENV=development`. Build production giữ các URL được khai báo trong HTML gốc.
 
@@ -88,10 +90,10 @@ Backup database không gồm kho media/upload. Thư mục upload dev được t�
 - File khách hàng có 726 dòng, 228 logo; 2 dòng thiếu tên và 6 dòng thuộc 3 nhóm trùng. Mặc định bỏ qua 8 dòng này, còn 718 dòng hợp lệ. Sửa file nguồn rồi import lại để bổ sung các dòng bị bỏ qua.
 - Import lưu trong transaction; chế độ chỉ thêm mới không tạo trùng khi import lại. Chế độ cập nhật giữ logo cũ nếu file không cung cấp logo mới.
 
-`Dev.ps1 -Action Start` tự áp dụng migration Hội và Quỹ vào LocalDB. Có thể chạy riêng:
+`Dev.ps1 -Action Start` tự áp dụng mọi migration vào LocalDB. Có thể chạy riêng (áp dụng toàn bộ `db\migrations\*.sql` theo thứ tự tên file):
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Initialize-HoiQuy.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Initialize-Migrations.ps1
 ```
 
 Khi triển khai lên môi trường khác, chạy `db/migrations/20261001-HoiQuy.sql` bằng tài khoản có quyền tạo bảng và thêm quyền trước khi cập nhật API. Migration không tự import dữ liệu. Cấu hình IIS giới hạn upload riêng cho endpoint xem trước; không thêm thư viện Excel bên ngoài.
@@ -102,7 +104,7 @@ Kiểm tra chức năng bằng `scripts/Test-HoiQuy.mjs` trên ba URL local. Ch�
 
 Preview chạy bằng `scripts/Serve-PortalPreview.mjs`, phục vụ `frontend/dist` tại http://localhost:5175/ (chỉ bind localhost, đổi API sang localhost:55104, GA tắt). Cần build portal trước (`.\scripts\Dev.ps1 -Action Build`); `Dev.ps1 -Action Start` tự bật preview khi đã có `frontend/dist`. Dùng Node đã cài để chạy lại thủ công sau khi build lại frontend. PID phiên hiện tại nằm ở `.dev/portal-preview.pid`; kiểm tra tiến trình trước khi dừng, không chạy thêm phiên trùng port.
 
-Kiểm tra bằng Node đã cài: `scripts/Audit-PortalSections.cjs`, `scripts/Test-PortalSections.cjs`, `scripts/Test-PortalMediaUrls.cjs`, `scripts/Test-HomePerformance.cjs`, `scripts/Test-PortalSeo.cjs`; muốn quét toàn bộ route thì chạy `scripts/Audit-PortalAll.cjs`. Các bài test trình duyệt cố định tiếng Việt. Kết quả ghi vào `.dev/`.
+Kiểm tra bằng Node đã cài: `scripts/Test-PortalSections.cjs`, `scripts/Test-PortalMediaUrls.cjs`, `scripts/Test-HomePerformance.cjs`, `scripts/Test-PortalSeo.cjs`; muốn quét toàn bộ route thì chạy `scripts/Audit-PortalAll.cjs`; đặt biến `PORTAL_AUDIT_ROUTES` (mảng JSON) để chỉ quét vài route. Các bài test trình duyệt cố định tiếng Việt. Kết quả ghi vào `.dev/`.
 
 ## Tự khởi động local trên Windows
 
@@ -115,3 +117,41 @@ Supervisor kiểm tra định kỳ khoảng 30 giây, bật lại tiến trình 
 Để dừng local và không tự bật lại: chạy `Disable-ScheduledTask -TaskName MohaDev-Local`, `Stop-ScheduledTask -TaskName MohaDev-Local`, rồi `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Dev.ps1 -Action Stop`. Bật lại bằng `Enable-ScheduledTask -TaskName MohaDev-Local` và `Start-ScheduledTask -TaskName MohaDev-Local`.
 
 Đã thử dừng riêng API/preview: supervisor tự bật lại bằng PID mới, portal/admin giữ PID cũ và các URL local trở lại HTTP 200. Không reboot máy trong kiểm tra này. API có thể cần thời gian warm-up sau khi khởi động.
+
+## Mục lục script
+
+Mọi script nằm trong `scripts/`, chạy từ thư mục gốc repo trên Windows. Script `.cjs`/`.mjs` dùng Playwright và Chrome đã cài (`%LOCALAPPDATA%\MohaDev\browser-tests`), chạy bằng Node đã cài. Kết quả ghi vào `.dev/`.
+
+| Script | Việc làm | Khi nào chạy |
+|---|---|---|
+| `Dev.ps1` | `-Action Build/Start/Stop/Test`: build, chạy/dừng API, portal, admin, preview, kiểm tra HTTP; Start tự áp dụng migration | Hằng ngày |
+| `Initialize-DevDatabase.ps1` | Restore backup trong `db/` (hoặc `-BackupPath`) vào LocalDB `MohaDev`; không ghi đè DB đã có | Một lần trên máy mới |
+| `Initialize-Migrations.ps1` | Áp dụng mọi `db\migrations\*.sql` theo thứ tự tên vào LocalDB dev | Khi cần áp dụng migration mà không chạy `Dev.ps1` |
+| `AutoStart-Dev.ps1` | Supervisor: bật lại các dịch vụ dev bị dừng, kiểm tra DB/API (`-Once` chạy một lần) | Do Task Scheduler gọi |
+| `Install-DevAutoStart.ps1` | Đăng ký tác vụ `MohaDev-Local` chạy `AutoStart-Dev.ps1` khi đăng nhập | Một lần trên máy mới |
+| `Serve-PortalPreview.mjs` | Phục vụ `frontend/dist` tại cổng 5175 (API trỏ localhost, GA tắt) | Sau khi build portal; `Dev.ps1 Start` tự gọi |
+| `Prepare-ProductionRelease.ps1` | Build và đóng gói bản phát hành vào `.dev/releases` từ `deployment/production.json` | Khi chuẩn bị triển khai (xem `deployment/DEPLOY-MOHA.md`) |
+| `Smoke-Test.mjs` | Kiểm tra portal tải API local, màn hình login admin, từ chối tài khoản sai | Sau `Dev.ps1 Start` |
+| `Audit-PortalAll.cjs` | Quét mọi route portal trên preview 5175 (lỗi JS, request lỗi); `PORTAL_AUDIT_ROUTES`, `PORTAL_AUDIT_OUTPUT` | Sau khi build portal |
+| `Audit-SecurityNuget.cjs` | Đối chiếu package NuGet của API với cơ sở dữ liệu lỗ hổng NuGet (cần mạng) | Định kỳ / trước phát hành |
+| `Prepare-HoiQuyTests.ps1` | Tạo hai tài khoản test (có quyền, không quyền) trong DB dev, ghi `.dev/hoi-test-accounts.json` | Trước các test cần đăng nhập |
+| `Test-HoiQuy.mjs` | Kiểm tra tra cứu và import Hội/Quỹ trên ba URL local (cần tài khoản test; CAPTCHA đọc tay) | Sau khi đổi chức năng Hội/Quỹ |
+| `Test-ChunkUpload.mjs` | Kiểm tra upload từng phần 4 MiB của import Hội/Quỹ qua API | Sau khi đổi API upload |
+| `Test-AccountStatus.ps1` | Tạo tài khoản tạm trong DB dev để kiểm tra đăng nhập theo `TrangThai`, rồi xóa | Sau khi đổi logic đăng nhập |
+| `Test-MetadataHead.ps1` | Kiểm tra HTML thô của API `MetadataPage` (các thẻ Dublin Core) trên API local | Sau khi đổi `MetadataPage` |
+| `Test-DublinCore.cjs` | Kiểm tra thẻ `DC.*` do portal React tạo (API giả lập, `PORTAL_TEST_URL`) | Sau khi đổi `PortalSeo` |
+| `Test-PortalSeo.cjs` | Kiểm tra canonical, description, og:url, cập nhật khi chuyển trang, bố cục mobile tin tức | Sau khi đổi SEO portal |
+| `Test-PortalSections.cjs` | Kiểm tra landing giới thiệu/văn bản, layout mobile, 404, tìm kiếm | Sau khi đổi các trang này |
+| `Test-PortalAuditFixes.cjs` | Kiểm tra landing chuyên mục/giới thiệu không gọi `ID=null`, phân giải URL media trong bài | Sau khi đổi routing/media |
+| `Test-PortalMediaUrls.cjs` | Kiểm tra hàm URL media/PDF với và không có dấu `/` cuối | Sau khi đổi `utils/image.ts` |
+| `Test-PortalCsp.cjs` | Kiểm tra bản build với CSP production: runtime-config, GA, logo `data:` (mạng giả lập) | Sau khi đổi CSP/runtime-config |
+| `Test-Analytics.cjs` | Kiểm tra `analytics.ts` chỉ khởi tạo GA trên host production | Sau khi đổi GA |
+| `Test-PublicCache.cjs` | Kiểm tra `public-cache.ts` (gộp request, hết hạn, thử lại) | Sau khi đổi cache API |
+| `Test-HomePerformance.cjs` | Đo tải trang chủ desktop/mobile, request và lỗi | Sau khi đổi trang chủ |
+| `Test-SimilarLoading.cjs` | Kiểm tra trạng thái đang tải, rỗng, lỗi + thử lại của các trang danh sách | Sau khi đổi trang danh sách |
+| `Test-SiteHomeLoading.cjs` | `minister` hoặc `nq`: kiểm tra tải độc lập và thử lại các khối của trang chủ chuyên trang | Sau khi đổi trang `/bo-truong`, `/nghi-quyet-tw4` |
+| `New-SecurityFixtures.cjs` | Tạo `xxe.xlsx` và `oversized-xml.xlsx` vào `.dev/security-fixtures/` | Trước `Test-SecurityApi.cjs` |
+| `Test-SecurityApi.cjs` | Bộ kiểm tra bảo mật API local (quyền, CORS, upload, import Excel, rate limit) | Trước phát hành; cần tài khoản test và fixture |
+| `Test-SecurityAdmin.cjs` | Kiểm tra admin render nội dung HTML an toàn, chặn XSS (đăng nhập tài khoản test) | Trước phát hành |
+| `Test-SecurityPortal.cjs` | Kiểm tra portal lọc HTML chèn vào (XSS), API giả lập | Trước phát hành |
+| `Test-SecurityUploadHosting.cjs` | Kiểm tra IIS Express chặn phục vụ file cấu hình/backup/thực thi trong thư mục upload (`.dev/api/Upload`) | Sau khi đổi `Upload\web.config` |

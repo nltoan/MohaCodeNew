@@ -1,6 +1,6 @@
 -- Read-only diagnostics: never return a password, OTP, hash or 2FA secret.
--- Set this to the account name to be investigated; confirm the selected DB.
-DECLARE @LoginName nvarchar(255) = N'kiennt';
+-- OPERATOR: thay N'<ten_dang_nhap>' bang ten dang nhap can kiem tra (khong luu ten that vao git); xac nhan dung CSDL.
+DECLARE @LoginName nvarchar(255) = N'<ten_dang_nhap>';
 SELECT DB_NAME() AS TenCoSoDuLieu;
 
 SELECT a.TenTruyCap, a.TrangThai, a.IsTwoFA,

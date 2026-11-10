@@ -6,6 +6,7 @@
 - `backend/`: giao diện quản trị (admin GUI: React 18, CRA 5, DevExtreme, npm). Đây là ứng dụng web tĩnh, không phải server.
 - `api/`: ASP.NET Web API (.NET Framework 4.8, EF6). Chỉ build được trên Windows.
 - `web/`: host cũ (legacy), nằm ngoài quy trình phát hành.
+- `migrate/`: công cụ nhập SharePoint một lần (legacy).
 - `db/migrations/`: migration SQL idempotent.
 - `scripts/`: PowerShell và Node (Playwright), nhắm tới Windows.
 - `deployment/`: runbook và mẫu cấu hình IIS.
@@ -27,3 +28,7 @@
 - `api/` không build được trên macOS/Linux: không khẳng định nó biên dịch khi chưa chạy trên Windows.
 - Không ghi đè `Web.config` production; chỉ gộp phần mẫu/fragment.
 - Không commit backup DB, mật khẩu hay tên tài khoản thật.
+
+## Mã cũ
+
+`web/` và `migrate/` là mã cũ, giữ để tham khảo; không build, không phát hành. Chuỗi kết nối trong đó chỉ là chỗ giữ (`CHANGE_ME`), không dùng được nếu chưa điền tay.

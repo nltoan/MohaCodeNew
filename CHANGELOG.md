@@ -19,8 +19,17 @@ Kiểm tra: Ctrl+Shift+R trang chủ, xem tin/ảnh đầu trang, cuộn dần t
 
 ## Bản tối ưu SEO/layout tiếp theo
 
-Vẫn deploy portal tĩnh, không SSR/Node.js trên production. Dùng scripts/Prepare-PortalRelease.ps1 để đóng gói riêng portal. Bản xem thử local port 5175 phục vụ build mới nhất. Đã bổ sung title mặc định, description theo trang, canonical/og:url tuyệt đối và H1 đúng cho các trang chính; đưa menu chuyên mục mobile xuống sau nội dung và giữ chỗ khi tải. Kết quả đo cuối ở .dev/portal-audit-report.md.
+Vẫn deploy portal tĩnh, không SSR/Node.js trên production. Đợt này từng dùng scripts/Prepare-PortalRelease.ps1 để đóng gói riêng portal; script đó đã gỡ (11/2026), dùng scripts/Prepare-ProductionRelease.ps1 và chỉ chép thư mục portal của gói. Bản xem thử local port 5175 phục vụ build mới nhất. Đã bổ sung title mặc định, description theo trang, canonical/og:url tuyệt đối và H1 đúng cho các trang chính; đưa menu chuyên mục mobile xuống sau nội dung và giữ chỗ khi tải. Kết quả đo cuối ở .dev/portal-audit-report.md.
 
 ## Kiểm tra thêm các phần portal (02/10/2026)
 
 Đã sửa tìm kiếm (encoding, phân trang, retry và phản hồi đến trễ), landing giới thiệu/văn bản theo menu, bộ lọc văn bản mobile, URL media/attachment, thư viện rỗng/lỗi, bảng lịch sử, album, chi tiết đề tài, metadata chuyên đề và trang không tồn tại. Test local production build tại http://localhost:5175/. Chạy scripts/Audit-PortalSections.cjs, scripts/Test-PortalSections.cjs và scripts/Test-PortalMediaUrls.cjs bằng Node đã cài. Các bài test trình duyệt cố định tiếng Việt; dữ liệu multimedia tiếng Anh local hiện rỗng. Báo cáo phạm vi và giới hạn tại .dev/portal-sections-report.md. Chưa deploy; cách chép portal tĩnh không đổi, không cần migration mới cho bản này.
+
+## Dọn tooling và tài liệu (11/2026)
+
+- Gỡ chuỗi sitemap tĩnh (Generate-PublicSitemap, Export-PublicNewsUrls, Export-FromIisApiConfig): thay bằng sitemap động của API (deployment/SITEMAP-DONG.md).
+- Gỡ cách snapshot Dublin Core tĩnh (Generate-DublinCoreSnapshots, DUBLIN-CORE-STATIC.md, dublin-core-rewrite.fragment.xml): thay bằng API MetadataPage (deployment/METADATA-HTML-THU-NGHIEM.md).
+- Gỡ Prepare-PortalRelease.ps1, Audit-Portal.cjs, Audit-PortalSections.cjs (Audit-PortalAll.cjs thay thế, nhận PORTAL_AUDIT_ROUTES), Inspect-LayoutShift.cjs.
+- Gộp Test-MinisterLoading/Test-NqHomeLoading thành Test-SiteHomeLoading.cjs; gộp Initialize-HoiQuy/Initialize-TinTucNgonNgu thành Initialize-Migrations.ps1.
+- Báo cáo theo ngày chuyển vào deployment/archive/ (không đóng gói).
+- Bản tối ưu hiệu năng và SEO portal (trước đây là mục cuối của DEPLOY-MOHA.md): chỉ cập nhật portal, không migration, không Node.js trên server; quy trình nay nằm ở mục Triển khai portal của DEPLOY-MOHA.md.

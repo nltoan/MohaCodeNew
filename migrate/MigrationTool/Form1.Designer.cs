@@ -62,7 +62,7 @@
             this.txtSQLConnStr.Name = "txtSQLConnStr";
             this.txtSQLConnStr.Size = new System.Drawing.Size(263, 79);
             this.txtSQLConnStr.TabIndex = 2;
-            this.txtSQLConnStr.Text = "Server=localhost; Database=CongTTDT_MOHA; User Id=sa; Password=abcde12345-;";
+            this.txtSQLConnStr.Text = "Server=localhost; Database=CongTTDT_MOHA; User Id=sa; Password=CHANGE_ME;";
             // 
             // label1
             // 

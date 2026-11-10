@@ -22,6 +22,13 @@ Admin sessions remain bearer tokens in browser storage; use XSS protection and a
 
 CSP must be merged at the server/WAF returning the effective header, not added as a second competing header. See CSP-PORTAL.txt for Google Analytics; validate frame-ancestors/base-uri/object-src and admin CSP in staging. This local review does not certify the production WAF/TLS/header policy.
 
-Frontend/admin dependencies still have known advisories, including the legacy SunEditor and CRA tooling. See SECURITY-REVIEW-20261002.md; do not run forced major-version fixes without a separate migration/regression plan. The local NuGet audit checked 51 packages against the official vulnerability feed and found no matching advisories at review time. Review CKEditor/DevExtreme support, server access and backup protection before release.
+Frontend/admin dependencies still have known advisories, including the legacy SunEditor and CRA tooling. See archive/SECURITY-REVIEW-20261002.md; do not run forced major-version fixes without a separate migration/regression plan. The local NuGet audit checked 51 packages against the official vulnerability feed and found no matching advisories at review time. Review CKEditor/DevExtreme support, server access and backup protection before release.
 
 Reference: OWASP Authorization, File Upload, Web Frontend Security and Password Storage Cheat Sheets.
+
+## Bí mật không nằm trong git
+
+- Mật khẩu CSDL không còn trong `api/Web.config` (giá trị `CHANGE_ME`); production giữ chuỗi kết nối riêng trên server. Các khóa tùy chọn (ví dụ khóa reCAPTCHA) đọc từ `api/appSettings.local.config`, file này bị git bỏ qua và không nằm trong gói triển khai.
+- Backup DB, thư mục `output/` và file .docx độc lập cũng đã bỏ khỏi git; lấy backup ngoài kênh git (xem DEV-SETUP.md).
+- Các giá trị cũ vẫn còn trong lịch sử git: phải đổi (rotate) mật khẩu DB và secret reCAPTCHA trên production, không chỉ xóa khỏi file.
+- Việc xóa lịch sử bằng `git filter-repo` là quyết định của nhóm, chưa được chốt. Tới khi chốt, coi mọi bí mật từng commit là đã lộ.

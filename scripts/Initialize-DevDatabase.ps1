@@ -5,11 +5,14 @@ $toolsDir = Join-Path $env:LOCALAPPDATA 'MohaDev'
 $localDb = 'C:\Program Files\Microsoft SQL Server\160\Tools\Binn\SqlLocalDB.exe'
 if (!(Test-Path $localDb)) { throw 'SQL LocalDB 2022 is not installed.' }
 if (!$BackupPath) {
-    $BackupPath = (Get-ChildItem (Join-Path $root 'db') -File |
-        Where-Object Extension -In @('.bak', '.zip', '.7z') |
-        Sort-Object Name -Descending | Select-Object -First 1).FullName
+    $dbDir = Join-Path $root 'db'
+    if (Test-Path $dbDir) {
+        $BackupPath = (Get-ChildItem $dbDir -File |
+            Where-Object Extension -In @('.bak', '.zip', '.7z') |
+            Sort-Object Name -Descending | Select-Object -First 1).FullName
+    }
 }
-if (!$BackupPath) { throw 'No database backup found in db/.' }
+if (!$BackupPath) { throw 'No database backup (.bak, .zip or .7z) found in db/. Backups are not stored in git: obtain one from the project owner, copy it into db/, or run this script with -BackupPath <file>. See DEV-SETUP.md (Database).' }
 $BackupPath = (Resolve-Path $BackupPath).Path
 $extractDir = Join-Path $toolsDir ('database\' + [IO.Path]::GetFileNameWithoutExtension($BackupPath))
 New-Item -ItemType Directory -Path $extractDir -Force | Out-Null

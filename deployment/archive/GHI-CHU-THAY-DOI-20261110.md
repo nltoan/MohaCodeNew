@@ -28,9 +28,9 @@ Commit: `0bce499` (mật khẩu mặc định), `7ff7f05` (preview + sửa kho�
 
 ## 4. Chẩn đoán đã làm (chưa sửa DB)
 
-- Lỗi đăng nhập `kiennt`: hash PBKDF2 ở dòng 649 không khớp `1111`; cần đặt lại mật khẩu bằng `UPDATE`.
-- `nhungnt` bị trùng tên truy cập với dòng 628 (đã `deleted`); đã đề xuất đổi tên dòng 628. Code đăng nhập dùng `FirstOrDefault(TenTruyCap == ...)` không lọc trạng thái (chưa sửa).
-- Đăng nhập chỉ chấp nhận `TrangThai` = `active` hoặc `True`; `NULL`, `False`, `deleted` bị chặn. Đã đề xuất `UPDATE ... SET TrangThai = N'active'` cho UserID 649, 650, 651, 653, 654, 655 (chưa chạy; `cuongnd` 652 là `False`, để nguyên).
+- Lỗi đăng nhập `<tài khoản A>`: hash PBKDF2 của tài khoản này không khớp mật khẩu đã thử (giá trị không ghi lại ở đây); cần đặt lại mật khẩu bằng `UPDATE`.
+- `<tài khoản B>` bị trùng tên truy cập với một dòng khác (đã `deleted`); đã đề xuất đổi tên dòng đã xoá đó. Code đăng nhập dùng `FirstOrDefault(TenTruyCap == ...)` không lọc trạng thái (chưa sửa).
+- Đăng nhập chỉ chấp nhận `TrangThai` = `active` hoặc `True`; `NULL`, `False`, `deleted` bị chặn. Đã đề xuất `UPDATE ... SET TrangThai = N'active'` cho sáu tài khoản bị chặn (UserID ghi trong bản gốc, đã lược bỏ; chưa chạy; `<tài khoản C>` có `TrangThai` là `False`, để nguyên).
 - Tin 19842/19843 không hiện: nghi `TrangThai <> 'public'` (tin mới luôn tạo ở `draft`) hoặc `NgonNgu` NULL/khác `vi`. Cần chạy `SELECT ID, TrangThai, NgonNgu FROM dbo.TinTuc WHERE ID IN (19842, 19843)` để xác nhận.
 
 ## 5. Build / đóng gói
