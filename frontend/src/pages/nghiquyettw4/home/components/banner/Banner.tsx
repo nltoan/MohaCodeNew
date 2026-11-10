@@ -7,7 +7,7 @@ import { getNewURL } from '@/utils/getSlugKey';
 import { getUrlImage } from '@/utils/image';
 import { getLang } from '@/services';
 import { getPostsByQuery } from '@/services/news';
-import { NghiQuyetTW4_DATA_CONFIG } from '@/configs';
+import { NghiQuyetTW4_DATA_CONFIG, getConfigId } from '@/configs';
 import { vnFormatter } from '@/utils';
 
 interface NghiQuyetTW4BannerItem {
@@ -42,10 +42,10 @@ export const NghiQuyetTW4Banner = () => {
   useEffect(() => {
     const fetchAppMenus = async () => {
       try {
-        const response = await getPostsByQuery(`PostsByCategory?lang=${getLang()}&ID=${getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_TOPNEWS.VI : NghiQuyetTW4_DATA_CONFIG.HOME_TOPNEWS.EN}&filter=%5B"NoiBat","%3D","1"%5D&sort=%5B%7B"selector"%3A"NgayXuatBan"%2C"desc"%3Atrue%7D%5D&skip=0&take=4&requireTotalCount=false`);
+        const response = await getPostsByQuery(`PostsByCategory?lang=${getLang()}&ID=${getConfigId(NghiQuyetTW4_DATA_CONFIG.HOME_TOPNEWS, getLang())}&filter=%5B"NoiBat","%3D","1"%5D&sort=%5B%7B"selector"%3A"NgayXuatBan"%2C"desc"%3Atrue%7D%5D&skip=0&take=4&requireTotalCount=false`);
         setTopNews(response.data || []);
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
     fetchAppMenus();

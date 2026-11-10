@@ -35,7 +35,7 @@ export const CardNotice = ({ title, style, bodyStyle }: CardNoticeProps) => {
           setDocuments(response.data.data);
         }
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
     fetchAppMenus();

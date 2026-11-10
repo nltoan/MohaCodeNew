@@ -53,7 +53,7 @@ export const HomeBanner = () => {
           })),
         );
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       } finally { setLoadingWidgets(false); }
     };
     fetchDidMoundData();
@@ -103,7 +103,7 @@ export const HomeBanner = () => {
           setBanner(response.data.data);
         }
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
     void fetchAppMenus().finally(() => setLoading(false));

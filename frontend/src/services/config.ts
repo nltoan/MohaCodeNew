@@ -1,6 +1,6 @@
 import { cachedPublicGet } from './public-cache';
 import type { AxiosResponse } from 'axios';
-import axiosInstance, { getUrlPath, getUrlPathWithLang, axiosPhanAnhExternalInstance, getLang } from '.';
+import axiosInstance, { getUrlPath, getUrlPathWithLang, getLang } from '.';
 
 export interface NewsData {
   ID: number;
@@ -68,14 +68,6 @@ export const getPhanAnhKienNghiCuTri = async () => {
 
 export const getPhanAnhKienNghi = async () => {
   return await axiosInstance.get('getPAKN');
-}
-
-export const getPhanAnhKienNghiCuTri1 = async () => {
-  return await axiosPhanAnhExternalInstance.get('getListKNCT');
-}
-
-export const getPhanAnhKienNghi1 = async () => {
-  return await axiosPhanAnhExternalInstance.get('getList');
 }
 
 // export const Search?keyword=testkeyword&lang=vi&skip=0&take=8&requireTotalCount=true

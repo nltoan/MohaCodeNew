@@ -13,6 +13,8 @@ export function initializeGoogleAnalytics() {
   if (document.getElementById('moha-google-analytics')) return;
 
   analyticsWindow.dataLayer = analyticsWindow.dataLayer || [];
+  // gtag.js requires the Arguments object itself in dataLayer, so rest params cannot be used here.
+  // eslint-disable-next-line prefer-rest-params
   analyticsWindow.gtag = function () { analyticsWindow.dataLayer!.push(arguments); };
   analyticsWindow.gtag('js', new Date());
   analyticsWindow.gtag('config', measurementId);

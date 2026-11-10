@@ -6,7 +6,7 @@ import { HeaderNavbar, HeaderTop, HeaderUtils, type HeaderMenu } from '../compon
 import './NghiQuyetTW4Layout.scss';
 import { HttpStatusCode } from 'axios';
 import { getMenus } from '@/services/nghiquyettw4';
-import { NghiQuyetTW4_DATA_CONFIG } from '@/configs';
+import { NghiQuyetTW4_DATA_CONFIG, hasEnglishIds } from '@/configs';
 import { t } from 'i18next';
 import { PortalSeo } from '@/components/PortalSeo';
 import { SkipLink } from '@/components/skip-link/SkipLink';
@@ -34,14 +34,14 @@ export const NghiQuyetTW4Layout = () => {
         if (response.status === HttpStatusCode.Ok) {
            
           const data = response.data.childs.length
-            ? response.data.childs.map((f: any) => {
+            ? response.data.childs.map((f: { TenMenu: string; URL: string }) => {
                 return { label: f.TenMenu, url: f.URL };
               })
             : [];
           setMenus([...data]);
         }
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
     fetchAppMenus();
@@ -72,6 +72,7 @@ export const NghiQuyetTW4Layout = () => {
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onLanguageChange={handleLanguageChange}
+        hideLanguageSwitch={!hasEnglishIds(NghiQuyetTW4_DATA_CONFIG)}
         onSearch={handleSearch}
       />
       <main id="main-content" tabIndex={-1} className="mh-main-nqtw4" style={{ overflowX: 'hidden' }}>

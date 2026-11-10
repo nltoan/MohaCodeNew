@@ -54,7 +54,7 @@ export const HomeMediaSection = ({ icon = <IconPlayFill />, title }: HomeMediaSe
           setMediaCategoryItem(response?.data);
         }
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
     fetchAppMenus();

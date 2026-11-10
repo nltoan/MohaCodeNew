@@ -1,7 +1,7 @@
 import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { CardSection, CardSectionTitle, CommonModal } from '@/components';
 import { IconEye, IconMessages } from '@/components/icons';
-import { lazy, Suspense, useEffect, useState, type MouseEvent, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import './HomeOther.scss';
@@ -13,13 +13,6 @@ import { useTranslation } from 'react-i18next';
 const SentFeedbackForm = lazy(() => import('./SentFeedbackForm'));
 import { vnFormatter } from '@/utils';
 // import { getUrlPdfFile } from '@/utils/image';
-interface TabItem {
-  id: string | number;
-  title: string;
-  date: string;
-  description?: string;
-  url: string;
-}
 interface TabConfig {
   title: string | ReactNode;
 }
@@ -27,8 +20,6 @@ export interface HomeOtherSectionProps {
   tab1: TabConfig;
   tab2: TabConfig;
   tab3: TabConfig;
-  onDownload: (event: MouseEvent, item: TabItem) => void;
-  onDisscuss: (event: MouseEvent, item: TabItem) => void;
 }
 
 interface Files {
@@ -77,7 +68,7 @@ export const HomeOtherSection = ({ tab1, tab2, tab3 }: HomeOtherSectionProps) =>
           setDocsSFO(response?.data?.duthaos);
         }
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
     fetchDidMount();

@@ -56,7 +56,7 @@ export const HomeRefsSection = ({ title }: HomeRefsSectionProps) => {
           })),
         );
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
     fetchDidMoundData();

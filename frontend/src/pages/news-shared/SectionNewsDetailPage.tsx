@@ -1,0 +1,204 @@
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
+import { resolveContentMedia } from '@/utils/image';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Col, Container, Image, Row } from 'react-bootstrap';
+import './NewsDetail.scss';
+import { CardSection, PageHeader } from '@/components';
+import { Link, useParams } from 'react-router-dom';
+import { useEffect, useRef, useMemo, useState } from 'react';
+import { getDetailPost, getRelatedPost } from '@/services/news';
+import { getUrlImage, getUrlPdfFile } from '@/utils/image';
+import { Pagination } from '@/components';
+import { vnFormatter } from '@/utils/dateUtils';
+import { IconPdfFile } from '@/components/icons';
+import { getIdFromSlug, getNewURL } from '@/utils/getSlugKey';
+import { useTranslation } from 'react-i18next';
+import { useReactToPrint } from 'react-to-print';
+import { DublinCore } from '@/components/DublinCore';
+import { ArticleLanguageUnavailable } from '@/components/ArticleLanguageUnavailable';
+import { getLang } from '@/services';
+
+interface BannerItem {
+  ID: number;
+  TieuDe: string;
+  AnhDaiDienUrl: string;
+  MoTa: string;
+  NgayXuatBan?: string;
+}
+interface SectionNewsDetailPageProps {
+  /** slug prefix of the section-specific ids, e.g. 'btid' */
+  idPrefix: string;
+  /** path used to build links to related posts, e.g. 'bo-truong/tin-tuc' */
+  basePath: string;
+  getDetailByPrefix: (id: string) => Promise<any>;
+  getRelatedByPrefix: (id: string, page: number, pageSize: number) => Promise<any>;
+}
+
+export const SectionNewsDetailPage = ({
+  idPrefix,
+  basePath,
+  getDetailByPrefix,
+  getRelatedByPrefix,
+}: SectionNewsDetailPageProps) => {
+  const { t } = useTranslation();
+  const contentRef = useRef(null);
+  const { slug } = useParams<{ slug: string }>();
+  const [detail, setDetail] = useState<any>(null);
+  const [loadingDetail, setLoadingDetail] = useState(true);
+
+  const handlePrint = useReactToPrint({
+    contentRef,
+  });
+
+  useEffect(() => {
+    let active = true;
+    setLoadingDetail(true);
+    setDetail(null);
+    const fetchData = async () => {
+      try {
+        let id = getIdFromSlug(slug || '', idPrefix);
+        if (!id) {
+          id = getIdFromSlug(slug || '', 'id');
+          const res = await getDetailPost(id || '');
+          if (active) setDetail(res.data);
+        } else {
+          const res = await getDetailByPrefix(id || '');
+          if (active) setDetail(res.data);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally { if (active) setLoadingDetail(false); }
+    };
+
+    fetchData();
+    return () => { active = false; };
+  }, [slug, idPrefix, getDetailByPrefix]);
+
+  const [pagination, setPagination] = useState({
+    news: [] as BannerItem[],
+    activePage: 1,
+    totalPages: 10,
+    pageSize: 6,
+  });
+
+  useEffect(() => {
+    if (getLang() === 'en') return;
+    const fetchData = async () => {
+      try {
+        let id = getIdFromSlug(slug || '', idPrefix);
+        if (!id) {
+          id = getIdFromSlug(slug || '', 'id');
+          const resNew = await getRelatedPost(id || '', pagination.activePage, pagination.pageSize);
+          setPagination((prev) => ({
+            ...prev,
+            news: resNew.data,
+            totalPages: Math.ceil(resNew.totalCount / prev.pageSize),
+          }));
+        } else {
+          const resNew = await getRelatedByPrefix(id || '', pagination.activePage, pagination.pageSize);
+          setPagination((prev) => ({
+            ...prev,
+            news: resNew.data,
+            totalPages: Math.ceil(resNew.totalCount / prev.pageSize),
+          }));
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchData();
+  }, [pagination.activePage, pagination.pageSize, slug, idPrefix, getRelatedByPrefix]);
+
+  const files = useMemo(() => {
+    if (!detail?.TinTuc_Files?.length) {
+      return [];
+    }
+    return detail?.TinTuc_Files;
+  }, [detail?.TinTuc_Files]);
+  if (getLang() === 'en' && loadingDetail) return <div className="mh-detail-loading" aria-label="Loading article" />;
+  if (getLang() === 'en' && !detail) return <ArticleLanguageUnavailable />;
+
+  return (
+    <div className="mh-detail">
+      <DublinCore title={detail?.TieuDe} description={detail?.MoTa} creator={detail?.TacGia} date={detail?.NgayXuatBan} subject={detail?.TuKhoa} />
+      <Container>
+        <Row>
+          <Col span={24}>
+            <div className="mh-detail-content printContentRef" ref={contentRef}>
+              <PageHeader
+                title={detail?.TieuDe}
+                viewCount={detail?.PageCount || 0}
+                onPrint={handlePrint}
+              />
+              <div className="" dangerouslySetInnerHTML={{ __html: sanitizeHtml(detail?.MoTa) }}></div>
+              <div className="mh-detail-body" dangerouslySetInnerHTML={{ __html: sanitizeHtml(resolveContentMedia(detail?.NoiDung)?.replace(/contenteditable="true"/g, 'contenteditable="false"')) }}></div>
+              <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 5 }}>Tài liệu liên quan:</div>
+              {files.length > 0 ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 15,
+                    paddingBottom: 20,
+                  }}
+                >
+                  {files.map((file: any) => {
+                    return (
+                      <a href={getUrlPdfFile(file.File.LinkLuuTru)} target="_blank" rel="noopener noreferrer" className={`mh-page-footer-file`}>
+                        <IconPdfFile />
+                        <span>{file.File.Ten}</span>
+                      </a>
+                    );
+                  })}
+                </div>
+              ) : (
+                <>{t('common.no_attachments')}</>
+              )}
+            </div>
+          </Col>
+        </Row>
+        <Col span={24}>
+          <div className="mh-detail-sidebar">
+            <CardSection title={t("news.relatedNews")}>
+              {pagination.news.map((item) => (
+                <Link
+                  key={item.ID}
+                  to={getNewURL(basePath, item?.TieuDe, item?.ID)}
+                  className="mh-detail-sidebar-item"
+                >
+                  <div className="mh-detail-sidebar-item-image">
+                    <Image src={getUrlImage(item?.AnhDaiDienUrl)} alt={item?.TieuDe} loading="lazy" decoding="async" />
+                  </div>
+                  <div className="mh-detail-sidebar-item-info">
+                    <div className="mh-detail-sidebar-item-title">{item.TieuDe}</div>
+                    <div className="mh-detail-sidebar-item-date" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.MoTa) }}></div>
+                    <div className="mh-detail-sidebar-item-date">{vnFormatter(item.NgayXuatBan)}</div>
+                  </div>
+                </Link>
+              ))}
+            </CardSection>
+          </div>
+        </Col>
+        <Pagination
+          style={{ marginTop: 10 }}
+          showPageSizeSelector
+          totalPages={pagination.totalPages}
+          activePage={pagination.activePage}
+          pageSize={pagination.pageSize}
+          onPageChange={(page) => {
+            setPagination((prev) => ({ ...prev, activePage: page }));
+          }}
+          onPageSizeChange={(size) => {
+            setPagination((prev) => ({
+              ...prev,
+              pageSize: size,
+              activePage: 1,
+            }));
+          }}
+          maxVisiblePages={3}
+          wrapStyle={{ marginBottom: 48 }}
+        />
+      </Container>
+    </div>
+  );
+};

@@ -77,7 +77,6 @@ export const FunctionsAndDutiesPage = () => {
             className: 'custom-file-link',
           };
         })}
-        onShare={() => {}}
       />
     </>
   );

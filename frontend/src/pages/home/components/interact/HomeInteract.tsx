@@ -51,7 +51,7 @@ export const HomeInteractSection = ({ title }: HomeInteractSectionProps) => {
           );
         }
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
     fetchDidMoundData();
@@ -77,7 +77,7 @@ export const HomeInteractSection = ({ title }: HomeInteractSectionProps) => {
           );
         }
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
     fetchDidMoundData();
@@ -100,7 +100,7 @@ export const HomeInteractSection = ({ title }: HomeInteractSectionProps) => {
           }));
         }
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
 
@@ -119,7 +119,7 @@ export const HomeInteractSection = ({ title }: HomeInteractSectionProps) => {
           })),
         );
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     }
     fetchDidMoundData();

@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
-import { portalCanonical } from './PortalSeo';
+import { portalCanonical } from './portalCanonical';
 import { assignedMetadataDate } from '@/utils/assignedMetadataDate';
 
 type Props = {

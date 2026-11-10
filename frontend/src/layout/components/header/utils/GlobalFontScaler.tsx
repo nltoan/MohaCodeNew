@@ -11,9 +11,10 @@ export const GlobalFontScaler = () => {
       bodyStyle.zoom = zoomLevel.toString();
     } else {
       // Firefox fallback using transform: scale()
-      (bodyStyle as any).transform = `scale(${zoomLevel})`;
-      (bodyStyle as any).transformOrigin = 'top left';
-      (bodyStyle as any).width = `${100 / zoomLevel}%`; // Prevents horizontal overflow
+      const fallbackStyle = document.body.style;
+      fallbackStyle.transform = `scale(${zoomLevel})`;
+      fallbackStyle.transformOrigin = 'top left';
+      fallbackStyle.width = `${100 / zoomLevel}%`; // Prevents horizontal overflow
     }
   }, [zoomLevel]);
 

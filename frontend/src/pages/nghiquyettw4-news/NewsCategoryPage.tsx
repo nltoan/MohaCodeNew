@@ -3,7 +3,7 @@ import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { DublinCore } from '@/components/DublinCore';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Col, Container, Image, Row } from 'react-bootstrap';
-import './NewsPage.scss';
+import '../news-shared/NewsPage.scss';
 import { Pagination } from '@/components';
 import { Link, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -14,7 +14,7 @@ import { getIdFromSlug, getNewURL } from '@/utils/getSlugKey';
 import { useTranslation } from 'react-i18next';
 import { NghiQuyetTW4Sidebar, type NghiQuyetTW4SidebarItem } from '../nghiquyettw4/components/sidebar/Sidebar';
 import { getLang } from '@/services';
-import { NghiQuyetTW4_DATA_CONFIG } from '@/configs';
+import { NghiQuyetTW4_DATA_CONFIG, getConfigId } from '@/configs';
 
 interface BannerItem {
   ID: number;
@@ -52,7 +52,7 @@ const mapResponseToItem = (item: any): NewsItemBanner => ({
 export const NewsCategoryPage = () => {
   const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
-  const keyQuery = getIdFromSlug(slug || '') || '';
+  const keyQuery = getIdFromSlug(slug || '', 'nqid') || getIdFromSlug(slug || '') || '';
 
   const [topPost, setTopPost] = useState<{
     main: BannerItem;
@@ -84,8 +84,8 @@ export const NewsCategoryPage = () => {
 
         // Fetch all data in parallel for better performance
         const [speechRes, staticRes] = await Promise.all([
-          getPostsByCategory(getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_REPORT.VI : NghiQuyetTW4_DATA_CONFIG.HOME_REPORT.EN, 1, 10),
-          getPostsByCategory(getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_CAPTURE.VI : NghiQuyetTW4_DATA_CONFIG.HOME_CAPTURE.EN, 1, 10),
+          getPostsByCategory(getConfigId(NghiQuyetTW4_DATA_CONFIG.HOME_REPORT, getLang()), 1, 10),
+          getPostsByCategory(getConfigId(NghiQuyetTW4_DATA_CONFIG.HOME_CAPTURE, getLang()), 1, 10),
 
         ]);
 
@@ -159,7 +159,7 @@ export const NewsCategoryPage = () => {
     };
     fetchData();
     return () => { active = false; };
-  }, [pagination.activePage, pagination.pageSize, keyQuery, attempt]);
+  }, [pagination.activePage, pagination.pageSize, keyQuery, slug, attempt]);
 
 
   return (
@@ -246,10 +246,10 @@ export const NewsCategoryPage = () => {
           </Col>
           <Col xl={4}>
             <Col xl={12}>
-              <NghiQuyetTW4Sidebar id={getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_REPORT.VI : NghiQuyetTW4_DATA_CONFIG.HOME_REPORT.EN} items={speechSidebar} title={t('nghiquyettw4.home_page.report')} scrollHeight={452} />
+              <NghiQuyetTW4Sidebar id={getConfigId(NghiQuyetTW4_DATA_CONFIG.HOME_REPORT, getLang())} items={speechSidebar} title={t('nghiquyettw4.home_page.report')} scrollHeight={452} />
             </Col>
             <Col xl={12} style={{ marginTop: 20 }}>
-              <NghiQuyetTW4Sidebar id={getLang() === 'vi' ? NghiQuyetTW4_DATA_CONFIG.HOME_CAPTURE.VI : NghiQuyetTW4_DATA_CONFIG.HOME_CAPTURE.EN} title={t('nghiquyettw4.home_page.documentaryPhotography')} items={staticSidebar} />
+              <NghiQuyetTW4Sidebar id={getConfigId(NghiQuyetTW4_DATA_CONFIG.HOME_CAPTURE, getLang())} title={t('nghiquyettw4.home_page.documentaryPhotography')} items={staticSidebar} />
             </Col>
           </Col>
         </Row>

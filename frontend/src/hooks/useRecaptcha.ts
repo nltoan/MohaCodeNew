@@ -1,10 +1,10 @@
 import { APP_CONFIG } from '@/configs'
 import { useEffect, useState } from 'react'
 const showBadge = () => {
-  const grecaptcha = (window as any).grecaptcha;
+  const grecaptcha = window.grecaptcha;
   if (!grecaptcha) return
   grecaptcha.ready(() => {
-    const badge = document.getElementsByClassName('grecaptcha-badge')[0] as HTMLElement
+    const badge = document.getElementsByClassName('grecaptcha-badge')[0] as HTMLElement | undefined
     if (!badge) return
     badge.style.display = 'block'
     badge.style.zIndex = '1'
@@ -12,10 +12,10 @@ const showBadge = () => {
 }
 
 const hideBadge = () => {
-  const grecaptcha = (window as any).grecaptcha;
+  const grecaptcha = window.grecaptcha;
   if (!grecaptcha) return
   grecaptcha.ready(() => {
-    const badge = document.getElementsByClassName('grecaptcha-badge')[0] as HTMLElement
+    const badge = document.getElementsByClassName('grecaptcha-badge')[0] as HTMLElement | undefined
     if (!badge) return
     badge.style.display = 'none'
   })
@@ -23,7 +23,7 @@ const hideBadge = () => {
 
 const useReCaptcha = (): { reCaptchaLoaded: boolean; generateReCaptchaToken: (action: string) => Promise<string> } => {
   const [reCaptchaLoaded, setReCaptchaLoaded] = useState(false)
-  const grecaptcha = (window as any).grecaptcha;
+  const grecaptcha = window.grecaptcha;
 
   // Load ReCaptcha script
   useEffect(() => {
@@ -41,7 +41,7 @@ const useReCaptcha = (): { reCaptchaLoaded: boolean; generateReCaptchaToken: (ac
       showBadge()
     })
     document.body.appendChild(script)
-  }, [reCaptchaLoaded])
+  }, [reCaptchaLoaded, grecaptcha])
 
   // Hide badge when unmount
   useEffect(() => hideBadge, [])
@@ -55,10 +55,17 @@ const useReCaptcha = (): { reCaptchaLoaded: boolean; generateReCaptchaToken: (ac
         return reject(new Error('ReCaptcha not loaded'))
       }
       grecaptcha.ready(() => {
-        grecaptcha.execute(APP_CONFIG.recaptcha.token, { action }).then((token: string) => {
-          localStorage.setItem(APP_CONFIG.recaptcha.key, token)
-          resolve(token)
-        })
+        try {
+          grecaptcha
+            .execute(APP_CONFIG.recaptcha.token, { action })
+            .then((token: string) => {
+              localStorage.setItem(APP_CONFIG.recaptcha.key, token)
+              resolve(token)
+            })
+            .catch((error: unknown) => reject(error instanceof Error ? error : new Error('ReCaptcha execute failed')))
+        } catch (error) {
+          reject(error instanceof Error ? error : new Error('ReCaptcha execute failed'))
+        }
       })
     })
   }

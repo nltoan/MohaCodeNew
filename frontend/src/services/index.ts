@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const env = (window as any).env || {};
+const env = window.env || {};
 const apiUrl = env.VITE_API_URL || 'https://api-portal.moha.gov.vn/api/Public/';
 
 const axiosInstance = axios.create({
@@ -8,7 +8,7 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 5000,
+  timeout: 20000,
 });
 
 axiosInstance.interceptors.response.use(
@@ -20,24 +20,6 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
-
-const axiosPhanAnhExternalInstance = axios.create({
-  baseURL: 'https://phananh.moha.gov.vn/Integrated',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 5000,
-});
-
-axiosPhanAnhExternalInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API request error:', error);
-    return Promise.reject(error);
-  },
-);
-
-export { axiosPhanAnhExternalInstance };
 
 export const getUrlPath = (path: string, params?: Record<string, string | number>) => {
   const lang = getLang();

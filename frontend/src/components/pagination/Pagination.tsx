@@ -70,7 +70,7 @@ export const Pagination = ({
       ) : (
         <div></div>
       )}
-      <nav aria-label="Page navigation example">
+      <nav aria-label="Phân trang">
         <BsPagination className="mh-pagination" {...props}>
           <BsPagination.Prev
             disabled={activePage <= 1}

@@ -35,7 +35,7 @@ export const HomeCategorySection = ({ notice, event }: HomeCategorySectionProps)
           setBanners(response.data.data);
         }
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       } finally {
         setLoadingBanners(false);
       }
@@ -65,7 +65,7 @@ export const HomeCategorySection = ({ notice, event }: HomeCategorySectionProps)
           }
         }
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       } finally {
         setLoadingNews(false);
       }

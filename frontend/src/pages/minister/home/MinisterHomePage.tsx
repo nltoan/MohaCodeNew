@@ -17,7 +17,7 @@ import { getHomeBanner } from '@/services/config';
 import { getLang } from '@/services';
 import { getUrlImage } from '@/utils/image';
 import { getNewURL } from '@/utils/getSlugKey';
-import { APP_DATA_CONFIG, MINISTER_DATA_CONFIG } from '@/configs';
+import { APP_DATA_CONFIG, MINISTER_DATA_CONFIG, getConfigId } from '@/configs';
 
 import './MinisterHomePage.scss';
 import { vnFormatter } from '@/utils';
@@ -78,7 +78,7 @@ export const MinisterHomePage = () => {
     setStatus({ activities: 'loading', speech: 'loading', direction: 'loading', others: 'loading' });
     const loadNews = async (key: Section, config: { VI: string; EN: string }, count: number, title: string, setter: (value: any) => void) => {
       try {
-        const id = config[language];
+        const id = getConfigId(config, getLang());
         let response;
         try {
           response = await getPostsByCategory(id, 1, count);

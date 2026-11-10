@@ -19,11 +19,19 @@ interface MediaItem {
   ThoiGianXuatBan?: string;
 }
 
+interface MultimediaMenuItem {
+  ID: string;
+  URL: string;
+  TenMenu: string;
+  IconDaiDien: string;
+  SubChilds?: unknown[];
+}
+
 export const AudioGalleryPage = () => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [menu, setMenu] = useState<{ ID: string }[]>([]);
+  const [menu, setMenu] = useState<MultimediaMenuItem[]>([]);
   const [pagination, setPagination] = useState({
     albums: [] as MediaItem[],
     activePage: 1,
@@ -77,9 +85,9 @@ export const AudioGalleryPage = () => {
             <CardSection title="" className='noHeader'>
               <div className="mh-document-accordion">
                 <Accordion defaultActiveKey={[menu?.[0]?.ID]} alwaysOpen>
-                  {menu.map((type: any) => (
+                  {menu.map((type) => (
                     <Accordion.Item key={type.ID} eventKey={type.ID}>
-                      <Accordion.Header className={type.SubChilds?.length > 0 ? "hasChild" : "noChild"}>
+                      <Accordion.Header className={(type.SubChilds?.length ?? 0) > 0 ? "hasChild" : "noChild"}>
                         <Image src={getUrlImage(type.IconDaiDien)} alt="" />
                         <Link to={type.URL} key={type.ID}>
                           {type.TenMenu}

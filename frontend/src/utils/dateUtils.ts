@@ -1,17 +1,5 @@
 import dayjs from 'dayjs';
 
-export const getCurrentDateVN = () => {
-  const now = new Date();
-  const weekday = new Intl.DateTimeFormat('vi-VN', {
-    weekday: 'long',
-  }).format(now);
-  const day = now.getDate().toString().padStart(2, '0');
-  const month = (now.getMonth() + 1).toString().padStart(2, '0');
-  const year = now.getFullYear();
-  const capitalizedWeekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
-  return `${capitalizedWeekday}, ngày ${day}/${month}/${year}`;
-};
-
 export const vnFormatter = (date?: string, format: string = 'DD/MM/YYYY') => {
   if (!date) return '';
 

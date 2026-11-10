@@ -10,6 +10,7 @@ import { SkipLink } from '@/components/skip-link/SkipLink';
 import { HttpStatusCode } from 'axios';
 import { getMinisterMenus } from '@/services/minister';
 import { getLang } from '@/services';
+import { MINISTER_DATA_CONFIG, hasEnglishIds } from '@/configs';
 import { useTranslation } from 'react-i18next';
 import { PortalSeo } from '@/components/PortalSeo';
 
@@ -44,7 +45,7 @@ export const MinisterLayout = () => {
           setMenus([...data]);
         }
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
     fetchAppMenus();
@@ -75,6 +76,7 @@ export const MinisterLayout = () => {
         keyword={keyword}
         onKeywordChange={handleKeywordChange}
         onLanguageClick={handleLanguageChange}
+        hideLanguageSwitch={!hasEnglishIds(MINISTER_DATA_CONFIG)}
         onSearch={handleSearch}
       />
       <main id="main-content" tabIndex={-1} className="mh-main-minister" style={{ overflowX: 'hidden' }}>

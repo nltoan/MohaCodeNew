@@ -31,7 +31,7 @@ export const CardQuickLinks = () => {
           setBanners(response.data.data);
         }
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
     fetchDidMoundData();

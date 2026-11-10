@@ -30,7 +30,7 @@ interface NewsItem {
 export const NewsCategoryPage = () => {
   const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
-  const keyQuery = getIdFromSlug(slug || '') || '';
+  const keyQuery = getIdFromSlug(slug || '', 'oid') || getIdFromSlug(slug || '') || '';
   const [menu, setMenu] = useState<[]>([]);
 
   const [topPost, setTopPost] = useState<{
@@ -85,7 +85,7 @@ export const NewsCategoryPage = () => {
 
     fetchData();
     return () => { active = false; };
-  }, [keyQuery, attempt]);
+  }, [keyQuery, slug, attempt]);
 
   useEffect(() => {
     let active = true;
@@ -119,7 +119,7 @@ export const NewsCategoryPage = () => {
     };
     fetchData();
     return () => { active = false; };
-  }, [pagination.activePage, pagination.pageSize, keyQuery, attempt]);
+  }, [pagination.activePage, pagination.pageSize, keyQuery, slug, attempt]);
 
   useEffect(() => {
     const fetchData = async () => {

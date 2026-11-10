@@ -2,12 +2,6 @@
 import { APP_CONFIG } from '@/configs';
 import axiosInstance from '.';
 
-export const getDirectiveDocuments = async (id: string, activePage: number, pageSize: number) => {
-  const res = await axiosInstance.get(`VanBanByLopVanBan?ID=${id}&skip=${(activePage - 1) * pageSize}&take=${pageSize}`);
-
-  return res?.data?.data ?? [];
-};
-
 export const getDocumentArea = async () => {
   const res = await axiosInstance.get(`/LinhVuc`);
 

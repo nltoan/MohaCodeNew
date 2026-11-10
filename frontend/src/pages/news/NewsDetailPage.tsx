@@ -1,6 +1,6 @@
 import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { resolveContentMedia } from '@/utils/image';
-import { portalCanonical } from '@/components/PortalSeo';
+import { portalCanonical } from '@/components/portalCanonical';
 import { DublinCore } from '@/components/DublinCore';
 import { ArticleLanguageUnavailable } from '@/components/ArticleLanguageUnavailable';
 import { getLang } from '@/services';

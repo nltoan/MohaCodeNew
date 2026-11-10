@@ -22,6 +22,7 @@ interface HeaderUtilsProps {
   keyword?: string;
   onKeywordChange?: React.ChangeEventHandler<HTMLInputElement>;
   onLanguageClick?: (e: MouseEvent) => void;
+  hideLanguageSwitch?: boolean;
 }
 export const HeaderUtils = ({
   breadcrumbs,
@@ -34,6 +35,7 @@ export const HeaderUtils = ({
   keyword,
   onKeywordChange,
   onLanguageClick,
+  hideLanguageSwitch,
 }: HeaderUtilsProps) => {
   return (
     <div className={`mh-header-utils ${minister ? 'mh-header-utils-minister' : (nqtw4 ? '' : '')}`}>
@@ -101,11 +103,13 @@ export const HeaderUtils = ({
                 />
               </div>
               <GlobalFontScaler />
-              <div className="mh-header-utils-minister-language">
-                <button type="button" onClick={onLanguageClick}>
-                  {language}
-                </button>
-              </div>
+              {!hideLanguageSwitch && (
+                <div className="mh-header-utils-minister-language">
+                  <button type="button" onClick={onLanguageClick}>
+                    {language}
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <>
@@ -115,22 +119,24 @@ export const HeaderUtils = ({
                 </button>
               </div>
               <GlobalFontScaler />
-              <div className="mh-header-utils-language">
-                <button
-                  type="button" translate='no'
-                  onClick={() => onLanguageChange('vi')}
-                  className={getLang() === 'vi' ? 'active' : ''}
-                >
-                  VN
-                </button>
-                <button
-                  type="button" translate='no'
-                  onClick={() => onLanguageChange('en')}
-                  className={getLang() === 'en' ? 'active' : ''}
-                >
-                  EN
-                </button>
-              </div>
+              {!hideLanguageSwitch && (
+                <div className="mh-header-utils-language">
+                  <button
+                    type="button" translate='no'
+                    onClick={() => onLanguageChange('vi')}
+                    className={getLang() === 'vi' ? 'active' : ''}
+                  >
+                    VN
+                  </button>
+                  <button
+                    type="button" translate='no'
+                    onClick={() => onLanguageChange('en')}
+                    className={getLang() === 'en' ? 'active' : ''}
+                  >
+                    EN
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>

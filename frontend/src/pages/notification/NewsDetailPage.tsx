@@ -2,7 +2,7 @@ import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { resolveContentMedia } from '@/utils/image';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Col, Container, Row } from 'react-bootstrap';
-import './NewsDetail.scss';
+import '../news-shared/NewsDetail.scss';
 import { CardSection, PageHeader } from '@/components';
 import { Link, useParams } from 'react-router-dom';
 import { useEffect, useRef, useMemo, useState } from 'react';

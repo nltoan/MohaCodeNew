@@ -169,7 +169,6 @@ const FeedbackForm: React.FC<{ID: string, onSubmitted:()=>void}> = ({ID, onSubmi
                     {errors.content && <p className="error-message">{errors.content.message}</p>}
                 </div>
             </div>
-            <div className="grecaptcha-badge"></div>
             {/* Submit Button */}
             <div className="form-actions">
                 <button

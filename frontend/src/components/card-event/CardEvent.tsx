@@ -61,7 +61,7 @@ export const CardEvent = ({ title }: CardEventProps) => {
           setEvents(response.data.data || []);
         }
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
     fetchAppMenus();
@@ -81,7 +81,7 @@ export const CardEvent = ({ title }: CardEventProps) => {
                         <b>Thời gian:</b> {vnFormatter(item.ThoiGianDen)}
                       </span>
                     </div>
-                    {item?.Files?.length > 1 &&
+                    {item?.Files?.length > 0 &&
                       <div className="mh-card-event-item">
                         <span>
                           <b>

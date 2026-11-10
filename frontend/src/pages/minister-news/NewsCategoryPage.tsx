@@ -3,7 +3,7 @@ import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { DublinCore } from '@/components/DublinCore';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Col, Container, Image, Row } from 'react-bootstrap';
-import './NewsPage.scss';
+import '../news-shared/NewsPage.scss';
 import { Pagination } from '@/components';
 import { Link, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -14,7 +14,7 @@ import { getIdFromSlug, getNewURL } from '@/utils/getSlugKey';
 import { useTranslation } from 'react-i18next';
 import { MinisterSidebar, type MinisterSidebarItem } from '../minister/components/sidebar/Sidebar';
 import { getLang } from '@/services';
-import { MINISTER_DATA_CONFIG } from '@/configs';
+import { MINISTER_DATA_CONFIG, getConfigId } from '@/configs';
 
 interface BannerItem {
   ID: number;
@@ -82,8 +82,8 @@ export const NewsCategoryPage = () => {
 
         // Fetch all data in parallel for better performance
         const [speechRes, staticRes] = await Promise.all([
-          getPostsByCategory(getLang() === 'vi' ? MINISTER_DATA_CONFIG.HOME_SPEECH.VI : MINISTER_DATA_CONFIG.HOME_SPEECH.EN, 1, 10),
-          getPostsByCategory(getLang() === 'vi' ? MINISTER_DATA_CONFIG.HOME_OTHERS.VI : MINISTER_DATA_CONFIG.HOME_OTHERS.EN, 1, 10),
+          getPostsByCategory(getConfigId(MINISTER_DATA_CONFIG.HOME_SPEECH, getLang()), 1, 10),
+          getPostsByCategory(getConfigId(MINISTER_DATA_CONFIG.HOME_OTHERS, getLang()), 1, 10),
 
         ]);
 
@@ -255,10 +255,10 @@ export const NewsCategoryPage = () => {
           </Col>
           <Col xl={4}>
             <Col xl={12}>
-              <MinisterSidebar id={getLang() === 'vi' ? MINISTER_DATA_CONFIG.HOME_SPEECH.VI : MINISTER_DATA_CONFIG.HOME_SPEECH.EN} items={speechSidebar} title={t('minister.home_page.speech')} scrollHeight={452} />
+              <MinisterSidebar id={getConfigId(MINISTER_DATA_CONFIG.HOME_SPEECH, getLang())} items={speechSidebar} title={t('minister.home_page.speech')} scrollHeight={452} />
             </Col>
             <Col xl={12} style={{ marginTop: 20 }}>
-              <MinisterSidebar id={getLang() === 'vi' ? MINISTER_DATA_CONFIG.HOME_OTHERS.VI : MINISTER_DATA_CONFIG.HOME_OTHERS.EN} title={t('minister.home_page.others')} items={staticSidebar} />
+              <MinisterSidebar id={getConfigId(MINISTER_DATA_CONFIG.HOME_OTHERS, getLang())} title={t('minister.home_page.others')} items={staticSidebar} />
             </Col>
           </Col>
         </Row>

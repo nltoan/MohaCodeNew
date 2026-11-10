@@ -40,7 +40,7 @@ export const DefaultLayout = () => {
           }
         }
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
     fetchDidMoundData();
@@ -55,7 +55,7 @@ export const DefaultLayout = () => {
           setMenus([...appMenus]);
         }
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
     fetchAppMenus();

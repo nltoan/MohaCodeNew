@@ -7,10 +7,11 @@ export function getIdFromSlug(slug: string, prefix: string = "id") {
   if (!slug) return null;
 
   // Regex explanation:
-  // id    : Matches the characters "id" literally
+  // (?:^|-) : the prefix must start the slug or follow a hyphen, so "id" does not match "oid", "btid", ...
+  // id    : Matches the prefix literally
   // (\d+) : Captures a group of one or more digits
   // $     : Anchors the match to the end of the string
-  const match = slug.match(`${prefix}(\\d+)$`);
+  const match = slug.match(new RegExp(`(?:^|-)${prefix}(\\d+)$`));
 
   // match[1] contains the first captured group (the numbers)
   return match ? match[1] : null;

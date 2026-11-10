@@ -63,7 +63,7 @@ export const AboutSidebar = ({ notice }: AboutSidebarProps) => {
           );
         }
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
     fetchDidMoundData();
@@ -84,7 +84,7 @@ export const AboutSidebar = ({ notice }: AboutSidebarProps) => {
           })),
         );
       } catch (error) {
-        console.log('err', error);
+        console.error('err', error);
       }
     };
     fetchDidMoundData();

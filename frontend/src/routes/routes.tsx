@@ -65,7 +65,7 @@ const NewsDetailPage = lazy(() =>
 );
 
 const NewsDetailNotiPage = lazy(() =>
-  import('@/pages/notifcation/NewsDetailPage').then((m) => ({
+  import('@/pages/notification/NewsDetailPage').then((m) => ({
     default: m.NewsDetailPage,
   })),
 );

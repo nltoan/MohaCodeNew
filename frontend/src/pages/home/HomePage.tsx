@@ -29,7 +29,7 @@ export const HomePage = () => {
     },
   };
 
-  const OTHER_CONFIG: Omit<HomeOtherSectionProps, 'onDownload' | 'onDisscuss'> = {
+  const OTHER_CONFIG: HomeOtherSectionProps = {
     tab1: { title: <>{t('home.directive')}</> },
     tab2: { title: <>{t('home.legal')}</> },
     tab3: { title: t('home.draft') },
@@ -54,8 +54,6 @@ export const HomePage = () => {
       <HomeCTASection />
       <DeferredSection><Suspense fallback={<div style={{ minHeight: 360 }} aria-hidden="true" />}><HomeOtherSection
         {...OTHER_CONFIG}
-        onDownload={(item) => console.log(item)}
-        onDisscuss={(item) => console.log(item)}
       /></Suspense></DeferredSection>
       <DeferredSection><Suspense fallback={<div style={{ minHeight: 360 }} aria-hidden="true" />}><HomeInteractSection {...INTERACT_CONFIG} /></Suspense></DeferredSection>
       <DeferredSection><Suspense fallback={<div style={{ minHeight: 360 }} aria-hidden="true" />}><HomeMediaSection {...MEDIA_CONFIG} /></Suspense></DeferredSection>

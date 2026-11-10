@@ -2,10 +2,8 @@ import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { assignedMetadataDate } from '@/utils/assignedMetadataDate';
+import { portalCanonical } from './portalCanonical';
 
-export function portalCanonical(pathname: string) {
-  return new URL(pathname || '/', 'https://moha.gov.vn').href;
-}
 // Trang bắt buộc có dữ liệu đặc tả (Phụ lục IV TT 22/2023/TT-BTTTT, mục 2.1) nhưng không có ngày nguồn:
 // dùng ngày ổn định do chủ nội dung ấn định, đánh dấu DC.Date.Source (khớp với API MetadataPage).
 const ASSIGNED_DATE_PATHS = new Set([

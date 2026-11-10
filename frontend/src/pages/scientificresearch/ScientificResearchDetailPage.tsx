@@ -31,7 +31,7 @@ export const ScientificResearchDetailPage = () => {
     setIsLoading(true);
     try {
       let id = getIdFromSlug(slug, 'oid');
-      let response: any;
+      let response: Record<string, string> | undefined;
       if(!id){
         id = getIdFromSlug(slug, 'id');
         response = await getScientificResearchDetail(id + '');

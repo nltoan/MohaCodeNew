@@ -1,4 +1,5 @@
 import { type MouseEvent } from 'react';
+import { IconEnvelopeOpen, IconFax, IconPhone } from '@/components/icons';
 import './Footer.scss';
 
 export const NghiQuyetTW4Footer = () => {
@@ -29,15 +30,15 @@ export const NghiQuyetTW4Footer = () => {
                       </div>
                       <div className="footer-address">
                           <div className="display-flex-center mg-b-10">
-                              <i className="fa fa-phone" aria-hidden="true"></i>
+                              <i aria-hidden="true"><IconPhone /></i>
                               <span>Tel (84-024)62821016</span>
                           </div>
                           <div className="display-flex-center mg-b-10">
-                              <i className="fa fa-fax" aria-hidden="true"></i>
+                              <i aria-hidden="true"><IconFax /></i>
                               <span>Fax (84-024)62821020</span>
                           </div>
                           <div className="display-flex-center">
-                              <i className="fa fa-envelope-open-o" aria-hidden="true"></i>
+                              <i aria-hidden="true"><IconEnvelopeOpen /></i>
                               <span>Email: CongTTDT@moha.gov.vn</span>
                           </div>
                       </div>

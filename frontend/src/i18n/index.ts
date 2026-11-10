@@ -34,7 +34,7 @@ i18n
 
     // Define where to load translation files from
     backend: {
-      loadPath: `${((window as any).env?.VITE_API_URL || 'https://api-portal.moha.gov.vn/api/Public/').replace(/\/+$/, '')}/lang?lang={{lng}}`,
+      loadPath: `${(window.env?.VITE_API_URL || 'https://api-portal.moha.gov.vn/api/Public/').replace(/\/+$/, '')}/lang?lang={{lng}}`,
     },
 
     // Disable Suspense fallback (prevents rendering issues in non-Suspense apps)

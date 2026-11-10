@@ -1,14 +1,15 @@
 import { APP_DATA_CONFIG } from '@/configs';
 import axiosInstance, { getLang, getUrlPath } from '.';
 import { getIdFromSlug } from '@/utils/getSlugKey';
+import { cachedPublicGet } from './public-cache';
 
 export const getMenuNew = async () => {
   const id = getLang() === 'vi' ? APP_DATA_CONFIG.LEFT_MENU_DETAIL.VI : APP_DATA_CONFIG.LEFT_MENU_DETAIL.EN;
   const res = await axiosInstance.get(getUrlPath(`/MenuDetail`, { ID: id }));
   if (res?.data?.childs) {
-    const promises = res.data.childs.map(async (data: any) => {
+    const promises = res.data.childs.map(async (data: { URL: string; children?: unknown }) => {
       const cateID = getIdFromSlug(data.URL);
-      const r = await axiosInstance.get(getUrlPath(`/ChuyenMucDetail`, { ID: cateID ?? '0', limitTopPost: 0 }));
+      const r = await cachedPublicGet(getUrlPath(`/ChuyenMucDetail`, { ID: cateID ?? '0', limitTopPost: 0 }));
       data.children = r.data?.childs;
     });
     await Promise.all(promises);

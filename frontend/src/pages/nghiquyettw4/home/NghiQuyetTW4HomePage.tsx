@@ -13,7 +13,7 @@ import { getPostsByCategory } from '@/services/news';
 import { getLang } from '@/services';
 import { getUrlImage } from '@/utils/image';
 import { getNewURL } from '@/utils/getSlugKey';
-import { NghiQuyetTW4_DATA_CONFIG } from '@/configs';
+import { NghiQuyetTW4_DATA_CONFIG, getConfigId } from '@/configs';
 
 import './NghiQuyetTW4HomePage.scss';
 import { vnFormatter } from '@/utils';
@@ -57,11 +57,10 @@ export const NghiQuyetTW4HomePage = () => {
 
   useEffect(() => {
     let active = true;
-    const language = getLang() === 'vi' ? 'VI' : 'EN';
     setStatus({});
     const load = async (key: Section, config: { VI: string; EN: string }, count: number, label: string, setter: (value: any) => void) => {
       try {
-        const id = config[language];
+        const id = getConfigId(config, getLang());
         let response;
         try { response = await getPostsByCategory(id, 1, count); }
         catch {

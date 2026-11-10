@@ -208,3 +208,18 @@ export const NghiQuyetTW4_DATA_CONFIG = {
     EN: '1',
   },
 };
+
+type LangId = { VI: string; EN: string };
+
+/** Returns the id for the language, falling back to the VI id while the EN id is not configured. */
+export const getConfigId = (config: LangId, lang: string): string => (lang === 'en' && config.EN ? config.EN : config.VI);
+
+/** True only when every language-aware id of the config has an EN value (otherwise the EN site has no data). */
+export const hasEnglishIds = (config: object): boolean =>
+  Object.values(config).every((value) => {
+    if (value && typeof value === 'object' && 'VI' in value && 'EN' in value) {
+      const { VI, EN } = value as LangId;
+      return !VI || !!EN;
+    }
+    return true;
+  });
