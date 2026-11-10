@@ -6,7 +6,7 @@ export const HeaderBanner = ({ link, ...props }: ImageProps & { link?: string })
   return props && props.src ? (
     <div className="mh-header-banner">
       <Link to={link || '#'} rel="noopener noreferrer">
-        <Image loading="lazy" {...props} />
+        <Image loading="lazy" {...props} alt={props.alt || props.title || "Banner"} />
       </Link>
     </div>
   ) : <div></div>;

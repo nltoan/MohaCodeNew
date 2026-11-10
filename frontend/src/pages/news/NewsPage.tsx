@@ -130,7 +130,7 @@ export const NewsPage = () => {
                     {menu?.map((type: any) => (
                       <Accordion.Item eventKey={type.ID.toString()} key={type.ID}>
                         <Accordion.Header className={type.children.length > 0 ? 'hasChild' : 'noChild'}>
-                          {type.IconDaiDien && <Image src={getUrlImage(type.IconDaiDien)} />}{' '}
+                          {type.IconDaiDien && <Image src={getUrlImage(type.IconDaiDien)} alt="" />}{' '}
                           <Link to={type.URL} key={type.ID}>
                             {type.TenMenu}
                           </Link>

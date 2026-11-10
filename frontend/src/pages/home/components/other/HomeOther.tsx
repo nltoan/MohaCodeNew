@@ -1,7 +1,7 @@
 import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { CardSection, CardSectionTitle, CommonModal } from '@/components';
 import { IconEye, IconMessages } from '@/components/icons';
-import { useEffect, useState, type MouseEvent, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useState, type MouseEvent, type ReactNode } from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import './HomeOther.scss';
@@ -9,7 +9,8 @@ import { getDocumentLegal } from '@/services/config';
 import { HttpStatusCode } from 'axios';
 import { getNewURL } from '@/utils/getSlugKey';
 import { useTranslation } from 'react-i18next';
-import SentFeedbackForm from './SentFeedbackForm';
+// Form góp ý dùng SunEditor (rất nặng): chỉ tải khi mở hộp thoại.
+const SentFeedbackForm = lazy(() => import('./SentFeedbackForm'));
 import { vnFormatter } from '@/utils';
 // import { getUrlPdfFile } from '@/utils/image';
 interface TabItem {
@@ -160,7 +161,11 @@ export const HomeOtherSection = ({ tab1, tab2, tab3 }: HomeOtherSectionProps) =>
       </Container>
 
       <CommonModal show={openFBModal} onHide={() => setOpenFBModal(false)} title={t('common.feedback')} size="lg">
-        <SentFeedbackForm ID={selectedVBDT} onSubmitted={() => {setOpenFBModal(false)}} />
+        {openFBModal && (
+          <Suspense fallback={<div style={{ minHeight: 200 }} aria-busy="true" />}>
+            <SentFeedbackForm ID={selectedVBDT} onSubmitted={() => {setOpenFBModal(false)}} />
+          </Suspense>
+        )}
       </CommonModal>
     </section>
   );

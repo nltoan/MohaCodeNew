@@ -61,7 +61,7 @@ export const NghiQuyetTW4Banner = () => {
                 <Link to={getNewURL('nghi-quyet-tw4/tin-tuc', news?.TieuDe || '', news?.ID || '')}>
                 <Image
                   src={getUrlImage(news?.AnhDaiDienUrl)}
-                  alt={news.TenAnhDaiDien} />
+                  alt={news.TenAnhDaiDien || news.TieuDe || ''} />
                 </Link>
               </div>
               <div className="mh-nqtw4-banner-item-info">

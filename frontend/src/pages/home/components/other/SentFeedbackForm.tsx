@@ -3,6 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import SunEditor from 'suneditor-react';
+import 'suneditor/dist/css/suneditor.min.css';
 import "./Feedback.scss"
 import useReCaptcha from '@/hooks/useRecaptcha';
 import { sendComment } from '@/services/documents';

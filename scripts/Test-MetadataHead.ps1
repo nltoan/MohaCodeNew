@@ -25,8 +25,14 @@ foreach ($case in @(@{Path='/../web.config';Status=400}, @{Path='/tin-tuc/khong-
     if ($actual -ne $case.Status) { throw "Unexpected status $actual for $($case.Path)" }
     Write-Output "PASS $($case.Path) status=$actual"
 }
-foreach ($case in @(@{Path='/';Date='2025-07-14'}, @{Path='/chuyen-muc/tin---id10';Date='2025-11-08'})) {
+foreach ($case in @(@{Path='/';Date='2025-07-14'}, @{Path='/chuyen-muc/tin---id10';Date='2025-11-08'}, @{Path='/gioi-thieu';Date='2025-07-26'}, @{Path='/gioi-thieu/chuc-nang-nhiem-vu';Date='2025-12-14'}, @{Path='/gioi-thieu-bo-truong';Date='2025-03-18'})) {
     $response = Invoke-WebRequest ($BaseUrl + '/api/Public/MetadataPage?path=' + [Uri]::EscapeDataString($case.Path)) -UseBasicParsing -TimeoutSec 30
     if (!$response.Content.Contains('name="DC.Date" content="' + $case.Date + '"') -or !$response.Content.Contains('name="DC.Date.Source" content="owner-assigned"')) { throw "Missing synthetic date marker for $($case.Path)" }
     Write-Output "PASS synthetic date $($case.Path)"
 }
+# Yeu to khuyen nghi (Language, Subject) va dung chi mot bo the DC trong ban ghi chi tiet.
+$detail = (Invoke-WebRequest ($BaseUrl + '/api/Public/MetadataPage?path=' + [Uri]::EscapeDataString('/tin-tuc/bai---id15397')) -UseBasicParsing -TimeoutSec 60).Content
+foreach ($name in @('DC.Language','DC.Subject','DC.Creator','DC.Publisher','DC.Description','DC.Identifier','DC.Title','DC.Date')) {
+    if ([regex]::Matches($detail, 'name="' + [regex]::Escape($name) + '" content="[^"]+"').Count -ne 1) { throw "Metadata element $name must appear exactly once" }
+}
+Write-Output 'PASS mandatory and recommended Dublin Core elements'

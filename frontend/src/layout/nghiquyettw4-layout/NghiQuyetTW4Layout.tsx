@@ -9,6 +9,7 @@ import { getMenus } from '@/services/nghiquyettw4';
 import { NghiQuyetTW4_DATA_CONFIG } from '@/configs';
 import { t } from 'i18next';
 import { PortalSeo } from '@/components/PortalSeo';
+import { SkipLink } from '@/components/skip-link/SkipLink';
 
 export const NghiQuyetTW4Layout = () => {
   const breadcrumbs = useBreadcrumbs();
@@ -55,6 +56,7 @@ export const NghiQuyetTW4Layout = () => {
   };
   return (
     <div className="mh-nqtw4-layout">
+      <SkipLink />
       <PortalSeo />
       <HeaderTop
         nqtw4
@@ -72,7 +74,7 @@ export const NghiQuyetTW4Layout = () => {
         onLanguageChange={handleLanguageChange}
         onSearch={handleSearch}
       />
-      <main className="mh-main-nqtw4" style={{ overflowX: 'hidden' }}>
+      <main id="main-content" tabIndex={-1} className="mh-main-nqtw4" style={{ overflowX: 'hidden' }}>
         <Outlet />
       </main>
       <NghiQuyetTW4Footer />

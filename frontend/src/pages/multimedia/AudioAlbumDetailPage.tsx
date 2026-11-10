@@ -76,7 +76,7 @@ export const AudioAlbumDetailPage = () => {
           </div>
           <div className="mh-gallery-slide">
             {album?.AlbumAudio_Files?.length > 0 && (
-              <video width="100%" height="auto" controls autoPlay>
+              <video width="100%" height="auto" controls preload="metadata">
                 <source src={getUrlImage(album?.AlbumAudio_Files[0].File?.LinkLuuTru)} type="video/mp4" />
               </video>
             )}

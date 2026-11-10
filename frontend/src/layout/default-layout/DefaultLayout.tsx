@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { getLang } from '@/services';
 import { getUrlImage } from '@/utils/image';
 import { PortalSeo } from '@/components/PortalSeo';
+import { SkipLink } from '@/components/skip-link/SkipLink';
 
 export const DefaultLayout = () => {
   const { t } = useTranslation();
@@ -73,6 +74,7 @@ export const DefaultLayout = () => {
   };
   return (
     <div className={`mh-layout ${APP_CONFIG.theme || ''}`}>
+      <SkipLink />
       <PortalSeo />
       <HeaderTop
         image={APP_CONFIG.header.top.image}
@@ -82,7 +84,7 @@ export const DefaultLayout = () => {
       <HeaderNavbar menuTitle="MENU" items={menus} className="mh-header-bg-main" />
       <HeaderBanner src={headerBanner?.src || ''} link={headerBanner?.link || ''} title='Header Banner'/>
       <HeaderUtils breadcrumbs={breadcrumbs} onSearch={handleSearch} onLanguageChange={handleLanguageChange} />
-      <main className="mh-main-content">
+      <main id="main-content" tabIndex={-1} className="mh-main-content">
         <Outlet />
       </main>
       <Footer />

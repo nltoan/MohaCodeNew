@@ -63,7 +63,7 @@ export const MinisterBanner = () => {
                   to={getNewURL('bo-truong/tin-tuc', news?.TieuDe || '', news?.ID || '')}>
                   <Image
                     src={getUrlImage(news?.AnhDaiDienUrl)}
-                    alt={news.TenAnhDaiDien} />
+                    alt={news.TenAnhDaiDien || news.TieuDe || ''} />
                 </Link>
               </div>
               <div className="mh-minister-banner-item-info">

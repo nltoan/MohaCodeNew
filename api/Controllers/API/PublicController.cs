@@ -181,19 +181,28 @@ namespace API.Controllers
                 { "/nghien-cuu-khoa-hoc", new PublicHeadRecord { Title = "Nghiên cứu khoa học", Description = "Thông tin đề tài và hoạt động nghiên cứu khoa học thuộc các lĩnh vực quản lý nhà nước của Bộ Nội vụ." } },
                 { "/van-ban/du-thao-van-ban", new PublicHeadRecord { Title = "Danh sách văn bản dự thảo", Description = "Danh sách dự thảo văn bản được công bố để lấy ý kiến trên Cổng thông tin điện tử Bộ Nội vụ." } },
                 { "/bo-truong", new PublicHeadRecord { Title = "Thông tin Bộ trưởng", Description = "Tin tức và hoạt động của Bộ trưởng Bộ Nội vụ." } },
-                { "/nghi-quyet-tw4", new PublicHeadRecord { Title = "Đảng bộ Bộ Nội vụ", Description = "Thông tin về Đảng bộ Bộ Nội vụ và các hoạt động liên quan." } }
+                { "/nghi-quyet-tw4", new PublicHeadRecord { Title = "Đảng bộ Bộ Nội vụ", Description = "Thông tin về Đảng bộ Bộ Nội vụ và các hoạt động liên quan." } },
+                // Thong tin gioi thieu co quan chu quan: bat buoc co du lieu dac ta (Phu luc IV TT 22/2023/TT-BTTTT, muc 2.1).
+                { "/gioi-thieu", new PublicHeadRecord { Title = "Giới thiệu Bộ Nội vụ", Description = "Giới thiệu Bộ Nội vụ: chức năng, nhiệm vụ, cơ cấu tổ chức, lãnh đạo và lịch sử hình thành, phát triển.", AllowAssignedDate = true } },
+                { "/gioi-thieu/chuc-nang-nhiem-vu", new PublicHeadRecord { Title = "Chức năng, nhiệm vụ", Description = "Chức năng, nhiệm vụ, quyền hạn của Bộ Nội vụ.", AllowAssignedDate = true } },
+                { "/gioi-thieu/lich-su-bo", new PublicHeadRecord { Title = "Lịch sử Bộ Nội vụ", Description = "Lịch sử hình thành và phát triển của Bộ Nội vụ.", AllowAssignedDate = true } },
+                { "/gioi-thieu/lanh-dao-bo", new PublicHeadRecord { Title = "Lãnh đạo Bộ", Description = "Thông tin lãnh đạo Bộ Nội vụ.", AllowAssignedDate = true } },
+                { "/gioi-thieu/co-cau-to-chuc", new PublicHeadRecord { Title = "Cơ cấu tổ chức", Description = "Cơ cấu tổ chức của Bộ Nội vụ.", AllowAssignedDate = true } },
+                { "/gioi-thieu/lich-su-hinh-thanh-va-phat-trien", new PublicHeadRecord { Title = "Lịch sử hình thành và phát triển", Description = "Lịch sử hình thành và phát triển của Bộ Nội vụ.", AllowAssignedDate = true } },
+                { "/gioi-thieu-bo-truong", new PublicHeadRecord { Title = "Giới thiệu Bộ trưởng", Description = "Thông tin giới thiệu Bộ trưởng Bộ Nội vụ.", AllowAssignedDate = true } }
             };
             PublicHeadRecord staticPage;
             if (path != null && pages.TryGetValue(path, out staticPage)) {
                 if (path == "/tin-tuc") staticPage.Date = _context.ChuyenMucs.Where(x => x.ID == 12).Select(x => x.NgayTao).FirstOrDefault();
                 return RenderMetadataPage(path, staticPage);
             }
-            var match = Regex.Match(path ?? "", @"^/(tin-tuc|chuyen-muc|van-ban/du-thao|van-ban|photo|video|audio|thong-bao|nghien-cuu-khoa-hoc)/[a-z0-9-]*---(id|oid|qpid|cdid|tbid)([0-9]+)$", RegexOptions.CultureInvariant);
+            var match = Regex.Match(path ?? "", @"^(?:/(?:bo-truong|nghi-quyet-tw4))?/(?<kind>tin-tuc|chuyen-muc|van-ban/du-thao|van-ban|photo|video|audio|thong-bao|nghien-cuu-khoa-hoc|gioi-thieu/(?:chuc-nang-nhiem-vu|lich-su-bo|lanh-dao-bo|co-cau-to-chuc))/[a-z0-9-]*---(?<idk>id|oid|qpid|cdid|tbid)(?<num>[0-9]+)$", RegexOptions.CultureInvariant);
             int id;
-            if (!match.Success || !int.TryParse(match.Groups[3].Value, out id) || id <= 0)
+            if (!match.Success || !int.TryParse(match.Groups["num"].Value, out id) || id <= 0)
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid metadata path.");
-            var kind = match.Groups[1].Value;
-            var idKind = match.Groups[2].Value;
+            var kind = match.Groups["kind"].Value;
+            if (kind.StartsWith("gioi-thieu/", StringComparison.Ordinal)) kind = "tin-tuc"; // trang gioi thieu la bai viet (TinTuc)
+            var idKind = match.Groups["idk"].Value;
             if (idKind != "id") {
                 var oldId = id;
                 if (kind == "tin-tuc" && idKind == "oid") {
@@ -220,7 +229,7 @@ namespace API.Controllers
                 case "tin-tuc": data = _context.TinTucs.Where(x => x.ID == id && x.TrangThai == "public" && x.NgonNgu == "vi").Select(x => new PublicHeadRecord { Title = x.TieuDe, Description = x.MoTa == null || x.MoTa == "" ? x.NoiDung : x.MoTa, Creator = x.TacGia, Date = x.NgayXuatBan }).FirstOrDefault(); break;
                 case "chuyen-muc": data = _context.ChuyenMucs.Where(x => x.ID == id && x.IsVisible == true && x.TrangThai == "HoatDong").Select(x => new PublicHeadRecord { Title = x.TenChuyenMuc, Description = x.MoTa, Date = x.NgayTao }).FirstOrDefault(); if (data != null) data.AllowAssignedDate = true; break;
                 case "van-ban": data = _context.VanBans.Where(x => x.ID == id && x.TrangThai == 1 && x.Lang == 1066).Select(x => new PublicHeadRecord { Title = x.SoKyHieu ?? x.TrichYeu, Description = x.TrichYeu, Creator = x.VanBan_CoQuanBanHanh.OrderBy(y => y.ID).Select(y => y.CoQuanBanHanh.TenCoQuanBanHanh).FirstOrDefault(), Date = x.NgayBanHanh ?? x.NgayXuatBan }).FirstOrDefault(); if (data != null) data.Publisher = data.Creator; break;
-                case "van-ban/du-thao": data = _context.VanBanDuThaos.Where(x => x.ID == id && x.TrangThai == 1 && x.Lang == 1066).Select(x => new PublicHeadRecord { Title = x.TieuDe, Description = x.TrichYeu, Creator = x.VanBanDuThao_CoQuanBanHanhs.OrderBy(y => y.ID).Select(y => y.CoQuanBanHanh.TenCoQuanBanHanh).FirstOrDefault() }).FirstOrDefault(); if (data != null) data.Publisher = data.Creator; break;
+                case "van-ban/du-thao": data = _context.VanBanDuThaos.Where(x => x.ID == id && x.TrangThai == 1 && x.Lang == 1066).Select(x => new PublicHeadRecord { Title = x.TieuDe, Description = x.TrichYeu, Creator = x.VanBanDuThao_CoQuanBanHanhs.OrderBy(y => y.ID).Select(y => y.CoQuanBanHanh.TenCoQuanBanHanh).FirstOrDefault(), Date = x.NgayBatDauLayYKien }).FirstOrDefault(); if (data != null) data.Publisher = data.Creator; break;
                 case "photo": data = _context.ABL_AlbumAnh.Where(x => x.ID == id && x.TrangThai == "1").Select(x => new PublicHeadRecord { Title = x.TieuDe, Description = x.MoTa, Creator = x.TacGia, Date = x.ThoiGianXuatBan ?? x.ThoiGianTao }).FirstOrDefault(); break;
                 case "video": data = _context.ABL_AlbumVideo.Where(x => x.ID == id && x.TrangThai == "1").Select(x => new PublicHeadRecord { Title = x.TieuDe, Description = x.MoTa, Creator = x.TacGia, Date = x.ThoiGianXuatBan ?? x.ThoiGianTao }).FirstOrDefault(); break;
                 case "audio": data = _context.ABL_AlbumAudio.Where(x => x.ID == id && x.TrangThai == "1").Select(x => new PublicHeadRecord { Title = x.TieuDe, Description = x.MoTa, Creator = x.TacGia, Date = x.ThoiGianXuatBan ?? x.ThoiGianTao }).FirstOrDefault(); break;
@@ -249,7 +258,7 @@ namespace API.Controllers
             Func<string, string> encode = HttpUtility.HtmlAttributeEncode;
             var markup = new StringBuilder();
             markup.Append("<title data-portal-dc>").Append(HttpUtility.HtmlEncode(title)).Append("</title>\n");
-            foreach (var item in new[] { new { Name = "DC.Title", Value = title }, new { Name = "DC.Creator", Value = creator }, new { Name = "DC.Publisher", Value = publisher }, new { Name = "DC.Description", Value = description }, new { Name = "DC.Identifier", Value = identifier }, new { Name = "description", Value = description } })
+            foreach (var item in new[] { new { Name = "DC.Title", Value = title }, new { Name = "DC.Creator", Value = creator }, new { Name = "DC.Publisher", Value = publisher }, new { Name = "DC.Description", Value = description }, new { Name = "DC.Identifier", Value = identifier }, new { Name = "DC.Language", Value = "vie" }, new { Name = "DC.Subject", Value = "Bộ Nội vụ; Nội vụ; Chính phủ; Việt Nam" }, new { Name = "description", Value = description } })
                 markup.Append("<meta data-portal-dc name=\"").Append(item.Name).Append("\" content=\"").Append(encode(item.Value)).Append("\" />\n");
             if (data.Date.HasValue || data.AllowAssignedDate) {
                 var date = data.Date ?? AssignedMetadataDate(path);
@@ -394,36 +403,66 @@ namespace API.Controllers
             return response;
         }
 
-        [HttpGet]
-        public async Task<HttpResponseMessage> getPAKN()
-        {
-            string json = "";
-            using (var client = new System.Net.WebClient())
-            {
-                client.Encoding = System.Text.Encoding.UTF8;
-                json = client.DownloadString("https://phananh.moha.gov.vn/Integrated/getList");
-                Console.WriteLine(json);
-            }
+        // Goi he thong Phan anh kien nghi: co timeout, cache 5 phut va phuc vu ban cu (toi da 24h) khi he thong ngoai cham/loi,
+        // tranh viec trang chu phai cho dong bo (truoc day 5 giay moi lan, khong co timeout).
+        private static readonly HttpClient ExternalJsonClient = new HttpClient { Timeout = TimeSpan.FromSeconds(4) };
+        private static readonly object ExternalRefreshLock = new object();
+        private static readonly HashSet<string> ExternalRefreshing = new HashSet<string>();
 
+        private static async Task<string> RefreshExternalJson(string url, string cacheKey)
+        {
+            var bytes = await ExternalJsonClient.GetByteArrayAsync(url).ConfigureAwait(false);
+            var json = Encoding.UTF8.GetString(bytes);
+            var cache = HttpRuntime.Cache;
+            cache.Insert(cacheKey, json, null, DateTime.UtcNow.AddMinutes(5), System.Web.Caching.Cache.NoSlidingExpiration);
+            cache.Insert(cacheKey + ":stale", json, null, DateTime.UtcNow.AddHours(24), System.Web.Caching.Cache.NoSlidingExpiration);
+            return json;
+        }
+
+        private async Task<HttpResponseMessage> CachedExternalJson(string url, string cacheKey)
+        {
+            var cache = HttpRuntime.Cache;
+            var json = cache[cacheKey] as string;
+            if (json == null)
+            {
+                var stale = cache[cacheKey + ":stale"] as string;
+                if (stale != null)
+                {
+                    // Tra ban cu ngay, lam moi o nen (moi khoa chi mot lan lam moi tai mot thoi diem).
+                    bool start;
+                    lock (ExternalRefreshLock) start = ExternalRefreshing.Add(cacheKey);
+                    if (start)
+                    {
+                        var ignored = Task.Run(async () =>
+                        {
+                            try { await RefreshExternalJson(url, cacheKey).ConfigureAwait(false); }
+                            catch { cache.Insert(cacheKey, stale, null, DateTime.UtcNow.AddMinutes(1), System.Web.Caching.Cache.NoSlidingExpiration); }
+                            finally { lock (ExternalRefreshLock) ExternalRefreshing.Remove(cacheKey); }
+                        });
+                    }
+                    json = stale;
+                }
+                else
+                {
+                    try { json = await RefreshExternalJson(url, cacheKey); }
+                    catch { return Request.CreateResponse(HttpStatusCode.ServiceUnavailable); }
+                }
+            }
             var response = Request.CreateResponse(HttpStatusCode.OK);
             response.Content = new StringContent(json, Encoding.UTF8, "application/json");
             return response;
         }
 
         [HttpGet]
+        public async Task<HttpResponseMessage> getPAKN()
+        {
+            return await CachedExternalJson("https://phananh.moha.gov.vn/Integrated/getList", "ext:getPAKN");
+        }
+
+        [HttpGet]
         public async Task<HttpResponseMessage> getKNCT()
         {
-            string json = "";
-            using (var client = new System.Net.WebClient())
-            {
-                client.Encoding = System.Text.Encoding.UTF8;
-                json = client.DownloadString("https://phananh.moha.gov.vn/Integrated/getListKNCT");
-                Console.WriteLine(json);
-            }
-
-            var response = Request.CreateResponse(HttpStatusCode.OK);
-            response.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            return response;
+            return await CachedExternalJson("https://phananh.moha.gov.vn/Integrated/getListKNCT", "ext:getKNCT");
         }
 
         [HttpGet]

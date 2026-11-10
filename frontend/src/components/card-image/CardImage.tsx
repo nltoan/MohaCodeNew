@@ -10,11 +10,11 @@ export interface CardImageProps {
 export const CardImage = ({ image, linkProps, style }: CardImageProps) => {
   return linkProps ? (
     <Link {...linkProps} className={`mh-card-image ${linkProps.className || ''}`}>
-      <Image {...image} />
+      <Image {...image} alt={image.alt ?? ''} />
     </Link>
   ) : (
     <div className="mh-card-image" style={style}>
-      <Image {...image} />
+      <Image {...image} alt={image.alt ?? ''} />
     </div>
   );
 };

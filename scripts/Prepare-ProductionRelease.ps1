@@ -38,6 +38,9 @@ if($LASTEXITCODE){throw 'API Release build failed'}
 Get-ChildItem $bin -Filter '*.pdb' | Remove-Item
 Copy-Item (Join-Path $root 'api\Global.asax') (Join-Path $release 'api-update')
 Copy-Item (Join-Path $root 'frontend\dist') (Join-Path $release 'portal') -Recurse
+# Khung HTML cho API MetadataPage: phai khop tuyet doi voi assets cua portal vua build.
+New-Item -ItemType Directory -Path (Join-Path $release 'api-update\App_Data') -Force | Out-Null
+Copy-Item (Join-Path $release 'portal\index.html') (Join-Path $release 'api-update\App_Data\portal-index.html')
 Copy-Item (Join-Path $root 'backend\build') (Join-Path $release 'admin-candidate') -Recurse
 Get-ChildItem (Join-Path $release 'admin-candidate') -Filter '*.map' -Recurse | Remove-Item
 Copy-Item (Join-Path $root 'deployment') (Join-Path $release 'deployment') -Recurse

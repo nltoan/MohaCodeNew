@@ -84,7 +84,7 @@ export const PhotoGalleryPage = () => {
                   {menu.map((type: any) => (
                     <Accordion.Item key={type.ID} eventKey={type.ID}>
                       <Accordion.Header className={type.SubChilds?.length > 0 ? 'hasChild' : 'noChild'}>
-                        <Image src={getUrlImage(type.IconDaiDien)} />
+                        <Image src={getUrlImage(type.IconDaiDien)} alt="" />
                         <Link to={type.URL} key={type.ID}>
                           {type.TenMenu}
                         </Link>

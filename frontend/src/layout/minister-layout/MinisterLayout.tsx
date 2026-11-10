@@ -6,6 +6,7 @@ import imageLeft from '../../assets/images/quoc-huy.svg';
 import { Footer } from '../components/footer';
 import { HeaderNavbar, HeaderTop, HeaderUtils, type HeaderMenu } from '../components/header';
 import './MinisterLayout.scss';
+import { SkipLink } from '@/components/skip-link/SkipLink';
 import { HttpStatusCode } from 'axios';
 import { getMinisterMenus } from '@/services/minister';
 import { getLang } from '@/services';
@@ -58,6 +59,7 @@ export const MinisterLayout = () => {
   };
   return (
     <div className="mh-minister-layout">
+      <SkipLink />
       <PortalSeo />
       <HeaderTop
         minister
@@ -75,7 +77,7 @@ export const MinisterLayout = () => {
         onLanguageClick={handleLanguageChange}
         onSearch={handleSearch}
       />
-      <main className="mh-main-minister" style={{ overflowX: 'hidden' }}>
+      <main id="main-content" tabIndex={-1} className="mh-main-minister" style={{ overflowX: 'hidden' }}>
         <Outlet />
       </main>
       <Footer />

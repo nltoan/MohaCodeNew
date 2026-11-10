@@ -7,3 +7,18 @@ API `MetadataPage` dựng phần head cho một số URL công khai dựa trên 
 Template `App_Data/portal-index.html` trên API phải là bản `index.html` khớp tuyệt đối với assets portal; pipeline phải cập nhật cả hai đồng bộ mỗi lần deploy frontend, giữ assets cũ và rollback cùng lúc. Nếu thiếu template hoặc mẫu sai, endpoint trả 503. Không chứa secret trong template. Các rule bot hiện hữu phải được kiểm tra riêng vì đứng trước rule ứng viên và có thể trả HTML metadata khác.
 
 Thử nghiệm local đã xác nhận HTML thô cho tin, văn bản, đường dẫn văn bản cũ `qpid`, dự thảo, chuyên mục, album ảnh và một số trang chính có title, identifier và ngày nếu DB có; chặn đường dẫn không hợp lệ và bản ghi không tồn tại. React đã render trong kiểm thử với CSP endpoint riêng và dữ liệu API giả lập. Điều này không xác nhận IIS/ARR production an toàn. Các loại URL cũ khác, media, chuyên trang và ngày nguồn còn thiếu vẫn cần xử lý trước khi xác nhận hoàn tất.
+
+## Cập nhật 10/11/2026 (đối chiếu Phụ lục IV TT 22/2023/TT-BTTTT)
+
+Phụ lục IV: bắt buộc Title, Creator, Date, Publisher, Description, Identifier; khuyến nghị Language, Source, Contributor, Subject; không để trống yếu tố bắt buộc; áp dụng cho trang chủ, thông tin giới thiệu cơ quan, tin bài (tin tức, chỉ đạo điều hành, tuyên truyền, chiến lược), văn bản, dịch vụ công, Công báo, dự án đầu tư, đề tài khoa học, báo cáo thống kê.
+
+Thay đổi:
+- `MetadataPage` thêm `DC.Language=vie` và `DC.Subject` (trước đây bị xoá cùng các thẻ tĩnh của template mà không dựng lại).
+- Thêm các trang giới thiệu (`/gioi-thieu`, `/gioi-thieu/{chuc-nang-nhiem-vu|lich-su-bo|lanh-dao-bo|co-cau-to-chuc|lich-su-hinh-thanh-va-phat-trien}`, `/gioi-thieu-bo-truong`) và bài chi tiết của các mục này; bài của chuyên trang `/bo-truong/...` và `/nghi-quyet-tw4/...`.
+- Dự thảo văn bản dùng `NgayBatDauLayYKien` làm `DC.Date` (ngày thật, không ấn định).
+- Trang giới thiệu dạng danh mục không có ngày nguồn dùng ngày ấn định ổn định (cùng thuật toán ở frontend `PortalSeo` và API) kèm `DC.Date.Source=owner-assigned`; áp dụng cùng quyết định của đơn vị như trang chủ/chuyên mục. Cần chủ nội dung xác nhận.
+- `deployment/metadata-head-rewrite.fragment.xml` cập nhật rule tương ứng.
+- `scripts/Prepare-ProductionRelease.ps1` tự đặt `api-update/App_Data/portal-index.html` = `portal/index.html` của cùng bản build (đảm bảo khớp assets).
+- `scripts/Test-MetadataHead.ps1` thêm kiểm tra trang giới thiệu và mỗi yếu tố DC xuất hiện đúng một lần.
+
+Chưa làm/chưa kiểm chứng: chưa chạy MetadataPage với CSDL thật hoặc IIS/ARR; media (photo/video/audio) và dịch vụ công/Công báo/dự án/báo cáo thống kê chưa có rule vì chưa có trang tương ứng trên portal; giữ nguyên quy tắc kiểm tra CSP/ARR/staging ở trên trước khi bật rule.
