@@ -14,13 +14,17 @@ export default function Profile() {
     IsReceiveEmail: auth.user.IsReceiveEmail,
   });
   const [authenSetupImg, setAuthenSetupImg] = useState('');
+  const [profileError, setProfileError] = useState('');
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setProfileError('');
+    const showError = (message) => { setProfileError(message); notify(message, 'error'); };
     if (formData.Password) {
-      if (!formData.CurrentPassword) { notify("Vui lòng nhập mật khẩu hiện tại.", "error"); return; }
-      if (formData.Password.length < 12) { notify("Mật khẩu mới cần từ 12 ký tự trở lên.", "error"); return; }
-      if (formData.Password !== formData.ConfirmPassword) { notify("Mật khẩu nhập lại không khớp.", "error"); return; }
+      if (!formData.CurrentPassword) { showError("Vui lòng nhập mật khẩu hiện tại."); return; }
+      if (formData.Password.length < 12 || formData.Password.length > 255) { showError("Mật khẩu mới cần từ 12 đến 255 ký tự."); return; }
+      if (formData.Password === formData.CurrentPassword) { showError("Mật khẩu mới phải khác mật khẩu hiện tại."); return; }
+      if (formData.Password !== formData.ConfirmPassword) { showError("Mật khẩu nhập lại không khớp."); return; }
     }
     const res = await requestXFormRaw(`Home/UpdateProfile`, {
       method: "POST",
@@ -29,7 +33,7 @@ export default function Profile() {
     if (!res.ok || !res.data || res.data.status == "ko") {
       const reason = res.data?.error
         || (res.status === 401 ? "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại." : `Lỗi máy chủ (mã ${res.status}).`);
-      notify(`Cập nhật thông tin không thành công! : ${reason}`, "error");
+      showError(`Cập nhật thông tin không thành công: ${reason}`);
       return;
     }
     notify("Cập nhật thông tin thành công!", "success");
@@ -61,6 +65,8 @@ export default function Profile() {
           </div>
         </div>
         <div className="card-body">
+          <div className="alert alert-info">Khi đổi mật khẩu, nhập mật khẩu hiện tại và mật khẩu mới từ 12 đến 255 ký tự, khác mật khẩu hiện tại. Nhập lại mật khẩu mới để xác nhận.</div>
+          {profileError && <div className="alert alert-danger" role="alert">{profileError}</div>}
           {localStorage.getItem("setup_required") === "1" && (
             <div className="alert alert-warning">
               Mật khẩu mặc định đã hết số lần đăng nhập cho phép. Vui lòng nhập mật khẩu hiện tại,

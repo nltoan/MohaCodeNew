@@ -412,16 +412,16 @@ namespace API.Controllers
             FileSystemCommand command;
             Enum.TryParse(request["command"], out command);
             string arguments = request["arguments"];
-            // Chi kiem tra TEN FILE moi. Truoc day doan nay quet moi thuoc tinh "name" trong arguments, ke ca ten
-            // THU MUC dich (destinationPathInfo) va bo qua ten file that (nam trong chuoi chunkMetadata), nen moi lan
-            // upload qua trinh quan ly file deu bi tu choi.
             if (command == FileSystemCommand.UploadChunk) {
                 try {
                     var args = JObject.Parse(arguments);
                     var metadata = JObject.Parse((string)args["chunkMetadata"]);
-                    if (!SafeUploadName((string)metadata["FileName"]))
-                        return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid file name.");
-                } catch { return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid upload arguments."); }
+                    Guid uploadId;
+                    int index = (int)metadata["Index"], total = (int)metadata["TotalCount"];
+                    long size = (long)metadata["FileSize"];
+                    if (!SafeUploadName((string)metadata["FileName"]) || !Guid.TryParse((string)metadata["UploadId"], out uploadId) || total < 1 || total > 10000 || index < 0 || index >= total || size <= 0 || size > 80L * 1024 * 1024)
+                        return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid upload metadata.");
+                } catch { return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid upload metadata."); }
             }
             else if (command == FileSystemCommand.Rename) {
                 try {
