@@ -12,8 +12,9 @@ import DataGrid, {
 import { Item } from 'devextreme-react/form';
 import { createCustomStore } from '../utils/api';
 
+const dataSourceOptions = createCustomStore("HinhThucVanBans");
+
 export default function HinhThucVanBan() {
-  const dataSourceOptions = createCustomStore("HinhThucVanBans");
   return (
     <div className="card">
       <div className="card-header">

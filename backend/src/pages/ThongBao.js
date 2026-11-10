@@ -21,11 +21,12 @@ import { createCustomStore, createLookupStore } from '../utils/api';
 import MyFileFileUploader from '../components/MyFileFileUploader';
 import 'devextreme/ui/html_editor/converters/markdown';
 
+const dataSourceOptions = createCustomStore("ThongBaos");
+const dataSourceFileOptions = createLookupStore({
+  loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
+});
+
 export default function ThongBao() {
-  const dataSourceOptions = createCustomStore("ThongBaos");
-  const dataSourceFileOptions = createLookupStore({
-    loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
-  });
   const rowDataRef = useRef();
   return (
     <div className="card">

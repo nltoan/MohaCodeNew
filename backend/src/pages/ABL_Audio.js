@@ -14,6 +14,8 @@ import {
 import config from '../config';
 import { createCustomStore } from '../utils/api';
 
+const dataSourceABL_Audio = createCustomStore("ABL_Audio");
+
 export default function ABL_Audio() {
   return (
     <div className="card">
@@ -40,7 +42,7 @@ export default function ABL_Audio() {
       </div>
       <div className="card-body">
         <DataGrid
-          dataSource={createCustomStore("ABL_Audio")}
+          dataSource={dataSourceABL_Audio}
           remoteOperations={true}
           allowColumnResizing={true}
           allowColumnReordering={true}

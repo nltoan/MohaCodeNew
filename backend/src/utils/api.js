@@ -1,7 +1,7 @@
 import DataSource from "devextreme/data/data_source";
 import Notify from "devextreme/ui/notify";
 import { createStore } from "devextreme-aspnet-data-nojquery";
-import Cookies from "universal-cookie";
+import { getToken, clearToken } from "./token";
 
 
 export function notify(message, type = "success") {
@@ -86,18 +86,24 @@ function onRemoved(key) {
 }
 export function onBeforeSend(method, ajaxOptions) {
   ajaxOptions.xhrFields = { withCredentials: false };
-  let access_token = localStorage.getItem("access_token");
   ajaxOptions.headers = {
-    Authorization: `Bearer ${access_token}`,
+    Authorization: `Bearer ${getToken()}`,
   };
 }
-function onAjaxError({ xhr, error }) {
-  if (xhr.status == 401) {
-    localStorage.removeItem("user");
-    localStorage.removeItem("access_token");
-    const cookies = new Cookies();
-    cookies.remove("access_token", { path: "/" });
+
+// 401: phien het han / token sai -> xoa phien va chuyen ve trang dang nhap.
+export function handleUnauthorized() {
+  clearToken();
+  localStorage.removeItem("user");
+  localStorage.removeItem("setup_required");
+  if (!window.location.pathname.startsWith("/Login")) {
     window.location.href = "/Login";
+  }
+}
+
+function onAjaxError({ xhr, error }) {
+  if (xhr.status === 401) {
+    handleUnauthorized();
   }
 }
 
@@ -188,37 +194,33 @@ export function createCustomStore(storeOptions, key = "ID", filters = null) {
   }
 }
 
-export async function requestXForm(path, options = { method: "GET" }) {
-  const cookies = new Cookies();
-  let access_token = cookies.get("access_token");
-  const response2 = await fetch(`${window.env.REACT_APP_API_URL}/${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-      Authorization: `Bearer ${access_token}`,
-    },
-  });
-  if (response2.status != 200) {
-    return null;
+// Doc body JSON; 204 / body rong -> {}.
+async function readJson(response) {
+  if (response.status === 204) return {};
+  const text = await response.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {};
   }
-  var data = await response2.json();
-  return data;
 }
 
-// Giống requestXForm nhưng trả về cả mã HTTP và nội dung lỗi (không biến lỗi thành null).
+// Giong request nhung form-urlencoded, tra ve ca ma HTTP va noi dung loi (khong bien loi thanh null).
 export async function requestXFormRaw(path, options = { method: "GET" }) {
-  const cookies = new Cookies();
-  let access_token = cookies.get("access_token");
   try {
     const response = await fetch(`${window.env.REACT_APP_API_URL}/${path}`, {
       ...options,
       headers: {
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        Authorization: `Bearer ${access_token}`,
+        Authorization: `Bearer ${getToken()}`,
       },
     });
+    if (response.status === 401) {
+      handleUnauthorized();
+    }
     let data = null;
-    try { data = await response.json(); } catch { data = null; }
+    try { data = await readJson(response); } catch { data = null; }
     return { ok: response.ok, status: response.status, data };
   } catch {
     return { ok: false, status: 0, data: null };
@@ -226,18 +228,19 @@ export async function requestXFormRaw(path, options = { method: "GET" }) {
 }
 
 export async function request(path, options = { method: "GET" }) {
-  const cookies = new Cookies();
-  let access_token = cookies.get("access_token");
-  const response2 = await fetch(`${window.env.REACT_APP_API_URL}/${path}`, {
+  const response = await fetch(`${window.env.REACT_APP_API_URL}/${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${access_token}`,
+      Authorization: `Bearer ${getToken()}`,
     },
   });
-  if (response2.status != 200) {
+  if (response.status === 401) {
+    handleUnauthorized();
     return null;
   }
-  var data = await response2.json();
-  return data;
+  if (!response.ok) {
+    return null;
+  }
+  return await readJson(response);
 }

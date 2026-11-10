@@ -20,12 +20,13 @@ import { createCustomStore, createFilterLookupStore, createLookupStore } from '.
 import MyFileFileUploader from '../components/MyFileFileUploader';
 import { Popup } from 'devextreme-react';
 
-export default function VanBanDuThao() {
-  const dataSourceOptions = createCustomStore("VanBanDuThaos");
+const dataSourceOptions = createCustomStore("VanBanDuThaos");
+const dataSourceFileOptions = createLookupStore({
+  loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
+});
 
-  const dataSourceFileOptions = createLookupStore({
-    loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
-  });
+export default function VanBanDuThao() {
+
 
   const [title, setTitle] = useState("Quản lý văn bản dự thảo");
   const dataGridRef = useRef(null);

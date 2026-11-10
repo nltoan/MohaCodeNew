@@ -30,6 +30,8 @@ import { createCustomStore, createLookupStore } from '../utils/api';
 const dataSourceOptions = createLookupStore("QLDA_LinhVuc");
 
 
+const dataSourceQLDA_LinhVuc = createCustomStore("QLDA_LinhVuc");
+
 export default function QLDA_LinhVuc() {
   return (
     <div className="card">
@@ -46,7 +48,7 @@ export default function QLDA_LinhVuc() {
       </div>
       <div className="card-body">
         <DataGrid
-          dataSource={createCustomStore("QLDA_LinhVuc")} remoteOperations={true}
+          dataSource={dataSourceQLDA_LinhVuc} remoteOperations={true}
           allowColumnResizing={true}
           allowColumnReordering={true}
           rowAlternationEnabled={true}

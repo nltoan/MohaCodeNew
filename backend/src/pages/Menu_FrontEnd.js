@@ -5,8 +5,11 @@ import TreeList, {
 import { Item } from 'devextreme-react/form';
 import { createCustomStore, createLookupStore } from '../utils/api';
 
+const dataSourceOptions = createLookupStore("Menu_FrontEnd");
+
+const dataSourceMenu_FrontEnd = createCustomStore("Menu_FrontEnd");
+
 export default function Menu_FrontEnd() {
-  const dataSourceOptions = createLookupStore("Menu_FrontEnd");
   return (
     <div className="card">
       <div className="card-header">
@@ -32,7 +35,7 @@ export default function Menu_FrontEnd() {
       </div>
       <div className="card-body">
         <TreeList
-          dataSource={createCustomStore("Menu_FrontEnd")}
+          dataSource={dataSourceMenu_FrontEnd}
           allowColumnResizing={true}
           showBorders={true}
           columnAutoWidth={true}

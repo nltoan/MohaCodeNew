@@ -18,8 +18,11 @@ import MyImageUploader from '../components/MyImageUploader';
 import config from '../config';
 import { createCustomStore, createLookupStore } from '../utils/api';
 
+const dataSourceThongTinLanhDaoOptions = createLookupStore("ThongTinLanhDaos");
+
+const dataSourceThongTinLanhDaos = createCustomStore("ThongTinLanhDaos");
+
 export default function ThongTinLanhDao() {
-  const dataSourceThongTinLanhDaoOptions = createLookupStore("ThongTinLanhDaos");
   return (
     <div className="card">
       <div className="card-header">
@@ -45,7 +48,7 @@ export default function ThongTinLanhDao() {
       </div>
       <div className="card-body">
         <DataGrid
-          dataSource={createCustomStore("ThongTinLanhDaos")}
+          dataSource={dataSourceThongTinLanhDaos}
           remoteOperations={true}
           allowColumnResizing={true}
           allowColumnReordering={true}

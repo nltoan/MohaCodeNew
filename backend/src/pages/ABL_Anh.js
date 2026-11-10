@@ -14,6 +14,8 @@ import {
 import config from '../config';
 import { createCustomStore } from '../utils/api';
 
+const dataSourceABL_Anh = createCustomStore("ABL_Anh");
+
 export default function ABL_Anh() {
   return (
     <div className="card">
@@ -40,7 +42,7 @@ export default function ABL_Anh() {
       </div>
       <div className="card-body">
         <DataGrid
-          dataSource={createCustomStore("ABL_Anh")}
+          dataSource={dataSourceABL_Anh}
           remoteOperations={true}
           allowColumnResizing={true}
           allowColumnReordering={true}

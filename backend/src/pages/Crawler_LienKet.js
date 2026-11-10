@@ -17,8 +17,9 @@ import { Item } from 'devextreme-react/form';
 import config from '../config';
 import { createCustomStore, createLookupStore } from '../utils/api';
 
+const dataSourceNguonOptions = createLookupStore("Crawler_Nguon");
+
 export default function Crawler_LienKet() {
-  const dataSourceNguonOptions = createLookupStore("Crawler_Nguon");
   const [dataSourceOptions, setDataSourceOptions] = useState(null);
   const [title, setTitle] = useState("Quản lý tin tức");
   const { type } = useParams();

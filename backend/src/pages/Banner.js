@@ -16,9 +16,12 @@ import config from '../config';
 import { createCustomStore, createLookupStore } from '../utils/api';
 import MyImageFileUploader from '../components/MyImageFileUploader';
 
+const dataSourceViTriOptions = createLookupStore("QuangCao_ViTri");
+const dataSourceFileOptions = createLookupStore("Files");
+
+const dataSourceBanners = createCustomStore("Banners");
+
 export default function Banner() {
-  const dataSourceViTriOptions = createLookupStore("QuangCao_ViTri");
-  const dataSourceFileOptions = createLookupStore("Files");
   const rowDataRef = useRef();
   return (
     <div className="card">
@@ -35,7 +38,7 @@ export default function Banner() {
       </div>
       <div className="card-body">
         <DataGrid
-          dataSource={createCustomStore("Banners")} remoteOperations={true}
+          dataSource={dataSourceBanners} remoteOperations={true}
           allowColumnResizing={true}
           allowColumnReordering={true}
           rowAlternationEnabled={true}

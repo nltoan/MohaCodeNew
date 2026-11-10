@@ -10,13 +10,15 @@ import List from 'devextreme-react/list';
 import Plyr from "plyr-react"
 import "plyr-react/plyr.css"
 import grapesjs, { Editor } from 'grapesjs';
+import "grapesjs/dist/css/grapes.min.css";
 import GjsEditor from '@grapesjs/react';
 import presetWebpage from 'grapesjs-preset-webpage';
 import blocksBasic from 'grapesjs-blocks-basic';
 import presetNewsletter from 'grapesjs-preset-newsletter';
 
+const dataSourceTemplatesOptions = createLookupStore("Templates");
+
 export default function MyCustomHtmlEditor({ defaultValue, onValueChange }) {
-  const dataSourceTemplatesOptions = createLookupStore("Templates");
   const [cursorIndex, setCursorIndex] = useState();
   const [itemToDisplay, setItemToDisplay] = useState({});
   const [popupGjsVisible, setPopupGjsVisible] = useState(false);

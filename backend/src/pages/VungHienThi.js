@@ -5,9 +5,10 @@ import TreeList, {
 import { Item } from 'devextreme-react/form';
 import { createCustomStore, createLookupStore } from '../utils/api';
 
+const dataSourceOptions = createCustomStore("VungHienThis");
+const dataSourceVungHienThiOptions = createLookupStore("VungHienThis");
+
 export default function VungHienThi() {
-  const dataSourceOptions = createCustomStore("VungHienThis");
-  const dataSourceVungHienThiOptions = createLookupStore("VungHienThis");
 
   return (
     <div className="card">

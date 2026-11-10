@@ -16,8 +16,9 @@ import config from '../config';
 import { createCustomStore } from '../utils/api';
 import 'devextreme/ui/html_editor/converters/markdown';
 
+const dataSourceOptions = createCustomStore("NghienCuuKhoaHocs");
+
 export default function NghienCuuKhoaHoc() {
-  const dataSourceOptions = createCustomStore("NghienCuuKhoaHocs");
   return (
     <div className="card">
       <div className="card-header">

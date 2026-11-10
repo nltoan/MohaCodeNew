@@ -32,8 +32,7 @@ export default function ActionPopup({ ID, action, onHidden }) {
               type="success"
               onClick={async (e) => {
                 const item = await request(
-                  `/TinTucs/Action?ID=${ID}&action=${action}`,
-                );
+                  `/TinTucs/Action?ID=${ID}&action=${action}`, { method: "POST" });
                 if (!item || item.isOk === false) {
                   notify("Thao tác thất bại!", "error");
                   return;

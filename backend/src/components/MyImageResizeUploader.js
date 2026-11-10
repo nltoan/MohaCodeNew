@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import FileUploader from 'devextreme-react/file-uploader';
 import { createLookupStore } from "../utils/api";
+import { getToken } from "../utils/token";
+
+const dataSourceOptions = createLookupStore("ImageSizes");
 
 export default function MyImageResizeUploader({ onUploaded }) {
-  const dataSourceOptions = createLookupStore("ImageSizes");
   const [size, setSize] = useState();
   const [imageSizes, setImageSizes] = useState();
   useEffect(() => {
@@ -43,7 +45,7 @@ export default function MyImageResizeUploader({ onUploaded }) {
         }
         onUploaded={onUploaded}
         uploadHeaders={(() => {
-          let access_token = localStorage.getItem("access_token");
+          let access_token = getToken();
           return {
             Authorization: `Bearer ${access_token}`,
           };

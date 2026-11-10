@@ -6,12 +6,12 @@ import { initReactI18next } from "react-i18next";
 const resources = {
   en: {
     translation: {
-      "Welcome to React": "Welcome to React and react-i18next",
+      "Welcome to React": "Welcome to the CMS administration",
     },
   },
   vi: {
     translation: {
-      "Welcome to React": "Benvenuti su React e react-i18next",
+      "Welcome to React": "Chào mừng đến với hệ thống quản trị",
     },
   },
 };

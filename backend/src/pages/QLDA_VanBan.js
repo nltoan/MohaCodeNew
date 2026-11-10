@@ -32,6 +32,8 @@ const dataSourceDonViOptions = createLookupStore("QLDA_DonVi");
 const dataSourceDuAnOptions = createLookupStore("QLDA_DuAnDeAn", "id");
 
 
+const dataSourceQLDA_VanBan = createCustomStore("QLDA_VanBan");
+
 export default function QLDA_VanBan() {
   return (
     <div className="card">
@@ -48,7 +50,7 @@ export default function QLDA_VanBan() {
       </div>
       <div className="card-body">
         <DataGrid
-          dataSource={createCustomStore("QLDA_VanBan")} remoteOperations={true}
+          dataSource={dataSourceQLDA_VanBan} remoteOperations={true}
           allowColumnResizing={true}
           allowColumnReordering={true}
           rowAlternationEnabled={true}

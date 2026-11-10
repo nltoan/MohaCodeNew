@@ -1,5 +1,4 @@
-import {loadMessages, locale } from "devextreme/localization";
-import * as viMessages from "devextreme/localization/messages/vi.json";
+import { locale } from "devextreme/localization";
 import {
   createContext,
   useCallback,
@@ -9,9 +8,9 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import Cookies from "universal-cookie";
 
 import { getUser, signIn as sendSignInRequest } from "../api/auth";
+import { clearToken, getToken } from "../utils/token";
 
 function AuthProvider(props) {
   const [user, setUser] = useState();
@@ -24,7 +23,6 @@ function AuthProvider(props) {
     localStorage.setItem("lng", lng);
     i18n.changeLanguage(lng);
     setLanguage(lng);
-    loadMessages(viMessages);
     locale(lng);
   }, []);
 
@@ -40,17 +38,13 @@ function AuthProvider(props) {
 
   const signOut = useCallback(() => {
     localStorage.removeItem("user");
-    localStorage.removeItem("access_token");
+    clearToken();
     localStorage.removeItem("setup_required");
-    const cookies = new Cookies();
-    cookies.remove("access_token", { path: "/" });
     setUser(undefined);
   }, []);
 
   const isLogin = () => {
-    const cookies = new Cookies();
-    let access_token = cookies.get("access_token");
-    if (!access_token || !user) {
+    if (!getToken() || !user) {
       return false;
     }
     return true;
@@ -58,8 +52,7 @@ function AuthProvider(props) {
 
   useEffect(() => {
     (async function () {
-      const cookies = new Cookies();
-      let access_token = cookies.get("access_token");
+      const access_token = getToken();
       const result = await getUser();
       if (!access_token || result.isOk == false) {
         signOut();

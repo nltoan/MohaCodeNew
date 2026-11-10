@@ -1,5 +1,6 @@
 
 import FileUploader from 'devextreme-react/file-uploader';
+import { getToken } from "../utils/token";
 
 export default function MyFileFileUploader({ cellInfo }) {
   const onUploaded = (e, cellInfo) => {
@@ -19,7 +20,7 @@ export default function MyFileFileUploader({ cellInfo }) {
         chunkSize={2048000}
         uploadUrl={window.env.REACT_APP_API_URL + `/FileManager/FileUpload`}
         uploadHeaders={(() => {
-          let access_token = localStorage.getItem("access_token");
+          let access_token = getToken();
           return {
             Authorization: `Bearer ${access_token}`,
           };

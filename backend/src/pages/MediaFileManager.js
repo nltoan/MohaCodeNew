@@ -9,8 +9,9 @@ import config from '../config';
 import { createLookupStore, pathFile } from '../utils/api';
 import { Button } from 'devextreme-react';
 
+const dataSourceOptions = createLookupStore("ImageSizes");
+
 export default function MediaFileManager() {
-  const dataSourceOptions = createLookupStore("ImageSizes");
   const [currentPath, setCurrentPath] = useState("");
   const [popupVisible, setPopupVisible] = useState(false);
   const [imageResize, setImageResize] = useState(false);

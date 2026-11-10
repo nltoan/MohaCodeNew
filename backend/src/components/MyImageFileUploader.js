@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { pathImg, request } from "../utils/api";
 import FileUploader from 'devextreme-react/file-uploader';
+import { getToken } from "../utils/token";
 
 export default function MyImageFileUploader({ cellInfo }) {
   const [image, setImage] = useState();
@@ -35,7 +36,7 @@ export default function MyImageFileUploader({ cellInfo }) {
           `/FileManager/FileImageUpload?Width=&Height=`
         }
         uploadHeaders={(() => {
-          let access_token = localStorage.getItem("access_token");
+          let access_token = getToken();
           return {
             Authorization: `Bearer ${access_token}`,
           };

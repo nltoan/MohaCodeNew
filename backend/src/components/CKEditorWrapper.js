@@ -4,6 +4,7 @@ import { CKEditor } from 'ckeditor4-react';
 import { LoadPanel } from 'devextreme-react/load-panel';
 import 'devextreme/dist/css/dx.light.css'; 
 import './ckeditor.css'; 
+import { getToken } from "../utils/token";
 
 const CKEditor4Wrapper = ({ 
     value, 
@@ -19,7 +20,7 @@ const CKEditor4Wrapper = ({
     const urlCkfider = `/FilePicker?type=Images&s1=${encodeBase64Url(window.env.REACT_APP_API_UPLOAD_URL)}`;
     const urlCkfiderVideo = `/FilePicker?type=Videos&s1=${encodeBase64Url(window.env.REACT_APP_API_UPLOAD_URL)}`;
     const urlUpload = `${window.env.REACT_APP_API_URL}/FileManager/CKEditorImageUpload`;
-    let access_token = localStorage.getItem("access_token");
+    let access_token = getToken();
 
     return (
         <div className="ckeditor-wrapper" style={{ position: 'relative', minHeight: '200px' }}>

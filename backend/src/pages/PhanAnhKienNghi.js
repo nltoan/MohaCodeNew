@@ -18,10 +18,11 @@ import config from '../config';
 import { createCustomStore, createLookupStore } from '../utils/api';
 import 'devextreme/ui/html_editor/converters/markdown';
 
+const dataSourceOptions = createCustomStore("PhanAnhKienNghis");
+const dataSourceLinhVucOptions = createLookupStore("PhanAnhKienNghi_LinhVucs");
+const dataSourceCoQuanOptions = createLookupStore("PhanAnhKienNghi_CoQuans");
+
 export default function PhanAnhKienNghi() {
-  const dataSourceOptions = createCustomStore("PhanAnhKienNghis");
-  const dataSourceLinhVucOptions = createLookupStore("PhanAnhKienNghi_LinhVucs");
-  const dataSourceCoQuanOptions = createLookupStore("PhanAnhKienNghi_CoQuans");
   return (
     <div className="card">
       <div className="card-header">

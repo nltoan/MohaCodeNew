@@ -6,8 +6,11 @@ import TreeList, {
 import { Item } from 'devextreme-react/form';
 import { createCustomStore, createLookupStore } from '../utils/api';
 
+const dataSourceOptions = createLookupStore("LopVanBans");
+
+const dataSourceLopVanBans = createCustomStore("LopVanBans");
+
 export default function LopVanBan() {
-  const dataSourceOptions = createLookupStore("LopVanBans");
   return (
     <div className="card">
       <div className="card-header">
@@ -33,7 +36,7 @@ export default function LopVanBan() {
       </div>
       <div className="card-body">
         <TreeList
-          dataSource={createCustomStore("LopVanBans")}
+          dataSource={dataSourceLopVanBans}
           allowColumnResizing={true}
           allowColumnReordering={true}
           rowAlternationEnabled={true}

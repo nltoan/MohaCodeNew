@@ -12,8 +12,9 @@ import { Item } from 'devextreme-react/form';
 import { createCustomStore } from '../utils/api';
 import 'devextreme/ui/html_editor/converters/markdown';
 
+const dataSourceOptions = createCustomStore("DongGopYKien_ChuDes");
+
 export default function DongGopYKien_ChuDe() {
-  const dataSourceOptions = createCustomStore("DongGopYKien_ChuDes");
   return (
     <div className="card">
       <div className="card-header">

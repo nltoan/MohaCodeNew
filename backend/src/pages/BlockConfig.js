@@ -16,9 +16,10 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import "./styles.css"
 import { Button, Popup } from 'devextreme-react';
 
+const dataSourceOptions = createCustomStore("BlockConfigs");
+const dataSourceBlocksOptions = createLookupStore("Blocks");
+
 export default function BlockConfig() {
-  const dataSourceOptions = createCustomStore("BlockConfigs");
-  const dataSourceBlocksOptions = createLookupStore("Blocks");
   const [popupVisible, setPopupVisible] = useState();
   const [initialData, setInitialData] = useState();
   const [item, setItem] = useState();

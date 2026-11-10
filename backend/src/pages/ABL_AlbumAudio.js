@@ -19,16 +19,19 @@ import config from '../config';
 import { createCustomStore, createLookupStore } from '../utils/api';
 import MyImageFileUploader from '../components/MyImageFileUploader';
 import MyFileFileUploader from '../components/MyFileFileUploader';
-import VideoLookup from '../components/VideoLookup';
+import MediaLookup from '../components/MediaLookup';
+
+const dataSourceABLChuyenMucAlbumOptions = createLookupStore("ABL_ChuyenMucAlbumAudio");
+const dataSourceFileOptions = createLookupStore({
+  loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
+});
+const dataSourceFileWithPathOptions = createLookupStore({
+  loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetFilePath`,
+});
+
+const dataSourceABL_AlbumAudio = createCustomStore("ABL_AlbumAudio");
 
 export default function ABL_AlbumAudio() {
-  const dataSourceABLChuyenMucAlbumOptions = createLookupStore("ABL_ChuyenMucAlbumAudio");
-  const dataSourceFileOptions = createLookupStore({
-    loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
-  });
-  const dataSourceFileWithPathOptions = createLookupStore({
-    loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetFilePath`,
-  });
   const rowDataRef = useRef();
   return (
     <div className="card">
@@ -55,7 +58,7 @@ export default function ABL_AlbumAudio() {
       </div>
       <div className="card-body">
         <DataGrid
-          dataSource={createCustomStore("ABL_AlbumAudio")}
+          dataSource={dataSourceABL_AlbumAudio}
           remoteOperations={true}
           showBorders={true}
           allowColumnResizing={true}
@@ -168,7 +171,7 @@ export default function ABL_AlbumAudio() {
                       allowFiltering={false}
                       allowSorting={false}
                       cellRender={(cellInfo) => (
-                        <VideoLookup
+                        <MediaLookup kind="audio"
                           cellInfo={cellInfo}
                           dataSource={dataSourceFileWithPathOptions}
                           valueExpr="ID"

@@ -16,9 +16,12 @@ import TreeList, {
 import { Item, Tab, TabbedItem } from 'devextreme-react/form';
 import { createCustomStore, createLookupStore } from '../utils/api';
 
+const dataSourceOptions = createLookupStore("QuangCao_ViTri");
+const dataSourceBannerOptions = createLookupStore("Banners");
+
+const dataSourceQuangCao_ViTri = createCustomStore("QuangCao_ViTri");
+
 export default function QuangCao_ViTri() {
-  const dataSourceOptions = createLookupStore("QuangCao_ViTri");
-  const dataSourceBannerOptions = createLookupStore("Banners");
   const rowDataRef = useRef();
   return (
     <div className="card">
@@ -45,7 +48,7 @@ export default function QuangCao_ViTri() {
       </div>
       <div className="card-body">
         <TreeList
-          dataSource={createCustomStore("QuangCao_ViTri")}
+          dataSource={dataSourceQuangCao_ViTri}
           allowColumnResizing={true}
           showBorders={true}
           columnAutoWidth={true}

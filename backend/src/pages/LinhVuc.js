@@ -12,8 +12,9 @@ import DataGrid, {
 import { Item } from 'devextreme-react/form';
 import { createCustomStore } from '../utils/api';
 
+const dataSourceOptions = createCustomStore("LinhVucs");
+
 export default function LinhVuc() {
-  const dataSourceOptions = createCustomStore("LinhVucs");
   return (
     <div className="card">
       <div className="card-header">

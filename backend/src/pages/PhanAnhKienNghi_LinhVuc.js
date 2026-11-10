@@ -12,8 +12,9 @@ import { Item } from 'devextreme-react/form';
 import { createCustomStore } from '../utils/api';
 import 'devextreme/ui/html_editor/converters/markdown';
 
+const dataSourceOptions = createCustomStore("PhanAnhKienNghi_LinhVucs");
+
 export default function PhanAnhKienNghi_LinhVuc() {
-  const dataSourceOptions = createCustomStore("PhanAnhKienNghi_LinhVucs");
   return (
     <div className="card">
       <div className="card-header">

@@ -12,8 +12,9 @@ import DataGrid, {
 import { Item } from 'devextreme-react/form';
 import { createCustomStore } from '../utils/api';
 
+const dataSourceOptions = createCustomStore("Crawler_ChuDe");
+
 export default function Crawler_ChuDe() {
-  const dataSourceOptions = createCustomStore("Crawler_ChuDe");
   return (
     <div className="card">
       <div className="card-header">

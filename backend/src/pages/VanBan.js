@@ -18,10 +18,14 @@ import { createCustomStore, createFilterLookupStore, createLookupStore,request }
 import MyFileFileUploader from '../components/MyFileFileUploader';
 import { Popup } from 'devextreme-react';
 
+const dataSourceFileOptions = createLookupStore({
+  loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
+});
+
+const dataSourceVanBans = createLookupStore("VanBans");
+const dataSourceVanBans2 = createLookupStore("VanBans");
+
 export default function VanBan() {
-  const dataSourceFileOptions = createLookupStore({
-    loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
-  });
   const [dataSourceOptions, setDataSourceOptions] = useState(
     createCustomStore("VanBans"),
   );
@@ -417,7 +421,7 @@ export default function VanBan() {
                       <Lookup
                         allowClearing={true}
                         searchEnabled={true}
-                        dataSource={createLookupStore("VanBans")}
+                        dataSource={dataSourceVanBans}
                         remoteOperations={true}
                         valueExpr="ID"
                         displayExpr="SoKyHieu"
@@ -475,7 +479,7 @@ export default function VanBan() {
                       <Lookup
                         allowClearing={true}
                         searchEnabled={true}
-                        dataSource={createLookupStore("VanBans")}
+                        dataSource={dataSourceVanBans2}
                         remoteOperations={true}
                         valueExpr="ID"
                         displayExpr="SoKyHieu"

@@ -21,11 +21,14 @@ import { createCustomStore, createLookupStore } from '../utils/api';
 import MyFileFileUploader from '../components/MyFileFileUploader';
 import MyImageUploader from '../components/MyImageUploader';
 
+const dataSourceLoaiSuKienOptions = createLookupStore("LoaiSuKiens");
+const dataSourceFileOptions = createLookupStore({
+  loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
+});
+
+const dataSourceSuKienHoiThaos = createCustomStore("SuKienHoiThaos");
+
 export default function SuKienHoiThao() {
-  const dataSourceLoaiSuKienOptions = createLookupStore("LoaiSuKiens");
-  const dataSourceFileOptions = createLookupStore({
-    loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
-  });
   const rowDataRef = useRef();
   return (
     <div className="card">
@@ -52,7 +55,7 @@ export default function SuKienHoiThao() {
       </div>
       <div className="card-body">
         <DataGrid
-          dataSource={createCustomStore("SuKienHoiThaos")}
+          dataSource={dataSourceSuKienHoiThaos}
           remoteOperations={true}
           allowColumnResizing={true}
           allowColumnReordering={true}

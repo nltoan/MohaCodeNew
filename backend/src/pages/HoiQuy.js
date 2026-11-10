@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import './HoiQuy.css';
+import { getToken } from "../utils/token";
 async function request(path, options = {}) {
   const response = await fetch(`${window.env.REACT_APP_API_URL}/HoiQuy/${path}`, {
-    ...options, headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}`, ...options.headers },
+    ...options, headers: { Authorization: `Bearer ${getToken()}`, ...options.headers },
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(response.status === 403 ? 'Tài khoản chưa có quyền quản lý Hội và Quỹ.' : response.status === 401 ? 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.' : data.Message || 'Không thể xử lý yêu cầu. Vui lòng thử lại.');

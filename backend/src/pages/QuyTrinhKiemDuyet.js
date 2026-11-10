@@ -15,8 +15,11 @@ import {
 } from 'devextreme-react/form';
 import { createCustomStore, createLookupStore } from '../utils/api';
 
+const dataSourceUsersOptions = createLookupStore("User_Account", "UserID");
+
+const dataSourceQuyTrinhKiemDuyets = createCustomStore("QuyTrinhKiemDuyets");
+
 export default function QuyTrinhKiemDuyet() {
-  const dataSourceUsersOptions = createLookupStore("User_Account", "UserID");
   const rowDataRef = useRef();
   return (
     <div className="card">
@@ -43,7 +46,7 @@ export default function QuyTrinhKiemDuyet() {
       </div>
       <div className="card-body">
         <DataGrid
-          dataSource={createCustomStore("QuyTrinhKiemDuyets")}
+          dataSource={dataSourceQuyTrinhKiemDuyets}
           remoteOperations={true}
           allowColumnResizing={true}
           allowColumnReordering={true}

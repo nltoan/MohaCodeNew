@@ -12,8 +12,9 @@ import DataGrid, {
 import { Item } from 'devextreme-react/form';
 import { createCustomStore } from '../utils/api';
 
+const dataSourceOptions = createCustomStore("ABL_ChuyenMucAlbumAudio");
+
 export default function ABL_ChuyenMucAlbumAudio() {
-  const dataSourceOptions = createCustomStore("ABL_ChuyenMucAlbumAudio");
   return (
     <div className="card">
       <div className="card-header">

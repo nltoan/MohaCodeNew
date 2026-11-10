@@ -4,15 +4,16 @@ import { DataGrid, Form, Popup } from 'devextreme-react';
 import { Item, Tab, TabbedItem } from 'devextreme-react/form';
 import { Column, FilterRow, HeaderFilter, Lookup, SearchPanel, Button as DataGridButton } from 'devextreme-react/data-grid';
 
+const dataSourceChuyenMucOptions = createLookupStore("ChuyenMucs");
+const dataSourceLoaiTinOptions = createLookupStore("DM_LoaiTin");
+const dataSourceBlockOptions = createLookupStore("Blocks");
+const dataSourceBuocQuyTrinhsOptions = createLookupStore("BuocQuyTrinhs");
+const dataSourceFileOptions = createLookupStore({
+  loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
+});
+const dataSourceUsersOptions = createLookupStore("User_Account", "UserID");
+
 export default function ViewPopup({ rowview }) {
-  const dataSourceChuyenMucOptions = createLookupStore("ChuyenMucs");
-  const dataSourceLoaiTinOptions = createLookupStore("DM_LoaiTin");
-  const dataSourceBlockOptions = createLookupStore("Blocks");
-  const dataSourceBuocQuyTrinhsOptions = createLookupStore("BuocQuyTrinhs");
-  const dataSourceFileOptions = createLookupStore({
-    loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
-  });
-  const dataSourceUsersOptions = createLookupStore("User_Account", "UserID");
   const [popupVisible, setPopupVisible] = useState();
   const [rowData, setRowData] = useState();
   const formRef = useRef();

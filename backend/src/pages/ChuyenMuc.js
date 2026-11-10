@@ -9,9 +9,12 @@ import { createCustomStore, createLookupStore } from '../utils/api';
 import MyTreeCombobox from '../components/MyTreeCombobox';
 import {getFrontEndURL} from '../utils/helpers';
 
+const dataSourceChuyenMucOptions = createLookupStore("ChuyenMucs");
+const dataSourceQuyTrinhKiemDuyetsOptions = createLookupStore("QuyTrinhKiemDuyets");
+
+const dataSourceChuyenMucs = createCustomStore("ChuyenMucs");
+
 export default function ChuyenMuc() {
-  const dataSourceChuyenMucOptions = createLookupStore("ChuyenMucs");
-  const dataSourceQuyTrinhKiemDuyetsOptions = createLookupStore("QuyTrinhKiemDuyets");
   function treeviewEditCellRender(data) {
     return (
       <>
@@ -58,7 +61,7 @@ export default function ChuyenMuc() {
       </div>
       <div className="card-body">
         <TreeList
-          dataSource={createCustomStore("ChuyenMucs")}
+          dataSource={dataSourceChuyenMucs}
           allowColumnResizing={true}
           showBorders={true}
           columnAutoWidth={true}

@@ -12,17 +12,18 @@ import DataGrid, {
 import { Item } from 'devextreme-react/form';
 import { createCustomStore, createLookupStore } from '../utils/api';
 
+const dataSourceOptions = createCustomStore(
+  {
+    loadUrl: `${window.env.REACT_APP_API_URL}/User_Account/GetLive`,
+    insertUrl: `${window.env.REACT_APP_API_URL}/User_Account/Post`,
+    updateUrl: `${window.env.REACT_APP_API_URL}/User_Account/Put`,
+    deleteUrl: `${window.env.REACT_APP_API_URL}/User_Account/Delete`,
+  },
+  "UserID",
+);
+const dataSourceRoleOptions = createLookupStore("Roles");
+
 export default function User_Account() {
-  const dataSourceOptions = createCustomStore(
-    {
-      loadUrl: `${window.env.REACT_APP_API_URL}/User_Account/GetLive`,
-      insertUrl: `${window.env.REACT_APP_API_URL}/User_Account/Post`,
-      updateUrl: `${window.env.REACT_APP_API_URL}/User_Account/Put`,
-      deleteUrl: `${window.env.REACT_APP_API_URL}/User_Account/Delete`,
-    },
-    "UserID",
-  );
-  const dataSourceRoleOptions = createLookupStore("Roles");
   return (
     <div className="card">
       <div className="card-header">

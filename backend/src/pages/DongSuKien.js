@@ -14,8 +14,9 @@ import config from '../config';
 import { createCustomStore } from '../utils/api';
 import MyImageUploader from '../components/MyImageUploader';
 
+const dataSourceOptions = createCustomStore("DongSuKiens");
+
 export default function DongSuKien() {
-  const dataSourceOptions = createCustomStore("DongSuKiens");
   return (
     <div className="card">
       <div className="card-header">

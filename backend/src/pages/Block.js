@@ -11,8 +11,9 @@ import DataGrid, {
 import { Item } from 'devextreme-react/form';
 import { createCustomStore } from '../utils/api';
 
+const dataSourceOptions = createCustomStore("Blocks");
+
 export default function Block() {
-  const dataSourceOptions = createCustomStore("Blocks");
   return (
     <div className="card">
       <div className="card-header">

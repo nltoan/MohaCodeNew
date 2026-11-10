@@ -20,15 +20,16 @@ import MyImageUploader from '../components/MyImageUploader';
 import MyFileFileUploader from '../components/MyFileFileUploader';
 import { Popup } from 'devextreme-react';
 
+const dataSourceOptions = createCustomStore("GioiThieuVanBans");
+const dataSourceVanBanQPPLOptions = createLookupStore({
+  loadUrl: `${window.env.REACT_APP_API_URL}/VanBans/Get?LopVanBanID=101`,
+});
+const dataSourceVanBanDTOptions = createLookupStore("VanBanDuThaos");
+const dataSourceFileOptions = createLookupStore({
+  loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
+});
+
 export default function GioiThieuVanBan() {
-  const dataSourceOptions = createCustomStore("GioiThieuVanBans");
-  const dataSourceVanBanQPPLOptions = createLookupStore({
-    loadUrl: `${window.env.REACT_APP_API_URL}/VanBans/Get?LopVanBanID=101`,
-  });
-  const dataSourceVanBanDTOptions = createLookupStore("VanBanDuThaos");
-  const dataSourceFileOptions = createLookupStore({
-    loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
-  });
   const title = "Giới thiệu văn bản";
   const dataGridRef = useRef(null);
   const rowDataRef = useRef();

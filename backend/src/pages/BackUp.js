@@ -4,19 +4,56 @@ import DataGrid, {
   Pager,
   Paging,
   SearchPanel,
-  FilterRow, HeaderFilter, Button,
+  FilterRow, HeaderFilter, Button, Editing,
 } from 'devextreme-react/data-grid';
-import { createCustomStore, request } from '../utils/api';
+import { createCustomStore, request, notify } from '../utils/api';
+import { getToken } from '../utils/token';
+
+const dataSourceOptions = createCustomStore("BackUps", "path");
+
+function formatSize(bytes) {
+  if (bytes == null) return "";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let v = Number(bytes);
+  let i = 0;
+  while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+  return `${v.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+}
 
 export default function BackUp() {
-  const dataSourceOptions = createCustomStore("BackUps", "path");
   const datagrid = useRef(null);
   async function performBackUp() {
-    const response = await request(`/BackUps/Post`);
-    datagrid.current._instance.refresh();
+    const response = await request(`/BackUps/Post`, { method: "POST" });
+    if (!response || response.isOk === false) {
+      notify("Backup thất bại!", "error");
+      return;
+    }
+    notify("Backup thành công!");
+    datagrid.current.instance.refresh();
   }
   async function performDownload(e) {
-    window.location = `${window.env.REACT_APP_API_URL}/BackUps/Download?path=${e.row.data.path}`;
+    const path = e.row.data.path;
+    try {
+      const response = await fetch(
+        `${window.env.REACT_APP_API_URL}/BackUps/Download?path=${encodeURIComponent(path)}`,
+        { headers: { Authorization: `Bearer ${getToken()}` } },
+      );
+      if (response.status !== 200) {
+        notify("Tải file backup thất bại!", "error");
+        return;
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = path;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      notify("Tải file backup thất bại!", "error");
+    }
   }
   return (
     <div className="card">
@@ -62,10 +99,14 @@ export default function BackUp() {
           <FilterRow visible={true} />
           <HeaderFilter visible={true} />
           <SearchPanel visible={true} highlightCaseSensitive={true} />
-          <Column dataField="path" dataType="string" caption="Đường dẫn" />
+          <Editing mode="row" allowDeleting={true} useIcons={true} />
+          <Column dataField="name" dataType="string" caption="Tên file" />
+          <Column dataField="size" dataType="number" caption="Dung lượng" customizeText={(c) => formatSize(c.value)} />
+          <Column dataField="created" dataType="datetime" caption="Ngày tạo" format="dd/MM/yyyy HH:mm" />
 
           <Column type="buttons" width={110}>
             <Button hint="Download" icon="download" onClick={performDownload} />
+            <Button name="delete" />
           </Column>
           <Pager allowedPageSizes={[20, 50, 100]} showPageSizeSelector={true} />
           <Paging defaultPageSize={20} />

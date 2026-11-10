@@ -1,7 +1,7 @@
 import Notify from "devextreme/ui/notify";
-import Cookies from "universal-cookie";
 
 import { request } from "../utils/api";
+import { setToken } from "../utils/token";
 
 export async function signIn(email, password, code, type) {
   try {
@@ -23,7 +23,6 @@ export async function signIn(email, password, code, type) {
       },
     );
     var data = await response.json();
-    // console.log(data);
     if (!response.ok || !data.access_token) {
       const visibleErrors = new Set([
         'LDAP chưa được cấu hình xác thực an toàn.',
@@ -50,34 +49,27 @@ export async function signIn(email, password, code, type) {
         message: data.error_description,
       };
     }
-    const cookies = new Cookies();
-    localStorage.setItem("access_token", data.access_token);
+    setToken(data.access_token, data.expires_in);
     // Mat khau mac dinh het luot dang nhap: server chi cho doi mat khau + bat 2FA.
     if (data.setup_required) localStorage.setItem("setup_required", "1");
     else localStorage.removeItem("setup_required");
-    cookies.set("access_token", data.access_token, {
-      path: "/",
-      maxAge: data.expires_in,
-      sameSite: "strict",
-      secure: window.location.protocol === "https:",
-    });
-    var data = await request(
+    const userResp = await request(
       `/User_Account/GetLoginUser`,
     );
-    if (!data?.data?.length) {
+    if (!userResp?.data?.length) {
       return {
         isOk: false,
         message: "Authentication failed",
       };
     }
-    localStorage.setItem("user", JSON.stringify(data.data[0]));
+    localStorage.setItem("user", JSON.stringify(userResp.data[0]));
     return {
       isOk: true,
-      data: data.data[0],
+      data: userResp.data[0],
       setupRequired: localStorage.getItem("setup_required") === "1",
     };
   } catch (ex) {
-    console.log(ex);
+    console.error(ex);
     return {
       isOk: false,
       message: "Authentication failed",

@@ -11,8 +11,9 @@ import { Item } from 'devextreme-react/form';
 import { createCustomStore } from '../utils/api';
 import MyCustomHtmlEditor from '../components/MyCustomHtmlEditor';
 
+const dataSourceOptions = createCustomStore("Templates");
+
 export default function Template() {
-  const dataSourceOptions = createCustomStore("Templates");
 
   function gjsEditCellRender(data) {
     return (

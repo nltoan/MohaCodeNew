@@ -12,8 +12,11 @@ import DataGrid, {
 import { Item } from 'devextreme-react/form';
 import { createCustomStore, createLookupStore } from '../utils/api';
 
+const dataSourceCrawlerChuDeOptions = createLookupStore("Crawler_ChuDe");
+
+const dataSourceCrawler_Nguon = createCustomStore("Crawler_Nguon");
+
 export default function Crawler_Nguon() {
-  const dataSourceCrawlerChuDeOptions = createLookupStore("Crawler_ChuDe");
   return (
     <div className="card">
       <div className="card-header">
@@ -39,7 +42,7 @@ export default function Crawler_Nguon() {
       </div>
       <div className="card-body">
         <DataGrid
-          dataSource={createCustomStore("Crawler_Nguon")}
+          dataSource={dataSourceCrawler_Nguon}
           remoteOperations={true}
           allowColumnResizing={true}
           allowColumnReordering={true}

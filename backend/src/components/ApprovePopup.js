@@ -53,8 +53,7 @@ export default function ApprovePopup({ ID, onHidden }) {
                   type="success"
                   onClick={async (e) => {
                     const item = await request(
-                      `/TinTucs/Action?ID=${ID}&action=approve&comment=${encodeURIComponent(comment ?? "")}`,
-                    );
+                      `/TinTucs/Action?ID=${ID}&action=approve&comment=${encodeURIComponent(comment ?? "")}`, { method: "POST" });
                     if (!item || item.isOk === false) {
                       notify("Phê duyệt thất bại!", "error");
                       return;
@@ -69,8 +68,7 @@ export default function ApprovePopup({ ID, onHidden }) {
                   type="danger"
                   onClick={async (e) => {
                     const item = await request(
-                      `/TinTucs/Action?ID=${ID}&action=reject&comment=${encodeURIComponent(comment ?? "")}`,
-                    );
+                      `/TinTucs/Action?ID=${ID}&action=reject&comment=${encodeURIComponent(comment ?? "")}`, { method: "POST" });
                     if (!item || item.isOk === false) {
                       notify("Hủy phê duyệt thất bại!", "error");
                       return;

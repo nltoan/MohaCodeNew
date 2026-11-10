@@ -22,11 +22,10 @@ import 'devextreme-react/html-editor';
 import {getFrontEndURL} from '../utils/helpers';
 import { Item } from 'devextreme-react/form';
 import config from '../config';
-import { createCustomStore, createFilterLookupStore, createLookupStore, notify } from '../utils/api';
+import { createCustomStore, createFilterLookupStore, createLookupStore } from '../utils/api';
 import { Popup } from 'devextreme-react';
 import MyImageFileUploader from '../components/MyImageFileUploader';
 import MyFileFileUploader from '../components/MyFileFileUploader';
-import MyCustomHtmlEditor from '../components/MyCustomHtmlEditor';
 import CKEditorWrapper from '../components/CKEditorWrapper';
 import MyTreeCombobox from '../components/MyTreeCombobox';
 import { useSearchParams } from 'react-router-dom';
@@ -35,18 +34,18 @@ import ActionPopup from '../components/ActionPopup';
 import SendApprovePopup from '../components/SendApprovePopup';
 import ViewPopup from '../components/ViewPopup';
 import NewsPreviewPopup from '../components/NewsPreviewPopup';
-import { useWindowSize } from "../utils/windowResize"; 
+
+const dataSourceChuyenMucOptions = createFilterLookupStore("ChuyenMucs",["IsVisible", "=", 1]);
+const dataSourceLoaiTinOptions = createLookupStore("DM_LoaiTin");
+const dataSourceBlockOptions = createLookupStore("Blocks");
+const dataSourceBuocQuyTrinhsOptions = createLookupStore("BuocQuyTrinhs");
+const dataSourceFileOptions = createLookupStore({
+  loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
+});
+const dataSourceUsersOptions = createLookupStore("User_Account", "UserID");
 
 export default function TinTuc() {
   //const dataSourceChuyenMucOptions = createLookupStore("ChuyenMucs");
-  const dataSourceChuyenMucOptions = createFilterLookupStore("ChuyenMucs",["IsVisible", "=", 1]);
-  const dataSourceLoaiTinOptions = createLookupStore("DM_LoaiTin");
-  const dataSourceBlockOptions = createLookupStore("Blocks");
-  const dataSourceBuocQuyTrinhsOptions = createLookupStore("BuocQuyTrinhs");
-  const dataSourceFileOptions = createLookupStore({
-    loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
-  });
-  const dataSourceUsersOptions = createLookupStore("User_Account", "UserID");
   const [dataSourceOptions, setDataSourceOptions] = useState(null);
   const [title, setTitle] = useState("Quản lý tin tức");
   const [action, setAction] = useState();
@@ -56,8 +55,8 @@ export default function TinTuc() {
   const ID = searchParams.get("ID");
 
   const gridRef = useRef();
-  let rowData;
-  const size = useWindowSize();
+  const rowDataRef = useRef(null);
+  const previewAfterInsertRef = useRef(false);
 
   useEffect(() => {
     if (actionParam) {
@@ -69,12 +68,14 @@ export default function TinTuc() {
   }, []);
 
   useEffect(() => {
+    // Khong gui "?type=undefined": bo tham so khi khong co type (API coi thieu type nhu khong loc).
+    const typeQuery = type ? `?type=${encodeURIComponent(type)}` : "";
     setDataSourceOptions(
       createCustomStore({
-        loadUrl: `${window.env.REACT_APP_API_URL}/TinTucs/Get?type=${type}`,
-        insertUrl: `${window.env.REACT_APP_API_URL}/TinTucs/Post?type=${type}`,
-        updateUrl: `${window.env.REACT_APP_API_URL}/TinTucs/Put?type=${type}`,
-        deleteUrl: `${window.env.REACT_APP_API_URL}/TinTucs/Delete?type=${type}`,
+        loadUrl: `${window.env.REACT_APP_API_URL}/TinTucs/Get${typeQuery}`,
+        insertUrl: `${window.env.REACT_APP_API_URL}/TinTucs/Post${typeQuery}`,
+        updateUrl: `${window.env.REACT_APP_API_URL}/TinTucs/Put${typeQuery}`,
+        deleteUrl: `${window.env.REACT_APP_API_URL}/TinTucs/Delete${typeQuery}`,
       }),
     );
     if (type == "owner") {
@@ -147,19 +148,6 @@ export default function TinTuc() {
       </>
     );
   }
-  function gjsEditCellRender(data) {
-    return (
-      <>
-        <MyCustomHtmlEditor
-          defaultValue={data.row.data.NoiDung}
-          onValueChange={(e) => {
-            data.setValue(e.value);
-          }}
-        />
-      </>
-    );
-  }
-
   return (
     <>
       <div className="card">
@@ -238,7 +226,7 @@ export default function TinTuc() {
             height="calc(100vh - 190px)"
             showBorders={true}
             onInitNewRow={(e) => {
-              rowData = null;
+              rowDataRef.current = null;
               e.data.NgonNgu = 'vi';
               e.data.NgayXuatBan = new Date();
               e.data.NoiBat = 1;
@@ -251,9 +239,13 @@ export default function TinTuc() {
               }
             }}
             onEditingStart={(e) => {
-              rowData = e.data;
+              rowDataRef.current = e.data;
             }}
             onRowInserted={(e) => {
+              if (previewAfterInsertRef.current) {
+                previewAfterInsertRef.current = false;
+                setAction({ type: "preview", data: e.key });
+              }
               e.component.navigateToRow(e.key).done(function () {
                 var rowindex = e.component.getRowIndexByKey(e.key);
                 e.component.editRow(rowindex);
@@ -289,14 +281,21 @@ export default function TinTuc() {
                     text: "Xem trước",
                     onClick: async () => {
                       // Lưu rồi xem trước ngay trong CMS (kể cả tin nháp), không mở trang công khai.
-                      const grid = gridRef.current._instance;
+                      const grid = gridRef.current.instance;
                       const key = grid.option("editing.editRowKey");
-                      await grid.saveEditData();
-                      if (grid.option("editing.editRowKey") != null) return; // còn lỗi nhập liệu, popup vẫn mở
-                      if (key == null) {
-                        notify("Đã lưu tin mới. Bấm biểu tượng kính lúp ở dòng tin trong danh sách để xem trước.", "success");
+                      const isNew = (grid.option("editing.changes") || []).some((c) => c.type === "insert");
+                      if (isNew) {
+                        // Tin moi: sau khi chen xong, onRowInserted mo lai dong va mo xem truoc theo khoa moi.
+                        previewAfterInsertRef.current = true;
+                        try {
+                          await grid.saveEditData();
+                        } finally {
+                          previewAfterInsertRef.current = false; // loi nhap lieu: khong xem truoc
+                        }
                         return;
                       }
+                      await grid.saveEditData();
+                      if (grid.option("editing.editRowKey") != null) return; // còn lỗi nhập liệu, popup vẫn mở
                       setAction({ type: "preview", data: key });
                     },
                   }}
@@ -328,12 +327,12 @@ export default function TinTuc() {
               </DataGridPopup>
               <Form
                 onInitialized={(e) => {
-                  e.component.option("items[0].tabs[1].visible", !!rowData);
-                  e.component.option("items[0].tabs[2].visible", !!rowData);
-                  e.component.option("items[0].tabs[3].visible", !!rowData);
-                  e.component.option("items[0].tabs[4].visible", !!rowData);
-                  e.component.option("items[0].tabs[5].visible", !!rowData);
-                  e.component.option("items[0].tabs[6].visible", !!rowData);
+                  e.component.option("items[0].tabs[1].visible", !!rowDataRef.current);
+                  e.component.option("items[0].tabs[2].visible", !!rowDataRef.current);
+                  e.component.option("items[0].tabs[3].visible", !!rowDataRef.current);
+                  e.component.option("items[0].tabs[4].visible", !!rowDataRef.current);
+                  e.component.option("items[0].tabs[5].visible", !!rowDataRef.current);
+                  e.component.option("items[0].tabs[6].visible", !!rowDataRef.current);
                 }}
               >
                 <TabbedItem colSpan={2}>
@@ -369,7 +368,7 @@ export default function TinTuc() {
                       onInitialized={(e) => {
                         setTimeout(function () {
                           var tmpDs = createCustomStore({
-                            loadUrl: `${window.env.REACT_APP_API_URL}/TinTuc_Block/Get?filter=[['TinTucID','=',${rowData ? rowData.ID : ""}]]`,
+                            loadUrl: `${window.env.REACT_APP_API_URL}/TinTuc_Block/Get?filter=[['TinTucID','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                             insertUrl: `${window.env.REACT_APP_API_URL}/TinTuc_Block/Post`,
                             updateUrl: `${window.env.REACT_APP_API_URL}/TinTuc_Block/Put`,
                             deleteUrl: `${window.env.REACT_APP_API_URL}/TinTuc_Block/Delete`,
@@ -378,6 +377,10 @@ export default function TinTuc() {
                         }, 0);
                       }}
                       onRowInserted={(e) => {
+              if (previewAfterInsertRef.current) {
+                previewAfterInsertRef.current = false;
+                setAction({ type: "preview", data: e.key });
+              }
                         e.component.refresh();
                       }}
                       allowColumnResizing={true}
@@ -385,7 +388,7 @@ export default function TinTuc() {
                       rowAlternationEnabled={true}
                       showBorders={true}
                       onInitNewRow={(e) => {
-                        e.data.TinTucID = rowData.ID;
+                        e.data.TinTucID = rowDataRef.current.ID;
                       }}
                     >
                       <FilterRow visible={true} />
@@ -430,7 +433,7 @@ export default function TinTuc() {
                       onInitialized={(e) => {
                         setTimeout(function () {
                           var tmpDs = createCustomStore({
-                            loadUrl: `${window.env.REACT_APP_API_URL}/TinTuc_LienQuan/Get?filter=[['TinTucID','=',${rowData ? rowData.ID : ""}]]`,
+                            loadUrl: `${window.env.REACT_APP_API_URL}/TinTuc_LienQuan/Get?filter=[['TinTucID','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                             insertUrl: `${window.env.REACT_APP_API_URL}/TinTuc_LienQuan/Post`,
                             updateUrl: `${window.env.REACT_APP_API_URL}/TinTuc_LienQuan/Put`,
                             deleteUrl: `${window.env.REACT_APP_API_URL}/TinTuc_LienQuan/Delete`,
@@ -439,6 +442,10 @@ export default function TinTuc() {
                         }, 0);
                       }}
                       onRowInserted={(e) => {
+              if (previewAfterInsertRef.current) {
+                previewAfterInsertRef.current = false;
+                setAction({ type: "preview", data: e.key });
+              }
                         e.component.refresh();
                       }}
                       allowColumnResizing={true}
@@ -446,7 +453,7 @@ export default function TinTuc() {
                       rowAlternationEnabled={true}
                       showBorders={true}
                       onInitNewRow={(e) => {
-                        e.data.TinTucID = rowData.ID;
+                        e.data.TinTucID = rowDataRef.current.ID;
                       }}
                     >
                       <FilterRow visible={true} />
@@ -486,7 +493,7 @@ export default function TinTuc() {
                       onInitialized={(e) => {
                         setTimeout(function () {
                           var tmpDs = createCustomStore({
-                            loadUrl: `${window.env.REACT_APP_API_URL}/TinTuc_Files/Get?filter=[['TinTucID','=',${rowData ? rowData.ID : ""}]]`,
+                            loadUrl: `${window.env.REACT_APP_API_URL}/TinTuc_Files/Get?filter=[['TinTucID','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                             insertUrl: `${window.env.REACT_APP_API_URL}/TinTuc_Files/Post`,
                             updateUrl: `${window.env.REACT_APP_API_URL}/TinTuc_Files/Put`,
                             deleteUrl: `${window.env.REACT_APP_API_URL}/TinTuc_Files/Delete`,
@@ -495,6 +502,10 @@ export default function TinTuc() {
                         }, 0);
                       }}
                       onRowInserted={(e) => {
+              if (previewAfterInsertRef.current) {
+                previewAfterInsertRef.current = false;
+                setAction({ type: "preview", data: e.key });
+              }
                         e.component.refresh();
                       }}
                       allowColumnResizing={true}
@@ -502,7 +513,7 @@ export default function TinTuc() {
                       rowAlternationEnabled={true}
                       showBorders={true}
                       onInitNewRow={(e) => {
-                        e.data.TinTucID = rowData.ID;
+                        e.data.TinTucID = rowDataRef.current.ID;
                       }}
                     >
                       <FilterRow visible={true} />
@@ -548,7 +559,7 @@ export default function TinTuc() {
                       onInitialized={(e) => {
                         setTimeout(function () {
                           var tmpDs = createCustomStore({
-                            loadUrl: `${window.env.REACT_APP_API_URL}/TinTuc_BinhLuan/Get?filter=[['TinTucID','=',${rowData ? rowData.ID : ""}]]`,
+                            loadUrl: `${window.env.REACT_APP_API_URL}/TinTuc_BinhLuan/Get?filter=[['TinTucID','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                             insertUrl: `${window.env.REACT_APP_API_URL}/TinTuc_BinhLuan/Post`,
                             updateUrl: `${window.env.REACT_APP_API_URL}/TinTuc_BinhLuan/Put`,
                             deleteUrl: `${window.env.REACT_APP_API_URL}/TinTuc_BinhLuan/Delete`,
@@ -557,6 +568,10 @@ export default function TinTuc() {
                         }, 0);
                       }}
                       onRowInserted={(e) => {
+              if (previewAfterInsertRef.current) {
+                previewAfterInsertRef.current = false;
+                setAction({ type: "preview", data: e.key });
+              }
                         e.component.refresh();
                       }}
                       allowColumnResizing={true}
@@ -564,7 +579,7 @@ export default function TinTuc() {
                       rowAlternationEnabled={true}
                       showBorders={true}
                       onInitNewRow={(e) => {
-                        e.data.TinTucID = rowData.ID;
+                        e.data.TinTucID = rowDataRef.current.ID;
                       }}
                     >
                       <FilterRow visible={true} />
@@ -611,7 +626,7 @@ export default function TinTuc() {
                       onInitialized={(e) => {
                         setTimeout(function () {
                           var tmpDs = createCustomStore({
-                            loadUrl: `${window.env.REACT_APP_API_URL}/TinTuc_History/Get?filter=[['TinTucID','=',${rowData ? rowData.ID : ""}]]`,
+                            loadUrl: `${window.env.REACT_APP_API_URL}/TinTuc_History/Get?filter=[['TinTucID','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                             insertUrl: `${window.env.REACT_APP_API_URL}/TinTuc_History/Post`,
                             updateUrl: `${window.env.REACT_APP_API_URL}/TinTuc_History/Put`,
                             deleteUrl: `${window.env.REACT_APP_API_URL}/TinTuc_History/Delete`,
@@ -664,7 +679,7 @@ export default function TinTuc() {
                       onInitialized={(e) => {
                         setTimeout(function () {
                           var tmpDs = createCustomStore({
-                            loadUrl: `${window.env.REACT_APP_API_URL}/TinTuc_QuyTrinh/Get?filter=[['TinTucID','=',${rowData ? rowData.ID : ""}]]`,
+                            loadUrl: `${window.env.REACT_APP_API_URL}/TinTuc_QuyTrinh/Get?filter=[['TinTucID','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                             insertUrl: `${window.env.REACT_APP_API_URL}/TinTuc_QuyTrinh/Post`,
                             updateUrl: `${window.env.REACT_APP_API_URL}/TinTuc_QuyTrinh/Put`,
                             deleteUrl: `${window.env.REACT_APP_API_URL}/TinTuc_QuyTrinh/Delete`,
@@ -780,7 +795,6 @@ export default function TinTuc() {
               caption="Nội dung"
               visible={false}
               allowSearch={false}
-              // editCellRender={gjsEditCellRender}
               editCellRender={(cellInfo) => {
                 return (
                   <CKEditorWrapper

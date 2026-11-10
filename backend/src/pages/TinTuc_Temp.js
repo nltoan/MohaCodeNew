@@ -14,8 +14,9 @@ import config from '../config';
 import { createCustomStore } from '../utils/api';
 import MyImageUploader from '../components/MyImageUploader';
 
+const dataSourceOptions = createCustomStore("TinTuc_Temp");
+
 export default function TinTuc_Temp() {
-  const dataSourceOptions = createCustomStore("TinTuc_Temp");
   return (
     <div className="card">
       <div className="card-header">

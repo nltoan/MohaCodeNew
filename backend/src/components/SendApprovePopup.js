@@ -53,8 +53,7 @@ export default function SendApprovePopup({ ID, action, onHidden }) {
                   type="success"
                   onClick={async (e) => {
                     const item = await request(
-                      `/TinTucs/Action?ID=${ID}&action=${action}&comment=${encodeURIComponent(comment ?? "")}`,
-                    );
+                      `/TinTucs/Action?ID=${ID}&action=${action}&comment=${encodeURIComponent(comment ?? "")}`, { method: "POST" });
                     if (!item || item.isOk === false) {
                       notify("Thao tác thất bại!", "error");
                       return;

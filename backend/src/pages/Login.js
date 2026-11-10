@@ -8,24 +8,32 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState(null);
+  const [busy, setBusy] = useState(false);
   const auth = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const url = searchParams.get("url");
 
   async function signInProcess(email, password, code, type) {
-    auth.setLoading(true);
-    let ret = await auth.signIn(email, password, code, type);
-    if (ret.isOk == false) {
-      setError(ret.message);
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    let ret;
+    try {
+      ret = await auth.signIn(email, password, code, type);
+    } finally {
+      setBusy(false);
     }
-    auth.setLoading(false);
-    if (url) {
-      navigate(url);
+    if (ret.isOk) {
+      if (url && !ret.setupRequired) {
+        navigate(url);
+      }
+    } else {
+      setError(ret.message || "Đăng nhập không thành công!");
     }
   }
   return (
-    <LayoutLogin title={"Login"} loading={auth.loading}>
+    <LayoutLogin title={"Login"}>
       <div className="login-box">
         <div className="login-logo">
           <a className="text-white" href="/">
@@ -34,7 +42,13 @@ export default function Login() {
         </div>
         <div className="card">
           <div className="card-body login-card-body">
-            {error && <p>{error}</p>}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                signInProcess(email, password, code, "password");
+              }}
+            >
+            {error && <p className="text-danger" role="alert">{error}</p>}
             <div className="input-group mb-3">
               <input
                 type="text"
@@ -65,7 +79,9 @@ export default function Login() {
             </div>
             <div className="input-group mb-3">
               <input
-                type="code"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
                 className="form-control"
                 placeholder="Authenticator code"
                 value={code}
@@ -88,14 +104,15 @@ export default function Login() {
             <div className="row">
               <div className="col-12">
                 <button
-                  onClick={() =>
-                    signInProcess(email, password, code, "password")
-                  }
+                  type="submit"
+                  disabled={busy}
                   className="btn btn-primary btn-block"
                 >
                   Sign In
                 </button>
                 <button
+                  type="button"
+                  disabled={busy}
                   onClick={() => signInProcess(email, password, code, "ldap")}
                   className="btn btn-primary btn-block"
                 >
@@ -103,6 +120,7 @@ export default function Login() {
                 </button>
               </div>
             </div>
+            </form>
             <p className="mb-1">
               <Link to="/ForgotPassword">Quên mật khẩu</Link>
             </p>

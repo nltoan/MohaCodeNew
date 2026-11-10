@@ -12,9 +12,10 @@ import DataGrid, {
 import { Item } from 'devextreme-react/form';
 import { createCustomStore, createLookupStore } from '../utils/api';
 
+const dataSourcePermissionsOptions = createLookupStore("Permissions");
+const dataSourceOptions = createCustomStore("Roles");
+
 export default function Role() {
-  const dataSourcePermissionsOptions = createLookupStore("Permissions");
-  const dataSourceOptions = createCustomStore("Roles");
   return (
     <div className="card">
       <div className="card-header">

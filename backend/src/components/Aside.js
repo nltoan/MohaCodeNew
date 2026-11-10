@@ -74,7 +74,6 @@ export default function Aside() {
       }
     });
   }, []);
-  // console.log(auth.user);
   return (
     <aside className="main-sidebar sidebar-light-light elevation-4">
       <div className="navbar-brand d-flex justify-content-center">

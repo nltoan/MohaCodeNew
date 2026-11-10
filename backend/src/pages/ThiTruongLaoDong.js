@@ -30,6 +30,8 @@ import MyImageUploader from '../components/MyImageUploader';
 
 
 
+const dataSourceThiTruongLaoDongs = createCustomStore("ThiTruongLaoDongs");
+
 export default function ThiTruongLaoDong() {
   return (
     <div className="card">
@@ -46,7 +48,7 @@ export default function ThiTruongLaoDong() {
       </div>
       <div className="card-body">
         <DataGrid
-          dataSource={createCustomStore("ThiTruongLaoDongs")} remoteOperations={true}
+          dataSource={dataSourceThiTruongLaoDongs} remoteOperations={true}
           allowColumnResizing={true}
           allowColumnReordering={true}
           rowAlternationEnabled={true}

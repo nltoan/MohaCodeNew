@@ -21,14 +21,17 @@ import MyImageFileUploader from '../components/MyImageFileUploader';
 import MyFileFileUploader from '../components/MyFileFileUploader';
 import VideoLookup from '../components/VideoLookup';
 
+const dataSourceABLChuyenMucAlbumOptions = createLookupStore("ABL_ChuyenMucAlbumVideo");
+const dataSourceFileOptions = createLookupStore({
+  loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
+});
+const dataSourceFileWithPathOptions = createLookupStore({
+  loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetFilePath`,
+});
+
+const dataSourceABL_AlbumVideo = createCustomStore("ABL_AlbumVideo");
+
 export default function ABL_AlbumVideo() {
-  const dataSourceABLChuyenMucAlbumOptions = createLookupStore("ABL_ChuyenMucAlbumVideo");
-  const dataSourceFileOptions = createLookupStore({
-    loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
-  });
-  const dataSourceFileWithPathOptions = createLookupStore({
-    loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetFilePath`,
-  });
   const rowDataRef = useRef();
   return (
     <div className="card">
@@ -55,7 +58,7 @@ export default function ABL_AlbumVideo() {
       </div>
       <div className="card-body">
         <DataGrid
-          dataSource={createCustomStore("ABL_AlbumVideo")}
+          dataSource={dataSourceABL_AlbumVideo}
           remoteOperations={true}
           showBorders={true}
           allowColumnResizing={true}

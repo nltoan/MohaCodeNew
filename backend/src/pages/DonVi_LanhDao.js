@@ -11,8 +11,9 @@ import DataGrid, {
 import { Item } from 'devextreme-react/form';
 import { createCustomStore } from '../utils/api';
 
+const dataSourceOptions = createCustomStore("DonVi_LanhDao");
+
 export default function DonVi_LanhDao() {
-  const dataSourceOptions = createCustomStore("DonVi_LanhDao");
   return (
     <div className="card">
       <div className="card-header">

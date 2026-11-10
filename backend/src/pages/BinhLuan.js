@@ -12,8 +12,9 @@ import DataGrid, {
 import { Item } from 'devextreme-react/form';
 import { createCustomStore } from '../utils/api';
 
+const dataSourceOptions = createCustomStore("BinhLuans");
+
 export default function BinhLuan() {
-  const dataSourceOptions = createCustomStore("BinhLuans");
   return (
     <div className="card">
       <div className="card-header">

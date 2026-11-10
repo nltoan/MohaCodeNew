@@ -1,6 +1,7 @@
 import RemoteFileSystemProvider from "devextreme/file_management/remote_provider";
 
 import { pathImg } from "./utils/api";
+import { getToken } from "./utils/token";
 
 let config = {
   defaultImageCellRender: (data) => {
@@ -17,7 +18,7 @@ let config = {
     endpointUrl: `${window.env.REACT_APP_API_URL}/FileManager/FileSystem`,
     beforeAjaxSend: (ajaxOptions) => {
       ajaxOptions.xhrFields = { withCredentials: false };
-      let access_token = localStorage.getItem("access_token");
+      let access_token = getToken();
       ajaxOptions.headers = {
         Authorization: `Bearer ${access_token}`,
       };

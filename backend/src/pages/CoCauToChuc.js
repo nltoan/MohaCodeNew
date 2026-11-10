@@ -20,10 +20,13 @@ import config from '../config';
 import { createCustomStore, createFilterLookupStore, createLookupStore } from '../utils/api';
 import MyTreeCombobox from '../components/MyTreeCombobox';
 
+const dataSourceCoCauToChucOptions = createLookupStore("CoCauToChucs");
+const dataSourceThongTinLanhDaoOptions = createLookupStore("ThongTinLanhDaos");
+const dataSourceChucDanhOptions = createLookupStore("ChucDanhs");
+
+const dataSourceCoCauToChucs = createCustomStore("CoCauToChucs");
+
 export default function CoCauToChuc() {
-  const dataSourceCoCauToChucOptions = createLookupStore("CoCauToChucs");
-  const dataSourceThongTinLanhDaoOptions = createLookupStore("ThongTinLanhDaos");
-  const dataSourceChucDanhOptions = createLookupStore("ChucDanhs");
   const dataSourceLoaiDonViOptions = [
     { Val: 5, Name: "State Management Agencies", Lang: 1033 },
     { Val: 6, Name: "Functional Unit", Lang: 1033 },
@@ -97,7 +100,7 @@ export default function CoCauToChuc() {
       </div>
       <div className="card-body">
         <TreeList
-          dataSource={createCustomStore("CoCauToChucs")}
+          dataSource={dataSourceCoCauToChucs}
           // remoteOperations={true}
           allowColumnResizing={true}
           allowColumnReordering={true}

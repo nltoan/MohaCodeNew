@@ -13,9 +13,10 @@ import DataGrid, {
 import { Item } from 'devextreme-react/form';
 import { createCustomStore } from '../utils/api';
 
+const dataSourceOptions = createCustomStore("Banner_ViTri");
+const dataSourceBannerOptions = createCustomStore("Banners");
+
 export default function Banner_ViTri() {
-  const dataSourceOptions = createCustomStore("Banner_ViTri");
-  const dataSourceBannerOptions = createCustomStore("Banners");
   return (
     <div className="card">
       <div className="card-header">

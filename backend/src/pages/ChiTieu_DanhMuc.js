@@ -13,9 +13,10 @@ import { Item } from 'devextreme-react/form';
 import { createCustomStore,createLookupStore } from '../utils/api';
 import 'devextreme/ui/html_editor/converters/markdown';
 
+const dataSourceOptions = createCustomStore("ChiTieu_DanhMucs");
+const dataSourceDanhMucOptions = createLookupStore("ChiTieu_DanhMucs");
+
 export default function ChiTieu_DanhMuc() {
-  const dataSourceOptions = createCustomStore("ChiTieu_DanhMucs");
-  const dataSourceDanhMucOptions = createLookupStore("ChiTieu_DanhMucs");
   return (
     <div className="card">
       <div className="card-header">

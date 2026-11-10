@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "backend",
+  "short_name": "MOHA Admin",
+  "name": "Quản trị Cổng TTĐT Bộ Nội vụ",
   "icons": [
     {
       "src": "favicon.ico",

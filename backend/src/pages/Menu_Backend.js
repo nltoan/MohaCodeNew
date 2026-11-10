@@ -13,8 +13,9 @@ import DataGrid, {
 import { Item } from 'devextreme-react/form';
 import { createCustomStore } from '../utils/api';
 
+const dataSourceOptions = createCustomStore("Menu_Backend");
+
 export default function Menu_Backend() {
-  const dataSourceOptions = createCustomStore("Menu_Backend");
   return (
     <div className="card">
       <div className="card-header">

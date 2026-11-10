@@ -15,8 +15,9 @@ import { Item } from 'devextreme-react/form';
 import config from '../config';
 import { createCustomStore } from '../utils/api';
 
+const dataSourceOptions = createCustomStore("ThoiKyPhatTriens");
+
 export default function ThoiKyPhatTrien() {
-  const dataSourceOptions = createCustomStore("ThoiKyPhatTriens");
   return (
     <div className="card">
       <div className="card-header">
