@@ -222,7 +222,7 @@ namespace API.Controllers
             }
             PublicHeadRecord data = null;
             switch (kind) {
-                case "tin-tuc": data = _context.TinTucs.Where(x => x.ID == id && x.TrangThai == "public" && x.NgonNgu == "vi").Select(x => new PublicHeadRecord { Title = x.TieuDe, Description = x.MoTa == null || x.MoTa == "" ? x.NoiDung : x.MoTa, Creator = x.TacGia, Date = x.NgayXuatBan }).FirstOrDefault(); break;
+                case "tin-tuc": data = _context.TinTucs.Where(x => x.ID == id && x.TrangThai == "public" && x.NgonNgu == "vi" && (x.NgayXuatBan == null || x.NgayXuatBan <= DateTime.Now)).Select(x => new PublicHeadRecord { Title = x.TieuDe, Description = x.MoTa == null || x.MoTa == "" ? x.NoiDung : x.MoTa, Creator = x.TacGia, Date = x.NgayXuatBan }).FirstOrDefault(); break;
                 case "chuyen-muc": data = _context.ChuyenMucs.Where(x => x.ID == id && x.IsVisible == true && x.TrangThai == "HoatDong").Select(x => new PublicHeadRecord { Title = x.TenChuyenMuc, Description = x.MoTa, Date = x.NgayTao }).FirstOrDefault(); if (data != null) data.AllowAssignedDate = true; break;
                 case "van-ban": data = _context.VanBans.Where(x => x.ID == id && x.TrangThai == 1 && x.Lang == 1066).Select(x => new PublicHeadRecord { Title = x.SoKyHieu ?? x.TrichYeu, Description = x.TrichYeu, Creator = x.VanBan_CoQuanBanHanh.OrderBy(y => y.ID).Select(y => y.CoQuanBanHanh.TenCoQuanBanHanh).FirstOrDefault(), Date = x.NgayBanHanh ?? x.NgayXuatBan }).FirstOrDefault(); if (data != null) data.Publisher = data.Creator; break;
                 case "van-ban/du-thao": data = _context.VanBanDuThaos.Where(x => x.ID == id && x.TrangThai == 1 && x.Lang == 1066).Select(x => new PublicHeadRecord { Title = x.TieuDe, Description = x.TrichYeu, Creator = x.VanBanDuThao_CoQuanBanHanhs.OrderBy(y => y.ID).Select(y => y.CoQuanBanHanh.TenCoQuanBanHanh).FirstOrDefault(), Date = x.NgayBatDauLayYKien }).FirstOrDefault(); if (data != null) data.Publisher = data.Creator; break;
@@ -395,12 +395,8 @@ namespace API.Controllers
             if (IsEnglishLanguage(lang)) return EnglishNewsUnavailable();
             if (string.IsNullOrWhiteSpace(keyword)) return Request.CreateResponse(HttpStatusCode.OK, new { data = new object[0], totalCount = 0 });
             int lan = 10;//chuyen muc: Tin tuc - su kien
-            if (lang == "en")
-            {
-                lan = 10;
-            }
 
-            var topposts = _context.CollectionFromSql(@"
+            var cteSql = @"
                 WITH cte AS 
                 (
                   SELECT c.ID, c.TenChuyenMuc, 0 AS Level
@@ -411,28 +407,24 @@ namespace API.Controllers
 	
                   SELECT c.ID, c.TenChuyenMuc, Level+1 AS Level
                   FROM ChuyenMuc c JOIN cte i ON c.ChuyenMucCha = i.ID and c.IsVisible=1
-                )
+                )";
+            var innerSql = @"
                 select t.ID, t.TieuDe as TieuDe, t.MoTa, t.NgayXuatBan, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl, 'tin-tuc' as Type from TinTuc t
                 left join Files f on t.AnhDaiDien = f.ID
-                where t.IDChuyenMuc in (SELECT Id FROM cte) and (t.TieuDe like @keyword or t.MoTa like @keyword) and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
-                and t.TrangThai='public' and t.NgonNgu='vi' order by t.NgayXuatBan desc
-            ",
-            new Dictionary<string, object> { { "@ID", lan }, { "@keyword", "%" + keyword + "%" } }).ToList();
-
-            //var files = _context.CollectionFromSql(@"
-            //    select f.ID, f.Ten as TieuDe, f.MoTa, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl, 'pdf-file' as Type
-            //    from Files f
-            //    where (f.Ten like '%' + @keyword + '%' or f.MoTa like '%' + @keyword + '%') and f.Ten like '%.pdf'",
-            //new Dictionary<string, object> { { "@ID", lan }, { "@keyword", keyword } }).ToList();
-
-
-            List<dynamic> retVal = new List<dynamic>();
-
-            retVal.AddRange(topposts);
-            //retVal.AddRange(files);
-            var data = DataSourceLoader.Load(retVal, loadOptions);
-            var response = Request.CreateResponse(data);
-            return response;
+                where t.IDChuyenMuc in (SELECT Id FROM cte) and (t.TieuDe like @keyword or t.MoTa like @keyword) and t.NgayXuatBan >= '" + PublishedSince + @"' and t.NgayXuatBan <= GETDATE()
+                and t.TrangThai='public' and t.NgonNgu='vi'";
+            // Tu khoa di qua tham so SQL; thoat cac ky tu dai dien cua LIKE ([ % _) de tim dung chuoi nguoi dung nhap.
+            var pattern = "%" + keyword.Replace("[", "[[]").Replace("%", "[%]").Replace("_", "[_]") + "%";
+            try
+            {
+                var result = PagedPublicList(cteSql, innerSql, new Dictionary<string, object> { { "@ID", lan }, { "@keyword", pattern } }, loadOptions,
+                    PostListFilterColumns, SearchOutputSelect, "d.NgayXuatBan desc, d.ID desc", false);
+                return Request.CreateResponse(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+            }
         }
 
         [HttpGet]
@@ -532,7 +524,7 @@ namespace API.Controllers
             var nckh = _context.CollectionFromSql(@"
                 SELECT " + limitSql + @" nckh.* 
                 from NghienCuuKhoaHoc nckh
-                where NgayTao >= '2021-01-01 00:00:00.001'
+                where NgayTao >= '" + PublishedSince + @"'
                 order by ID desc;
             ",
             new Dictionary<string, object> { }).ToList();
@@ -560,6 +552,7 @@ namespace API.Controllers
         // Chi ho tro cac tuy chon DevExtreme ma portal gui (filter, sort, skip, take, requireTotalCount); ten cot duoc kiem tra theo
         // danh sach cho phep va moi gia tri di qua tham so SQL (khong noi chuoi).
         private const int PublicListMaxTake = 1000;
+        private const string PublishedSince = "2021-01-01 00:00:00.001";
 
         private static readonly string[] VanBanBaseColumns = {
             "ID", "SoKyHieu", "NgayBanHanh", "ID_HinhThucVanBan", "IDs_LinhVuc", "IDs_LopVanBan", "IDs_CoQuanBanHanh", "TrichYeu", "NguoiKy",
@@ -588,6 +581,7 @@ namespace API.Controllers
             { "ID", 'i' }, { "TieuDe", 's' }, { "ID_HinhThucVanBan", 'i' }, { "TrichYeu", 's' }, { "NgayBatDauLayYKien", 'd' }, { "NgayHetHanLayYKien", 'd' },
             { "TrangThai", 'i' }, { "Lang", 'i' }, { "TenHinhThucVanBan", 's' }, { "TenLinhVuc", 's' }, { "TenCoQuanBanHanh", 's' }, { "LinhVucID", 'i' }, { "CoQuanID", 'i' } };
 
+        private const string SearchOutputSelect = "d.ID, d.TieuDe, d.MoTa, d.NgayXuatBan, d.TenAnhDaiDien, d.AnhDaiDienUrl, d.Type";
         private const string PostListOutputSelect = "d.ID, d.TieuDe, d.MoTa, d.NgayXuatBan, d.NoiBat, d.TenAnhDaiDien, d.AnhDaiDienUrl";
         private static readonly Dictionary<string, char> PostListFilterColumns = new Dictionary<string, char>(StringComparer.OrdinalIgnoreCase) {
             { "ID", 'i' }, { "TieuDe", 's' }, { "MoTa", 's' }, { "NgayXuatBan", 'd' }, { "NoiBat", 'i' }, { "TenAnhDaiDien", 's' }, { "AnhDaiDienUrl", 's' } };
@@ -947,8 +941,8 @@ namespace API.Controllers
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid ReCaptcha action.");
             }
 
-            // Check the Score (Threshold: 0.5)
-            // If score < 0.5, it is likely a bot.
+            // Check the Score (Threshold: 0.6)
+            // If score < 0.6, it is likely a bot.
             if (captchaResult.Score < 0.6)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bot activity detected.");
@@ -981,10 +975,11 @@ namespace API.Controllers
         private HttpResponseMessage PostDetailById(int ID, string lang)
         {
             var language = IsEnglishLanguage(lang) ? "en" : "vi";
+            var now = DateTime.Now;
             var post = _context.TinTucs
                 .Include(s => s.ChuyenMuc)
                 .Include(s => s.TinTuc_Files.Select(x => x.File))
-                .Where(x => x.ID == ID && x.TrangThai == "public" && x.NgonNgu == language)
+                .Where(x => x.ID == ID && x.TrangThai == "public" && x.NgonNgu == language && (x.NgayXuatBan == null || x.NgayXuatBan <= now))
                 .FirstOrDefault();
             if (post == null)
             {
@@ -1112,7 +1107,7 @@ namespace API.Controllers
                 )
                 select top " + limitTopPost + @" t.ID, t.TieuDe, t.MoTa, t.NgayXuatBan, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc t
                 left join Files f on t.AnhDaiDien = f.ID
-                where (IDChuyenMuc in (SELECT ID FROM name_tree) or " + string.Format(QueryByChuyenMucHienThiThem,"name_tree") + @") and t.TrangThai='public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                where (IDChuyenMuc in (SELECT ID FROM name_tree) or " + string.Format(QueryByChuyenMucHienThiThem,"name_tree") + @") and t.TrangThai='public' and t.NgonNgu='vi' and t.NgayXuatBan >= '" + PublishedSince + @"' and t.NgayXuatBan <= GETDATE()
                 order by t.NoiBat desc, t.NgayXuatBan desc
             ",
             new Dictionary<string, object> { { "@IDChuyenMuc", chuyenmuc.ID } }).ToList();
@@ -1181,7 +1176,7 @@ namespace API.Controllers
                 )
                 select t.ID, t.TieuDe, t.MoTa, t.NgayXuatBan, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc t
                 left join Files f on t.AnhDaiDien = f.ID
-                where (IDChuyenMuc in (SELECT ID FROM name_tree) or " + string.Format(QueryByChuyenMucHienThiThem, "name_tree") + @") and t.ID <> @ID and t.TrangThai='public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                where (IDChuyenMuc in (SELECT ID FROM name_tree) or " + string.Format(QueryByChuyenMucHienThiThem, "name_tree") + @") and t.ID <> @ID and t.TrangThai='public' and t.NgonNgu='vi' and t.NgayXuatBan >= '" + PublishedSince + @"' and t.NgayXuatBan <= GETDATE()
                 order by t.NgayXuatBan desc
             ",
             new Dictionary<string, object> { { "@IDChuyenMuc", post.IDChuyenMuc }, { "@ID", post.ID } }).ToList();
@@ -1272,7 +1267,7 @@ namespace API.Controllers
                 from TinTuc t 
                 left join Files f on t.AnhDaiDien = f.ID
                 where (t.IDChuyenMuc in (SELECT Id FROM cte)  or " + string.Format(QueryByChuyenMucHienThiThem, "cte") + @")
-                and t.TrangThai = 'public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                and t.TrangThai = 'public' and t.NgonNgu='vi' and t.NgayXuatBan >= '" + PublishedSince + @"' and t.NgayXuatBan <= GETDATE()
                 " + exIdsStr;
 
             try
@@ -1333,10 +1328,6 @@ namespace API.Controllers
         {
             if (IsEnglishLanguage(lang)) return EnglishNewsUnavailable();
             int lan = 10;//chuyen muc: Tin tuc - su kien
-            if (lang == "en")
-            {
-                lan = 10;
-            }
             var data = _context.CollectionFromSql(@"
                 WITH cte AS 
                 (
@@ -1351,7 +1342,7 @@ namespace API.Controllers
                 )
                 select top " + limit + @" tt.*, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc tt 
                 left join Files f on tt.AnhDaiDien = f.ID
-                where (tt.IDChuyenMuc in (SELECT Id FROM cte) or " + string.Format(QueryByChuyenMucHienThiThem,"cte") + @") and tt.TrangThai = 'public' and tt.NgonNgu='vi' and tt.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                where (tt.IDChuyenMuc in (SELECT Id FROM cte) or " + string.Format(QueryByChuyenMucHienThiThem,"cte") + @") and tt.TrangThai = 'public' and tt.NgonNgu='vi' and tt.NgayXuatBan >= '" + PublishedSince + @"' and tt.NgayXuatBan <= GETDATE()
                 ORDER BY NgayXuatBan desc
             ",
             new Dictionary<string, object> { { "@ID", lan } }).ToList();
@@ -1382,7 +1373,7 @@ namespace API.Controllers
                 select top {1} t.ID, t.TieuDe, t.MoTa, t.NgayXuatBan, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc t 
                 left join Files f on t.AnhDaiDien = f.ID
                 where (t.IDChuyenMuc in (SELECT Id FROM cte) or " + string.Format(QueryByChuyenMucHienThiThem,"cte") + @")
-                and t.TrangThai = 'public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                and t.TrangThai = 'public' and t.NgonNgu='vi' and t.NgayXuatBan >= '" + PublishedSince + @"' and t.NgayXuatBan <= GETDATE()
                 {2}
                 ORDER BY t.NoiBat desc, t.NgayXuatBan desc
             ", ID, limit, exIdsStr);
@@ -1415,7 +1406,7 @@ namespace API.Controllers
                         from TinTuc t 
                         left join Files f on t.AnhDaiDien = f.ID
                         where t.IDChuyenMuc in (" + cateIds + @")
-                        and t.TrangThai = 'public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                        and t.TrangThai = 'public' and t.NgonNgu='vi' and t.NgayXuatBan >= '" + PublishedSince + @"' and t.NgayXuatBan <= GETDATE()
                     ) ranked where RankRn_ = 1
                 ", new Dictionary<string, object> { }).ToList();
                 foreach (var row in ranked)
@@ -1602,7 +1593,7 @@ namespace API.Controllers
                                 )
                                 select top 6 t.ID, t.TieuDe, t.MoTa, t.NgayXuatBan, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc t
                                 left join Files f on t.AnhDaiDien = f.ID
-                                where IDChuyenMuc in (SELECT ID FROM name_tree) and t.TrangThai='public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                                where IDChuyenMuc in (SELECT ID FROM name_tree) and t.TrangThai='public' and t.NgonNgu='vi' and t.NgayXuatBan >= '" + PublishedSince + @"' and t.NgayXuatBan <= GETDATE()
                                 order by t.NoiBat desc, t.NgayXuatBan desc
                             ",
                             new Dictionary<string, object> { { "@IDChuyenMuc", idChuyenMuc } }).ToList();
@@ -1684,7 +1675,7 @@ namespace API.Controllers
             var infographics = _context.CollectionFromSql(@"
                 select top 1 t.*, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc t
                 left join Files f on t.AnhDaiDien = f.ID
-                where IDChuyenMuc = 11517 and t.TrangThai = 'public'
+                where IDChuyenMuc = 11517 and t.TrangThai = 'public' and (t.NgayXuatBan is null or t.NgayXuatBan <= GETDATE())
                 order by t.NgayXuatBan desc
             ",
             new Dictionary<string, object> { }).FirstOrDefault();
@@ -1725,7 +1716,7 @@ namespace API.Controllers
 	                join Block b on b.ID = tb.BlockID
 	                where b.Path = 'BoxTongHop'
                 )
-                and t.TrangThai = 'public' and t.NgonNgu='vi'
+                and t.TrangThai = 'public' and t.NgonNgu='vi' and (t.NgayXuatBan is null or t.NgayXuatBan <= GETDATE())
                 ORDER BY t.ID desc
             ",
             new Dictionary<string, object> { }).FirstOrDefault();
@@ -1750,7 +1741,7 @@ namespace API.Controllers
                 from TinTuc t 
                 left join Files f on t.AnhDaiDien = f.ID
                 where (t.IDChuyenMuc in (SELECT Id FROM cte) or " + string.Format(QueryByChuyenMucHienThiThem,"cte") + @")
-                and t.TrangThai = 'public' and t.NgonNgu='vi' and t.ID <> @idTop and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                and t.TrangThai = 'public' and t.NgonNgu='vi' and t.ID <> @idTop and t.NgayXuatBan >= '" + PublishedSince + @"' and t.NgayXuatBan <= GETDATE()
                 ORDER BY NgayXuatBan desc
             ", new Dictionary<string, object> { { "@ID", ID }, { "@idTop", top.ID } }).ToList();
 
@@ -1767,7 +1758,7 @@ namespace API.Controllers
 	                join Block b on b.ID = tb.BlockID
 	                where b.Path = 'BoxTinNoiBatEn'
                 )
-                and t.TrangThai = 'public' and t.NgonNgu='en' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                and t.TrangThai = 'public' and t.NgonNgu='en' and t.NgayXuatBan >= '" + PublishedSince + @"' and t.NgayXuatBan <= GETDATE()
                 ORDER BY t.ID desc
             ",
             new Dictionary<string, object> { }).ToList();
@@ -1783,7 +1774,7 @@ namespace API.Controllers
 	                select tb.TinTucID from TinTuc_Block tb
 	                join Block b on b.ID = tb.BlockID
 	                where b.Path = 'BoxHot'
-                ) and t.TrangThai = 'public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                ) and t.TrangThai = 'public' and t.NgonNgu='vi' and t.NgayXuatBan >= '" + PublishedSince + @"' and t.NgayXuatBan <= GETDATE()
                 ORDER BY t.NgayXuatBan desc
             ",
             new Dictionary<string, object> { }).ToList();
@@ -1800,7 +1791,7 @@ namespace API.Controllers
 	                select tb.TinTucID from TinTuc_Block tb
 	                join Block b on b.ID = tb.BlockID
 	                where b.Path = 'BoxHotEn'
-                ) and t.TrangThai = 'public' and t.NgonNgu='en' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                ) and t.TrangThai = 'public' and t.NgonNgu='en' and t.NgayXuatBan >= '" + PublishedSince + @"' and t.NgayXuatBan <= GETDATE()
                 ORDER BY t.NgayXuatBan desc
             ",
             new Dictionary<string, object> { }).ToList();
@@ -1814,7 +1805,7 @@ namespace API.Controllers
             var datanotifys = _context.CollectionFromSql(@"
                 select top 3 t.*, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc t
                 left join Files f on t.AnhDaiDien = f.ID 
-                WHERE t.IDChuyenMuc = 27 and t.TrangThai='public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                WHERE t.IDChuyenMuc = 27 and t.TrangThai='public' and t.NgonNgu='vi' and t.NgayXuatBan >= '" + PublishedSince + @"' and t.NgayXuatBan <= GETDATE()
                 ORDER BY t.NgayXuatBan desc
             ",
             new Dictionary<string, object> { }).ToList();
@@ -1842,7 +1833,7 @@ namespace API.Controllers
                         FOR JSON PATH
                     ) AS DanhSachFile
                 FROM ThongBao t
-                WHERE t.NgayDang >= '2021-01-01 00:00:00.001'
+                WHERE t.NgayDang >= '" + PublishedSince + @"'
                 ORDER BY t.NgayDang DESC
             ",
             new Dictionary<string, object> { }).ToList();
@@ -2201,14 +2192,7 @@ namespace API.Controllers
                 select * from CoCauToChuc where IDDVCha = @ID and HienThi = 1 order by SoThuTu asc
             ",
             new Dictionary<string, object> { { "@ID", data.ID } }).ToList();
-            var parents = new List<CoCauToChuc>();
-            if (data.IDDVCha != null)
-            {
-                _context.CollectionFromSql(@"
-                select * from CoCauToChuc where ID = @ID order by SoThuTu asc
-                ",
-                new Dictionary<string, object> { { "@ID", data.IDDVCha } }).ToList();
-            }
+            var parents = new List<CoCauToChuc>(); // luon rong (hop dong phan hoi cu); khong truy van thua
 
             var idLoai = _context.CollectionFromSql(@"
                 with name_tree as 
@@ -2473,8 +2457,10 @@ namespace API.Controllers
         [HttpGet]
         public async Task<HttpResponseMessage> FileDetail(int ID)
         {
+            // Chi tra cac truong trinh quan tri doc (LinkLuuTru); khong lo nguoi tai len / thoi gian / duong dan noi bo.
             var data = _context.Files
-                .Where(x => x.ID == ID).FirstOrDefault();
+                .Where(x => x.ID == ID)
+                .Select(x => new { x.ID, x.Ten, x.LinkLuuTru }).FirstOrDefault();
 
             return Request.CreateResponse(HttpStatusCode.OK, new { data });
         }
@@ -2534,7 +2520,7 @@ namespace API.Controllers
         [Route("api/Public/GetBotMetaForTinTuc")]
         public async Task<HttpResponseMessage> GetBotMetaForTinTuc(int id)
         {
-            var article = _context.TinTucs.FirstOrDefault(x => x.ID == id && x.TrangThai == "public");
+            var article = _context.TinTucs.FirstOrDefault(x => x.ID == id && x.TrangThai == "public" && (x.NgayXuatBan == null || x.NgayXuatBan <= DateTime.Now));
 
             if (article == null)
             {
