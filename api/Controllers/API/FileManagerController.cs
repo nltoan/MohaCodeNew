@@ -6,7 +6,6 @@ using Newtonsoft.Json.Linq;
 ﻿using API.Models;
 using DevExtreme.AspNet.Mvc.FileManagement;
 using Newtonsoft.Json;
-using Org.BouncyCastle.Asn1.Ocsp;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -72,6 +71,28 @@ namespace API.Controllers
         static readonly string RelativePath = "~/Upload";
         //static string UploadURL = "https://molisa.tefli.vn//Uploads/";
         static string UploadURL = "/Upload/";
+        static int ClampImageSize(int value)
+        {
+            return Math.Max(1, Math.Min(4000, value));
+        }
+
+        // Resize to exactly width x height (JPEG); GDI+ objects are disposed so the source file is not left locked.
+        static void SaveResizedJpeg(string sourcePath, string targetPath, int width, int height)
+        {
+            using (var image = System.Drawing.Image.FromFile(sourcePath))
+            using (var thumbBitmap = new System.Drawing.Bitmap(width, height))
+            {
+                using (var thumbGraph = System.Drawing.Graphics.FromImage(thumbBitmap))
+                {
+                    thumbGraph.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+                    thumbGraph.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                    thumbGraph.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                    thumbGraph.DrawImage(image, new Rectangle(0, 0, width, height));
+                }
+                thumbBitmap.Save(targetPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+            }
+        }
+
         [HttpPost]
         public async Task<HttpResponseMessage> FileImageUpload(int? Width, int? Height)
         {
@@ -90,32 +111,22 @@ namespace API.Controllers
 
                         if (Width != null && Height != null)
                         {
-                            var resizeFilePath = Path.Combine(HttpContext.Current.Server.MapPath(RelativePath), string.Format("{0}x{1}", Width, Height) + newName + postedFile.FileName);
-                            System.Drawing.Image image = System.Drawing.Image.FromFile(filePath);
-                            float aspectRatio = (float)image.Size.Width / (float)image.Size.Height;
-                            int newHeight = 200;
-                            int newWidth = Convert.ToInt32(aspectRatio * newHeight);
-                            System.Drawing.Bitmap thumbBitmap = new System.Drawing.Bitmap(newWidth, newHeight);
-                            System.Drawing.Graphics thumbGraph = System.Drawing.Graphics.FromImage(thumbBitmap);
-                            thumbGraph.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-                            thumbGraph.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                            thumbGraph.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                            var imageRectangle = new Rectangle(0, 0, newWidth, newHeight);
-                            thumbGraph.DrawImage(image, imageRectangle);
-                            thumbBitmap.Save(resizeFilePath, System.Drawing.Imaging.ImageFormat.Jpeg);
-                            thumbGraph.Dispose();
-                            thumbBitmap.Dispose();
-                            image.Dispose();
+                            var targetWidth = ClampImageSize(Width.Value);
+                            var targetHeight = ClampImageSize(Height.Value);
+                            var sizePrefix = string.Format("{0}x{1}", targetWidth, targetHeight);
+                            var resizeFilePath = Path.Combine(HttpContext.Current.Server.MapPath(RelativePath), sizePrefix + newName + postedFile.FileName);
+                            SaveResizedJpeg(filePath, resizeFilePath, targetWidth, targetHeight);
 
                             Models.File tmpFile = _context.Files.Add(new Models.File
                             {
                                 Ten = postedFile.FileName,
                                 MoTa = postedFile.FileName,
-                                KichThuoc = string.Format("{0}x{1}", Width, Height),
+                                KichThuoc = sizePrefix,
                                 NgayTao = DateTime.Now,
-                                LinkLuuTru = UploadURL + string.Format("{0}x{1}", Width, Height) + newName + postedFile.FileName,
+                                LinkLuuTru = UploadURL + sizePrefix + newName + postedFile.FileName,
                                 TrangThai = "active"
                             });
+                            _context.SaveChanges();
                             docfiles.Add(tmpFile);
                         }
                         else
@@ -161,10 +172,11 @@ namespace API.Controllers
                     {
                         Ten = postedFile.FileName,
                         MoTa = postedFile.FileName,
-                        NgayTao = new DateTime(),
+                        NgayTao = DateTime.Now,
                         LinkLuuTru = UploadURL + newName + postedFile.FileName,
                         TrangThai = "active"
                     });
+                    _context.SaveChanges();
                     docfiles.Add(tmpFile);
                 }
                 return Request.CreateResponse(HttpStatusCode.Created, new { docfiles });
@@ -187,23 +199,12 @@ namespace API.Controllers
 
                     if (Width != null && Height != null)
                     {
-                        var resizeFilePath = Path.Combine(HttpContext.Current.Server.MapPath(RelativePath), string.Format("{0}x{1}", Width, Height) + newName + postedFile.FileName);
-                        System.Drawing.Image image = System.Drawing.Image.FromFile(filePath);
-                        float aspectRatio = (float)image.Size.Width / (float)image.Size.Height;
-                        int newHeight = 200;
-                        int newWidth = Convert.ToInt32(aspectRatio * newHeight);
-                        System.Drawing.Bitmap thumbBitmap = new System.Drawing.Bitmap(newWidth, newHeight);
-                        System.Drawing.Graphics thumbGraph = System.Drawing.Graphics.FromImage(thumbBitmap);
-                        thumbGraph.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-                        thumbGraph.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                        thumbGraph.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                        var imageRectangle = new Rectangle(0, 0, newWidth, newHeight);
-                        thumbGraph.DrawImage(image, imageRectangle);
-                        thumbBitmap.Save(resizeFilePath, System.Drawing.Imaging.ImageFormat.Jpeg);
-                        thumbGraph.Dispose();
-                        thumbBitmap.Dispose();
-                        image.Dispose();
-                        docfiles.Add(UploadURL + string.Format("{0}x{1}", Width, Height) + newName + postedFile.FileName);
+                        var targetWidth = ClampImageSize(Width.Value);
+                        var targetHeight = ClampImageSize(Height.Value);
+                        var sizePrefix = string.Format("{0}x{1}", targetWidth, targetHeight);
+                        var resizeFilePath = Path.Combine(HttpContext.Current.Server.MapPath(RelativePath), sizePrefix + newName + postedFile.FileName);
+                        SaveResizedJpeg(filePath, resizeFilePath, targetWidth, targetHeight);
+                        docfiles.Add(UploadURL + sizePrefix + newName + postedFile.FileName);
                     }
                     else
                     {
@@ -361,6 +362,41 @@ namespace API.Controllers
             }
         }
 
+        // The upload root holds a web.config that blocks script execution; a CMS user must not be able to delete, move,
+        // rename, overwrite or download it. Throwing FileSystemException makes the command processor return its normal
+        // failure result (success=false + errorText) to the file manager client.
+        sealed class GuardedFileSystemProvider : PhysicalFileSystemProvider
+        {
+            public GuardedFileSystemProvider(string rootDirectoryPath, Action<FileSystemInfo, FileSystemItem> prepareFileSystemItemCallback)
+                : base(rootDirectoryPath, prepareFileSystemItemCallback) { }
+
+            static bool IsProtectedName(string value)
+            {
+                if (string.IsNullOrEmpty(value)) return false;
+                var name = value.Substring(value.LastIndexOfAny(new[] { '/', '\\' }) + 1).Trim();
+                return name.Equals("web.config", StringComparison.OrdinalIgnoreCase);
+            }
+
+            static void Guard(FileSystemItemInfo item)
+            {
+                if (item != null && (IsProtectedName(item.Name) || IsProtectedName(item.Path) || IsProtectedName(item.Key)))
+                    throw new FileSystemException(FileSystemErrorCode.NoAccess, "This file is protected.");
+            }
+
+            static void Guard(string name)
+            {
+                if (IsProtectedName(name)) throw new FileSystemException(FileSystemErrorCode.NoAccess, "This file is protected.");
+            }
+
+            public override void RenameItem(FileSystemRenameItemOptions options) { Guard(options.Item); Guard(options.ItemNewName); base.RenameItem(options); }
+            public override void MoveItem(FileSystemMoveItemOptions options) { Guard(options.Item); base.MoveItem(options); }
+            public override void CopyItem(FileSystemCopyItemOptions options) { Guard(options.Item); base.CopyItem(options); }
+            public override void DeleteItem(FileSystemDeleteItemOptions options) { Guard(options.Item); base.DeleteItem(options); }
+            public override void UploadFile(FileSystemUploadFileOptions options) { Guard(options.FileName); base.UploadFile(options); }
+            public override void CreateDirectory(FileSystemCreateDirectoryOptions options) { Guard(options.DirectoryName); base.CreateDirectory(options); }
+            public override Stream GetFileContent(FileSystemLoadFileContentOptions options) { Guard(options.File); return base.GetFileContent(options); }
+        }
+
         [AcceptVerbs("GET", "POST")]
         public object FileSystem()
         {
@@ -380,7 +416,7 @@ namespace API.Controllers
             var config = new FileSystemConfiguration
             {
                 Request = request,
-                FileSystemProvider = new PhysicalFileSystemProvider(
+                FileSystemProvider = new GuardedFileSystemProvider(
                     HttpContext.Current.Server.MapPath(RelativePath),
                     (fileSystemItem, clientItem) =>
                     {

@@ -3,11 +3,8 @@ using API.Services;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
 using HtmlAgilityPack;
-using iTextSharp.text.pdf;
-using iTextSharp.text.pdf.parser;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
-using Org.BouncyCastle.Crypto;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,7 +18,6 @@ using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 using System.Net.Mail;
-using System.Security;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
@@ -31,7 +27,6 @@ using System.Web.Caching;
 using System.Web.Hosting;
 using System.Web.Http;
 using System.Web.Http.ModelBinding;
-using System.Windows.Media;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -41,7 +36,6 @@ namespace API.Controllers
     [Route("api/Public/{action}", Name = "PublicApi")]
     public class PublicController : ApiController
     {
-        static readonly string RelativePath = System.IO.Path.Combine("~/Upload");
         private readonly string QueryByChuyenMucHienThiThem = "EXISTS (SELECT 1 FROM {0} nt WHERE (',' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ChuyenMucHienThiThem, '[', ''), ']', ''),' ',''),CHAR(13),''),CHAR(9),''),CHAR(10),'') + ',') LIKE '%,' + CAST(nt.ID AS NVARCHAR(max)) + ',%')";
         private CongTTDT_MOHAEntities _context = new CongTTDT_MOHAEntities();
 
@@ -171,6 +165,8 @@ namespace API.Controllers
         [HttpGet]
         public HttpResponseMessage MetadataPage(string path)
         {
+            // Tolerate a trailing slash (/tin-tuc/ == /tin-tuc).
+            if (path != null && path.Length > 1) { path = path.TrimEnd('/'); if (path.Length == 0) path = "/"; }
             var pages = new Dictionary<string, PublicHeadRecord>(StringComparer.Ordinal) {
                 { "/", new PublicHeadRecord { Title = "Cổng thông tin điện tử Bộ Nội vụ", Description = "Tin tức, hoạt động, văn bản và thông tin phục vụ người dân, doanh nghiệp của Bộ Nội vụ.", AllowAssignedDate = true } },
                 { "/tin-tuc", new PublicHeadRecord { Title = "Tin Nội vụ", Description = "Tin tức và hoạt động của Bộ Nội vụ, thông tin về chính sách và các lĩnh vực quản lý nhà nước của Bộ.", AllowAssignedDate = true } },
@@ -199,7 +195,7 @@ namespace API.Controllers
             var match = Regex.Match(path ?? "", @"^(?:/(?:bo-truong|nghi-quyet-tw4))?/(?<kind>tin-tuc|chuyen-muc|van-ban/du-thao|van-ban|photo|video|audio|thong-bao|nghien-cuu-khoa-hoc|gioi-thieu/(?:chuc-nang-nhiem-vu|lich-su-bo|lanh-dao-bo|co-cau-to-chuc))/[a-z0-9-]*---(?<idk>id|oid|qpid|cdid|tbid)(?<num>[0-9]+)$", RegexOptions.CultureInvariant);
             int id;
             if (!match.Success || !int.TryParse(match.Groups["num"].Value, out id) || id <= 0)
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid metadata path.");
+                return PlainSpaShell();
             var kind = match.Groups["kind"].Value;
             if (kind.StartsWith("gioi-thieu/", StringComparison.Ordinal)) kind = "tin-tuc"; // trang gioi thieu la bai viet (TinTuc)
             var idKind = match.Groups["idk"].Value;
@@ -221,8 +217,8 @@ namespace API.Controllers
                 } else if (kind == "nghien-cuu-khoa-hoc" && idKind == "oid") {
                     var suffix = "|##|" + oldId;
                     id = _context.NghienCuuKhoaHocs.Where(x => x.Migrate_Source != null && x.Migrate_Source.EndsWith(suffix)).Select(x => x.ID).FirstOrDefault();
-                } else return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Unsupported legacy path.");
-                if (id <= 0) return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Public content not found.");
+                } else return PlainSpaShell();
+                if (id <= 0) return PlainSpaShell();
             }
             PublicHeadRecord data = null;
             switch (kind) {
@@ -236,8 +232,19 @@ namespace API.Controllers
                 case "thong-bao": data = _context.ThongBaos.Where(x => x.ID == id).Select(x => new PublicHeadRecord { Title = x.TieuDe, Description = x.NoiDung, Creator = x.DonViBanHanh, Publisher = x.DonViBanHanh, Date = x.NgayDang }).FirstOrDefault(); break;
                 case "nghien-cuu-khoa-hoc": data = _context.NghienCuuKhoaHocs.Where(x => x.ID == id).Select(x => new PublicHeadRecord { Title = x.TenDeTai, Description = x.MoTa, Creator = x.DonViChuTri, Date = x.NgayTao }).FirstOrDefault(); break;
             }
-            if (data == null || string.IsNullOrWhiteSpace(data.Title)) return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Public content not found.");
+            if (data == null || string.IsNullOrWhiteSpace(data.Title)) return PlainSpaShell();
             return RenderMetadataPage(path, data);
+        }
+
+        // Unmodified SPA shell for paths without public metadata: the React app renders its own 404/page.
+        private HttpResponseMessage PlainSpaShell()
+        {
+            var templatePath = HostingEnvironment.MapPath("~/App_Data/portal-index.html");
+            if (string.IsNullOrEmpty(templatePath) || !System.IO.File.Exists(templatePath)) return Request.CreateErrorResponse(HttpStatusCode.ServiceUnavailable, "Portal template unavailable.");
+            var response = new HttpResponseMessage(HttpStatusCode.OK);
+            response.Content = new StringContent(System.IO.File.ReadAllText(templatePath, Encoding.UTF8), Encoding.UTF8, "text/html");
+            response.Headers.CacheControl = new CacheControlHeaderValue { NoCache = true, Private = true };
+            return response;
         }
 
         private HttpResponseMessage RenderMetadataPage(string path, PublicHeadRecord data)
@@ -285,108 +292,6 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.OK, new { data = new object[0], totalCount = 0, reason = "language_unavailable" });
         }
 
-        [NonAction]
-        public string ReadPdfFile(string fileName)
-        {
-            StringBuilder text = new StringBuilder();
-
-            if (System.IO.File.Exists(fileName))
-            {
-                PdfReader pdfReader = new PdfReader(fileName);
-
-                for (int page = 1; page <= pdfReader.NumberOfPages; page++)
-                {
-                    ITextExtractionStrategy strategy = new SimpleTextExtractionStrategy();
-                    string currentText = PdfTextExtractor.GetTextFromPage(pdfReader, page, strategy);
-
-                    currentText = Encoding.UTF8.GetString(ASCIIEncoding.Convert(Encoding.Default, Encoding.UTF8, Encoding.Default.GetBytes(currentText)));
-                    text.Append(currentText);
-                }
-                pdfReader.Close();
-            }
-            return text.ToString();
-        }
-
-        private static void InsertSoapEnvelopeIntoWebRequest(XmlDocument soapEnvelopeXml, HttpWebRequest webRequest)
-        {
-            using (Stream stream = webRequest.GetRequestStream())
-            {
-                soapEnvelopeXml.Save(stream);
-            }
-        }
-        public static string StripHTML(string input)
-        {
-            return Regex.Replace(input, "<.*?>", String.Empty);
-        }
-        public static string GenerateTTSMp3(string vanban)
-        {
-            vanban = StripHTML(vanban);
-            var _url = "http://tts.net/Service.asmx";
-            try
-            {
-                XmlDocument soapEnvelopeXml = new XmlDocument();
-                soapEnvelopeXml.LoadXml(
-                    @"<?xml version=""1.0"" encoding=""utf-8""?>
-                    <soap:Envelope 
-                        xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"" 
-                        xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" 
-                        xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
-                        <soap:Body>
-                            <Demo4InputText xmlns=""http://tempuri.org/"">
-                                <vanban>" + SecurityElement.Escape(vanban) + @"</vanban>
-                            </Demo4InputText>
-                        </soap:Body>
-                    </soap:Envelope>");
-                    HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(_url);
-                    webRequest.Headers.Add("SOAP:Action");
-                    webRequest.ContentType = "text/xml;charset=\"utf-8\"";
-                    webRequest.Accept = "text/xml";
-                    webRequest.Method = "POST";
-                    InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
-
-                    IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
-
-                    asyncResult.AsyncWaitHandle.WaitOne();
-
-                    string soapResult;
-                    using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
-                    {
-                        using (StreamReader rd = new StreamReader(webResponse.GetResponseStream()))
-                        {
-                            soapResult = rd.ReadToEnd();
-                            XmlDocument soapDocument = new XmlDocument();
-                            soapDocument.LoadXml(soapResult);
-                            XmlNamespaceManager namespaceManager = new XmlNamespaceManager(soapDocument.NameTable);
-                            namespaceManager.AddNamespace("soap", "http://schemas.xmlsoap.org/soap/envelope/");
-                            namespaceManager.AddNamespace("tempuri", "http://tempuri.org/");
-
-                            XmlNode resultNode = soapDocument.SelectSingleNode("//tempuri:Demo4InputTextResult", namespaceManager);
-
-                            string resultValue = resultNode.InnerText;
-                            return resultValue;
-                        }
-                    }
-
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        static string RemoveAllHtml(string html)
-        {
-            // Load the HTML document
-            HtmlDocument doc = new HtmlDocument();
-            doc.LoadHtml(html);
-
-            // Remove all HTML content
-            doc.DocumentNode.RemoveAll();
-
-            // Get the text content without HTML
-            return doc.DocumentNode.InnerText;
-        }
-
         [HttpGet]
         public async Task<HttpResponseMessage> lang(string lang)
         {
@@ -397,7 +302,14 @@ namespace API.Controllers
             } else {
                 lan = "i18nVietnamese";
             }
-            var data = _context.CauHinhs.Where(x => x.Ma == lan).Select(x => x.GiaTri).FirstOrDefault();
+            var cacheKey = "pub:lang:" + lan;
+            var data = HttpRuntime.Cache[cacheKey] as string;
+            if (data == null)
+            {
+                data = _context.CauHinhs.Where(x => x.Ma == lan).Select(x => x.GiaTri).FirstOrDefault();
+                // Chi cache ket qua thanh cong (co du lieu), 60 giay.
+                if (data != null) HttpRuntime.Cache.Insert(cacheKey, data, null, DateTime.UtcNow.AddSeconds(60), System.Web.Caching.Cache.NoSlidingExpiration);
+            }
             var response = Request.CreateResponse(HttpStatusCode.OK);
             response.Content = new StringContent(data ?? "{}", Encoding.UTF8, "application/json");
             return response;
@@ -466,32 +378,6 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<HttpResponseMessage> TTS(int ID)
-        {
-            var tintuc = _context.TinTucs.FirstOrDefault(x => x.ID == ID && x.TrangThai == "public");
-            if (tintuc == null) return Request.CreateResponse(HttpStatusCode.NotFound);
-            var filePath = System.IO.Path.Combine(HttpContext.Current.Server.MapPath("~/tts"), "newmp3files", ID + ".mp3");
-            if (System.IO.File.Exists(filePath))
-            {
-                HttpResponseMessage response = new HttpResponseMessage(HttpStatusCode.OK);
-                response.Content = new StreamContent(new FileStream(filePath, FileMode.Open));
-                response.Content.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment");
-                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("audio/mpeg");
-                return response;
-            };
-            string ret = GenerateTTSMp3(tintuc.TieuDe + " " + tintuc.MoTa + " " + tintuc.NoiDung);
-
-            byte[] data = Convert.FromBase64String(ret);
-            System.IO.File.WriteAllBytes(filePath, data);
-
-            FileStream filestream = new FileStream(filePath, FileMode.Open);
-            HttpResponseMessage response2 = new HttpResponseMessage(HttpStatusCode.OK);
-            response2.Content = new StreamContent(filestream);
-            response2.Content.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment");
-            response2.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("audio/mpeg");
-            return response2;
-        }
-        [HttpGet]
         public HttpResponseMessage Proxy(string url)
         {
             return Request.CreateResponse(HttpStatusCode.Gone, new { Message = "Endpoint disabled." });
@@ -504,30 +390,10 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<HttpResponseMessage> SearchPdf(string keyword, DataSourceLoadOptions loadOptions)
-        {
-            var resizeFilePath = HttpContext.Current.Server.MapPath(RelativePath);
-
-            List<dynamic> searchFileRets = new List<dynamic>();
-
-            string[] filePaths = Directory.GetFiles(resizeFilePath, "*.pdf", SearchOption.TopDirectoryOnly);
-            foreach (string aFile in filePaths)
-            {
-                string text = ReadPdfFile(aFile);
-                string filename = System.IO.Path.GetFileName(aFile);
-                int index = text.IndexOf(keyword, 0, StringComparison.CurrentCultureIgnoreCase);
-                if (index >= 0)
-                {
-                    searchFileRets.Add(new { AnhDaiDienUrl = "", TenAnhDaiDien = "", FileUrl = RelativePath + "/" + filename, TieuDe = text, Mota = text });
-                }
-            }
-            return Request.CreateResponse(HttpStatusCode.OK, new { searchFileRets });
-        }
-
-        [HttpGet]
         public async Task<HttpResponseMessage> Search(string keyword, string lang, DataSourceLoadOptions loadOptions)
         {
             if (IsEnglishLanguage(lang)) return EnglishNewsUnavailable();
+            if (string.IsNullOrWhiteSpace(keyword)) return Request.CreateResponse(HttpStatusCode.OK, new { data = new object[0], totalCount = 0 });
             int lan = 10;//chuyen muc: Tin tuc - su kien
             if (lang == "en")
             {
@@ -579,7 +445,11 @@ namespace API.Controllers
                 lan = 2745;
             }
             DataSourceLoadOptions loadOptions = new DataSourceLoadOptions();
-            var banners = _context.CollectionFromSql(@"
+            var cacheKey = "pub:Menu:" + lan;
+            var banners = HttpRuntime.Cache[cacheKey] as List<dynamic>;
+            if (banners == null)
+            {
+            banners = _context.CollectionFromSql(@"
             WITH cte AS 
             (
 		            SELECT m.*, 0 AS Level
@@ -594,13 +464,20 @@ namespace API.Controllers
             SELECT * FROM cte where HienThi = 1 order by STT asc
             ",
             new Dictionary<string, object> { { "@IDRoot", lan } }).ToList();
+                // Du lieu thuan (ExpandoObject), cache 60 giay.
+                HttpRuntime.Cache.Insert(cacheKey, banners, null, DateTime.UtcNow.AddSeconds(60), System.Web.Caching.Cache.NoSlidingExpiration);
+            }
 
             return Request.CreateResponse(DataSourceLoader.Load(banners, loadOptions));
         }
         [HttpGet]
         public async Task<HttpResponseMessage> BannerByViTri(int ID_ViTri)
         {
-            var data = _context.CollectionFromSql(@"
+            var cacheKey = "pub:BannerByViTri:" + ID_ViTri;
+            var data = HttpRuntime.Cache[cacheKey] as List<dynamic>;
+            if (data == null)
+            {
+                data = _context.CollectionFromSql(@"
                 select b.*, f.Ten as AnhBanner, f.LinkLuuTru as AnhBannerUrl 
                 from Banner b
                 join Banner_ViTri bv on bv.ID_Banner = b.ID
@@ -608,7 +485,9 @@ namespace API.Controllers
                 where bv.ID_ViTri = @ID_ViTri
                 order by bv.ThuTu asc
             ",
-            new Dictionary<string, object> { { "@ID_ViTri", ID_ViTri } }).ToList();
+                new Dictionary<string, object> { { "@ID_ViTri", ID_ViTri } }).ToList();
+                HttpRuntime.Cache.Insert(cacheKey, data, null, DateTime.UtcNow.AddSeconds(60), System.Web.Caching.Cache.NoSlidingExpiration);
+            }
             return Request.CreateResponse(HttpStatusCode.OK, new { data });
         }
 
@@ -677,6 +556,180 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.OK, new { data });
         }
 
+        // ---- Phan trang/loc/sap xep ngay trong SQL cho cac danh sach lon (VanBan, VanBanDuThao, VanBanByLopVanBan, PostsByCategory) ----
+        // Chi ho tro cac tuy chon DevExtreme ma portal gui (filter, sort, skip, take, requireTotalCount); ten cot duoc kiem tra theo
+        // danh sach cho phep va moi gia tri di qua tham so SQL (khong noi chuoi).
+        private const int PublicListMaxTake = 1000;
+
+        private static readonly string[] VanBanBaseColumns = {
+            "ID", "SoKyHieu", "NgayBanHanh", "ID_HinhThucVanBan", "IDs_LinhVuc", "IDs_LopVanBan", "IDs_CoQuanBanHanh", "TrichYeu", "NguoiKy",
+            "NgayCoHieuLuc", "NgayHetHan", "VanBanLienQuan", "FileDinhKem", "TrangThai", "Lang", "VanBanConHieuLuc", "GhiChu",
+            "NgayHetHieuLuc1Phan", "VanBanBiTacDongHieuLuc1Phan", "ChucDanh", "NgayKyKet", "NgayCongBo", "NgayGiaNhap", "NgayCoHLVietNam",
+            "TinhTrang", "FileGoc", "NgayCapNhat", "NgayXuatBan", "Migrate_Source" };
+        private static readonly string[] VanBanJoinColumns = { "TenHinhThucVanBan", "TenLinhVuc", "TenCoQuanBanHanh", "LinhVucID", "CoQuanBanHanhID", "LopVanBanID" };
+        // Danh sach khong lay cot NoiDung (ntext, rat lon); TrichYeu (ntext) duoc ep sang nvarchar(max) de loc/so sanh duoc.
+        private static readonly string VanBanListInnerSelect =
+            string.Join(", ", VanBanBaseColumns.Select(c => c == "TrichYeu" ? "cast(vb.TrichYeu as nvarchar(max)) as TrichYeu" : "vb." + c))
+            + ", vb.NgayCoHieuLuc as NgayHieuLuc, ht.TenHinhThucVanBan, lv.TenLinhVuc, cq.TenCoQuanBanHanh, vblv.LinhVucID, vbcq.CoQuanBanHanhID, vblvb.LopVanBanID";
+        private static readonly string VanBanListOutputSelect = string.Join(", ", VanBanBaseColumns.Concat(VanBanJoinColumns).Select(c => "d." + c));
+        private static readonly Dictionary<string, char> VanBanListFilterColumns = new Dictionary<string, char>(StringComparer.OrdinalIgnoreCase) {
+            { "ID", 'i' }, { "SoKyHieu", 's' }, { "NgayBanHanh", 'd' }, { "NgayXuatBan", 'd' }, { "ID_HinhThucVanBan", 'i' }, { "TrichYeu", 's' }, { "NguoiKy", 's' },
+            { "NgayHieuLuc", 'd' }, { "NgayCoHieuLuc", 'd' }, { "NgayHetHan", 'd' }, { "TrangThai", 'i' }, { "Lang", 'i' }, { "ChucDanh", 's' }, { "TinhTrang", 'i' },
+            { "VanBanConHieuLuc", 'i' }, { "TenHinhThucVanBan", 's' }, { "TenLinhVuc", 's' }, { "TenCoQuanBanHanh", 's' }, { "LinhVucID", 'i' },
+            { "CoQuanBanHanhID", 'i' }, { "LopVanBanID", 'i' } };
+
+        private const string VanBanDuThaoListInnerSelect =
+            "vb.ID, vb.TieuDe, vb.ID_HinhThucVanBan, cast(vb.TrichYeu as nvarchar(max)) as TrichYeu, vb.NgayBatDauLayYKien, vb.NgayHetHanLayYKien, vb.TrangThai, vb.Lang, vb.Migrate_Source, " +
+            "ht.TenHinhThucVanBan, lv.TenLinhVuc, cq.TenCoQuanBanHanh, vblv.LinhVucID, vbcq.CoQuanID";
+        private const string VanBanDuThaoListOutputSelect =
+            "d.ID, d.TieuDe, d.ID_HinhThucVanBan, d.TrichYeu, d.NgayBatDauLayYKien, d.NgayHetHanLayYKien, d.TrangThai, d.Lang, d.Migrate_Source, " +
+            "d.TenHinhThucVanBan, d.TenLinhVuc, d.TenCoQuanBanHanh, d.LinhVucID, d.CoQuanID";
+        private static readonly Dictionary<string, char> VanBanDuThaoListFilterColumns = new Dictionary<string, char>(StringComparer.OrdinalIgnoreCase) {
+            { "ID", 'i' }, { "TieuDe", 's' }, { "ID_HinhThucVanBan", 'i' }, { "TrichYeu", 's' }, { "NgayBatDauLayYKien", 'd' }, { "NgayHetHanLayYKien", 'd' },
+            { "TrangThai", 'i' }, { "Lang", 'i' }, { "TenHinhThucVanBan", 's' }, { "TenLinhVuc", 's' }, { "TenCoQuanBanHanh", 's' }, { "LinhVucID", 'i' }, { "CoQuanID", 'i' } };
+
+        private const string PostListOutputSelect = "d.ID, d.TieuDe, d.MoTa, d.NgayXuatBan, d.NoiBat, d.TenAnhDaiDien, d.AnhDaiDienUrl";
+        private static readonly Dictionary<string, char> PostListFilterColumns = new Dictionary<string, char>(StringComparer.OrdinalIgnoreCase) {
+            { "ID", 'i' }, { "TieuDe", 's' }, { "MoTa", 's' }, { "NgayXuatBan", 'd' }, { "NoiBat", 'i' }, { "TenAnhDaiDien", 's' }, { "AnhDaiDienUrl", 's' } };
+
+        private static object UnwrapFilterToken(object value)
+        {
+            var token = value as Newtonsoft.Json.Linq.JValue;
+            return token != null ? token.Value : value;
+        }
+
+        private static IList FilterList(object value)
+        {
+            value = UnwrapFilterToken(value);
+            if (value == null || value is string) return null;
+            var array = value as Newtonsoft.Json.Linq.JArray;
+            if (array != null)
+            {
+                var items = new List<object>();
+                foreach (var token in array) items.Add(UnwrapFilterToken(token));
+                return items;
+            }
+            return value as IList;
+        }
+
+        private static string BuildFilterSql(object node, Dictionary<string, object> parameters, IDictionary<string, char> columns, int[] counter)
+        {
+            var list = FilterList(node);
+            if (list == null || list.Count == 0 || list.Count > 50 || ++counter[0] > 100) throw new ArgumentException("Invalid filter.");
+            var firstText = UnwrapFilterToken(list[0]) as string;
+            if (firstText != null)
+            {
+                if (list.Count == 2 && (firstText == "!" || firstText.Equals("not", StringComparison.OrdinalIgnoreCase)))
+                    return "(not " + BuildFilterSql(list[1], parameters, columns, counter) + ")";
+                if (list.Count == 3) return BuildFilterCondition(firstText, Convert.ToString(UnwrapFilterToken(list[1]), CultureInfo.InvariantCulture), UnwrapFilterToken(list[2]), parameters, columns);
+                if (list.Count == 2) return BuildFilterCondition(firstText, "=", UnwrapFilterToken(list[1]), parameters, columns);
+                throw new ArgumentException("Invalid filter.");
+            }
+            var sql = new StringBuilder("(");
+            var expectNode = true;
+            foreach (var raw in list)
+            {
+                var item = UnwrapFilterToken(raw);
+                if (FilterList(item) != null)
+                {
+                    if (!expectNode) sql.Append(" and ");
+                    sql.Append(BuildFilterSql(item, parameters, columns, counter));
+                    expectNode = false;
+                }
+                else
+                {
+                    var connector = ((item as string) ?? "").Trim().ToLowerInvariant();
+                    if (expectNode || (connector != "and" && connector != "or")) throw new ArgumentException("Invalid filter connector.");
+                    sql.Append(' ').Append(connector).Append(' ');
+                    expectNode = true;
+                }
+            }
+            if (expectNode) throw new ArgumentException("Invalid filter.");
+            return sql.Append(')').ToString();
+        }
+
+        private static string BuildFilterCondition(string field, string op, object value, Dictionary<string, object> parameters, IDictionary<string, char> columns)
+        {
+            string name = null;
+            foreach (var key in columns.Keys) if (string.Equals(key, field, StringComparison.OrdinalIgnoreCase)) { name = key; break; }
+            if (name == null) throw new ArgumentException("Unsupported filter field.");
+            var type = columns[name];
+            var column = "ttttmp1.[" + name + "]";
+            op = (op ?? "").Trim().ToLowerInvariant();
+            if (op == "contains" || op == "notcontains" || op == "startswith" || op == "endswith")
+            {
+                if (type != 's') throw new ArgumentException("Unsupported filter operator.");
+                var text = Convert.ToString(value, CultureInfo.InvariantCulture) ?? "";
+                text = text.Replace("[", "[[]").Replace("%", "[%]").Replace("_", "[_]");
+                var pattern = op == "startswith" ? text + "%" : op == "endswith" ? "%" + text : "%" + text + "%";
+                var pn = "@flt" + parameters.Count;
+                parameters[pn] = pattern;
+                return op == "notcontains" ? "(" + column + " not like " + pn + " or " + column + " is null)" : column + " like " + pn;
+            }
+            if (op != "=" && op != "<>" && op != "<" && op != ">" && op != "<=" && op != ">=") throw new ArgumentException("Unsupported filter operator.");
+            if (value == null)
+            {
+                if (op == "=") return column + " is null";
+                if (op == "<>") return column + " is not null";
+                throw new ArgumentException("Unsupported filter operator.");
+            }
+            object typed;
+            if (type == 'i')
+            {
+                int number;
+                if (!int.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), NumberStyles.Integer, CultureInfo.InvariantCulture, out number)) throw new ArgumentException("Invalid filter value.");
+                typed = number;
+            }
+            else if (type == 'd')
+            {
+                DateTime date;
+                if (value is DateTime) date = (DateTime)value;
+                else if (!DateTime.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), CultureInfo.InvariantCulture, DateTimeStyles.None, out date)) throw new ArgumentException("Invalid filter value.");
+                if (date < new DateTime(1753, 1, 1)) throw new ArgumentException("Invalid filter value.");
+                typed = date;
+            }
+            else typed = Convert.ToString(value, CultureInfo.InvariantCulture);
+            var valueName = "@flt" + parameters.Count;
+            parameters[valueName] = typed;
+            return op == "<>" ? "(" + column + " <> " + valueName + " or " + column + " is null)" : column + " " + op + " " + valueName;
+        }
+
+        // innerSql: SELECT khong ORDER BY/CTE (cot cua no la cot cho phep loc/sap xep); cteSql: tien to "WITH ..." (hoac rong).
+        // distinctById: moi ID chi tra mot dong (sau khi loc), tong so cung dem theo ID khac nhau.
+        private Dictionary<string, object> PagedPublicList(string cteSql, string innerSql, Dictionary<string, object> parameters, DataSourceLoadOptions loadOptions,
+            IDictionary<string, char> columns, string outputSelect, string defaultOrder, bool distinctById)
+        {
+            if (loadOptions.Group != null && loadOptions.Group.Length > 0) throw new ArgumentException("Grouping is not supported.");
+            var where = "";
+            if (loadOptions.Filter != null && loadOptions.Filter.Count > 0)
+                where = " and " + BuildFilterSql(loadOptions.Filter, parameters, columns, new int[1]) + " ";
+            var order = new StringBuilder();
+            if (loadOptions.Sort != null)
+                foreach (var sort in loadOptions.Sort)
+                {
+                    string name = null;
+                    foreach (var key in columns.Keys) if (string.Equals(key, sort.Selector, StringComparison.OrdinalIgnoreCase)) { name = key; break; }
+                    if (name == null) throw new ArgumentException("Unsupported sort field.");
+                    if (order.Length > 0) order.Append(", ");
+                    order.Append("d.[").Append(name).Append(sort.Desc ? "] desc" : "] asc");
+                }
+            order.Append(order.Length > 0 ? ", d.ID desc" : defaultOrder);
+            var skip = Math.Max(loadOptions.Skip, 0);
+            var take = loadOptions.Take > 0 && loadOptions.Take <= PublicListMaxTake ? loadOptions.Take : PublicListMaxTake;
+            var filtered = "select ttttmp1.*" + (distinctById ? ", ROW_NUMBER() over (partition by ttttmp1.ID order by ttttmp1.ID) as DupRank_" : "")
+                + " from (" + innerSql + ") ttttmp1 where 1=1" + where;
+            var pageSql = cteSql + " select " + outputSelect + " from (" + filtered + ") d " + (distinctById ? "where d.DupRank_ = 1 " : "")
+                + "order by " + order + " offset " + skip + " rows fetch next " + take + " rows only";
+            var result = new Dictionary<string, object>();
+            result["data"] = _context.CollectionFromSql(pageSql, parameters).ToList();
+            if (loadOptions.RequireTotalCount)
+            {
+                var countSql = cteSql + " select count(" + (distinctById ? "distinct " : "") + "ttttmp1.ID) as Total from (" + innerSql + ") ttttmp1 where 1=1" + where;
+                result["totalCount"] = Convert.ToInt32(_context.CollectionFromSql(countSql, parameters).Select(x => x.Total).FirstOrDefault());
+            }
+            return result;
+        }
+
         [HttpGet]
         public async Task<HttpResponseMessage> VanBanByLopVanBan(string id, DataSourceLoadOptions loadOptions, int limit = 0, string lang = "")
         {
@@ -685,14 +738,8 @@ namespace API.Controllers
             {
                 lan = 1033;
             }
-            var limitSql = @"";
-            if (limit > 0)
-            {
-                limitSql = @"top " + limit;
-            }
-
-            var banners = _context.CollectionFromSql(@"
-
+            if (limit > 0 && (loadOptions.Take <= 0 || loadOptions.Take > limit)) loadOptions.Take = limit;
+            var cteSql = @"
                 WITH cte AS 
                 (
 	                SELECT lvb.ID, lvb.TenLopVanBan, 0 AS Level
@@ -704,8 +751,9 @@ namespace API.Controllers
 	                SELECT lvb.ID, lvb.TenLopVanBan, Level+1 AS Level
 	                FROM LopVanBan lvb 
                     JOIN cte i ON lvb.LopVanBanCha = i.ID
-                )
-                SELECT "+ limitSql + @" vb.*, ht.TenHinhThucVanBan, lv.TenLinhVuc, cq.TenCoQuanBanHanh, vblv.LinhVucID, vbcq.CoQuanBanHanhID, vblvb.LopVanBanID 
+                )";
+            var innerSql = @"
+                SELECT " + VanBanListInnerSelect + @" 
                 from VanBan vb
                 left join HinhThucVanBan ht on ht.ID = vb.ID_HinhThucVanBan
                 left join VanBan_LopVanBan vblvb on vblvb.VanBanID = vb.ID
@@ -714,11 +762,17 @@ namespace API.Controllers
                 left join LinhVuc lv on lv.ID = vblv.LinhVucID
                 left join VanBan_CoQuanBanHanh vbcq on vbcq.VanBanID = vb.ID
                 left join CoQuanBanHanh cq on cq.ID = vbcq.CoQuanBanHanhID
-                where vblvb.LopVanBanID in (select ID from cte) and vb.lang=@lang and vb.TrangThai=1
-                order by vb.NgayBanHanh desc;
-            ",
-            new Dictionary<string, object> { { "@id", id }, { "@lang", lan } }).ToList();
-            return Request.CreateResponse(DataSourceLoader.Load(banners, loadOptions));
+                where vblvb.LopVanBanID in (select ID from cte) and vb.lang=@lang and vb.TrangThai=1";
+            try
+            {
+                var result = PagedPublicList(cteSql, innerSql, new Dictionary<string, object> { { "@id", id }, { "@lang", lan } }, loadOptions,
+                    VanBanListFilterColumns, VanBanListOutputSelect, "d.NgayBanHanh desc, d.ID desc", true);
+                return Request.CreateResponse(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+            }
         }
         [HttpGet]
         public async Task<HttpResponseMessage> VanBan(string lang, DataSourceLoadOptions loadOptions)
@@ -728,8 +782,8 @@ namespace API.Controllers
             {
                 lan = 1033;
             }
-            var data = _context.CollectionFromSql(@"
-                select vb.*, ht.TenHinhThucVanBan, lv.TenLinhVuc, cq.TenCoQuanBanHanh, vblv.LinhVucID, vbcq.CoQuanBanHanhID, vblvb.LopVanBanID 
+            var innerSql = @"
+                select " + VanBanListInnerSelect + @" 
                 from VanBan vb
                 left join HinhThucVanBan ht on ht.ID = vb.ID_HinhThucVanBan
                 left join VanBan_LopVanBan vblvb on vblvb.VanBanID = vb.ID
@@ -738,12 +792,17 @@ namespace API.Controllers
                 left join LinhVuc lv on lv.ID = vblv.LinhVucID
                 left join VanBan_CoQuanBanHanh vbcq on vbcq.VanBanID = vb.ID
                 left join CoQuanBanHanh cq on cq.ID = vbcq.CoQuanBanHanhID
-                where vb.Lang = @lang and vb.TrangThai=1
-                order by vb.ID desc
-            ",
-            new Dictionary<string, object> { { "lang", lan } }).ToList();
-
-            return Request.CreateResponse(DataSourceLoader.Load(data, loadOptions));
+                where vb.Lang = @lang and vb.TrangThai=1";
+            try
+            {
+                var result = PagedPublicList("", innerSql, new Dictionary<string, object> { { "@lang", lan } }, loadOptions,
+                    VanBanListFilterColumns, VanBanListOutputSelect, "d.ID desc", true);
+                return Request.CreateResponse(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+            }
         }
         [HttpGet]
         public async Task<HttpResponseMessage> VanBanDuThao(string lang, DataSourceLoadOptions loadOptions)
@@ -753,20 +812,25 @@ namespace API.Controllers
             {
                 lan = 1033;
             }
-            var data = _context.CollectionFromSql(@"
-                select vb.*, ht.TenHinhThucVanBan, lv.TenLinhVuc, cq.TenCoQuanBanHanh, vblv.LinhVucID, vbcq.CoQuanID
+            var innerSql = @"
+                select " + VanBanDuThaoListInnerSelect + @"
                 from VanBanDuThao vb
                 left join HinhThucVanBan ht on ht.ID = vb.ID_HinhThucVanBan
                 left join VanBanDuThao_LinhVucs vblv on vblv.VanBanDuThaoID = vb.ID
                 left join LinhVuc lv on lv.ID = vblv.LinhVucID
                 left join VanBanDuThao_CoQuanBanHanhs vbcq on vbcq.VanBanDuThaoID = vb.ID
                 left join CoQuanBanHanh cq on cq.ID = vbcq.CoQuanID
-                where vb.Lang = @lang and vb.TrangThai=1
-                order by vb.ID desc
-            ",
-            new Dictionary<string, object> { { "lang", lan } }).ToList();
-
-            return Request.CreateResponse(DataSourceLoader.Load(data, loadOptions));
+                where vb.Lang = @lang and vb.TrangThai=1";
+            try
+            {
+                var result = PagedPublicList("", innerSql, new Dictionary<string, object> { { "@lang", lan } }, loadOptions,
+                    VanBanDuThaoListFilterColumns, VanBanDuThaoListOutputSelect, "d.ID desc", true);
+                return Request.CreateResponse(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+            }
         }
         [HttpGet]
         public async Task<HttpResponseMessage> LopVanBan(DataSourceLoadOptions loadOptions)
@@ -792,7 +856,7 @@ namespace API.Controllers
                 .Include(s => s.VanBan_CoQuanBanHanh.Select(x => x.CoQuanBanHanh))
                 .Include(s => s.VanBan_Files.Select(x => x.File))
                 .Include(s => s.VanBan_LinhVuc.Select(x => x.LinhVuc))
-                .Where(x => x.ID == ID).FirstOrDefault();
+                .Where(x => x.ID == ID && x.TrangThai == 1).FirstOrDefault();
             return Request.CreateResponse(HttpStatusCode.OK, new { data });
         }
         [HttpGet]
@@ -835,7 +899,7 @@ namespace API.Controllers
                 .Include(s => s.VanBanDuThao_CoQuanBanHanhs.Select(x => x.CoQuanBanHanh))
                 .Include(s => s.VanBanDuThao_Files.Select(x => x.File))
                 .Include(s => s.VanBanDuThao_LinhVucs.Select(x => x.LinhVuc))
-                .Where(x => x.ID == ID).FirstOrDefault();
+                .Where(x => x.ID == ID && x.TrangThai == 1).FirstOrDefault();
 
             return Request.CreateResponse(HttpStatusCode.OK, new { data });
         }
@@ -1187,11 +1251,11 @@ namespace API.Controllers
 
             var chuyenmuc = _context.ChuyenMucs.Find(ID);
             string exIdsStr = "";
-            if (exId.Length > 0)
+            if (exId != null && exId.Length > 0)
             {
                 exIdsStr = string.Format("and t.ID not in ({0})", string.Join(", ", exId));
             }
-            string sql = string.Format(@"
+            var cteSql = string.Format(@"
                 WITH cte AS 
                 (
 	                SELECT c.ID, c.TenChuyenMuc, 0 AS Level
@@ -1202,20 +1266,24 @@ namespace API.Controllers
 
 	                SELECT c.ID, c.TenChuyenMuc, Level+1 AS Level
 	                FROM ChuyenMuc c JOIN cte i ON c.ChuyenMucCha = i.ID AND c.IsVisible=1 
-                )
-
+                )", ID);
+            var innerSql = @"
                 select t.ID, t.TieuDe, t.MoTa, t.NgayXuatBan, t.NoiBat, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl 
                 from TinTuc t 
                 left join Files f on t.AnhDaiDien = f.ID
-                where (t.IDChuyenMuc in (SELECT Id FROM cte)  or " + string.Format(QueryByChuyenMucHienThiThem,"cte") + @")
+                where (t.IDChuyenMuc in (SELECT Id FROM cte)  or " + string.Format(QueryByChuyenMucHienThiThem, "cte") + @")
                 and t.TrangThai = 'public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
-                {1}
-                ORDER BY NgayXuatBan desc
-            ", ID, exIdsStr);
+                " + exIdsStr;
 
-            var topposts = _context.CollectionFromSql(sql, new Dictionary<string, object> { }).ToList();
-
-            return Request.CreateResponse(DataSourceLoader.Load(topposts, loadOptions));
+            try
+            {
+                var result = PagedPublicList(cteSql, innerSql, new Dictionary<string, object>(), loadOptions, PostListFilterColumns, PostListOutputSelect, "d.NgayXuatBan desc, d.ID desc", false);
+                return Request.CreateResponse(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+            }
         }
 
         private HttpResponseMessage PostsByCategoryByOldId(string oldID, [FromUri] int[] exId, DataSourceLoadOptions loadOptions)
@@ -1237,12 +1305,19 @@ namespace API.Controllers
             ",
             new Dictionary<string, object> { { "@IDMenuCha", menu.ID } }).ToList();
 
+            // Mot truy van cho tat ca menu con (thay vi mot truy van moi menu), nhom lai trong bo nho.
+            var subchildsAll = new List<dynamic>();
+            if (childs.Count > 0)
+            {
+                var childIds = string.Join(",", childs.Select(c => Convert.ToInt32(c.ID).ToString(CultureInfo.InvariantCulture)));
+                subchildsAll = _context.CollectionFromSql(@"
+                    select * from Menu_FrontEnd where IDMenuCha in (" + childIds + @") and HienThi = 1 ORDER BY STT asc
+                ", new Dictionary<string, object> { }).ToList();
+            }
             foreach (var child in childs)
             {
-                var subchilds = _context.CollectionFromSql(@"
-                    select * from Menu_FrontEnd where IDMenuCha = @IDMenuCha and HienThi = 1 ORDER BY STT asc
-                ",
-                new Dictionary<string, object> { { "@IDMenuCha", child.ID } }).ToList();
+                int childId = Convert.ToInt32(child.ID);
+                var subchilds = subchildsAll.Where(x => x.IDMenuCha != null && Convert.ToInt32(x.IDMenuCha) == childId).ToList();
                 child.SubChilds = subchilds;
             }
             return Request.CreateResponse(HttpStatusCode.OK, new { data = menu, childs });
@@ -1328,18 +1403,37 @@ namespace API.Controllers
 
             var subCates = _context.CollectionFromSql(sql, new Dictionary<string, object> { { "@ID", ID } }).ToList();
 
-            foreach(var cate in subCates)
+            // Mot truy van lay bai moi nhat cua tung chuyen muc con (thay vi mot truy van moi chuyen muc).
+            var topByCate = new Dictionary<int, dynamic>();
+            if (subCates.Count > 0)
             {
-                string sqlPosts = string.Format(@"
-                    select top 1 t.ID, t.TieuDe, t.MoTa, t.NgayXuatBan, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl 
-                    from TinTuc t 
-                    left join Files f on t.AnhDaiDien = f.ID
-                    where t.IDChuyenMuc = @IDChuyenMuc 
-                    and t.TrangThai = 'public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
-                    ORDER BY NgayXuatBan desc
-                ");
-                var topposts = _context.CollectionFromSql(sqlPosts, new Dictionary<string, object> { { "@IDChuyenMuc", cate.ID } }).FirstOrDefault();
-                cate.TopPost = topposts;
+                var cateIds = string.Join(",", subCates.Select(c => Convert.ToInt32(c.ID).ToString(CultureInfo.InvariantCulture)));
+                var ranked = _context.CollectionFromSql(@"
+                    select * from (
+                        select t.ID, t.TieuDe, t.MoTa, t.NgayXuatBan, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl,
+                               t.IDChuyenMuc as RankCateID_, ROW_NUMBER() over (partition by t.IDChuyenMuc order by t.NgayXuatBan desc) as RankRn_
+                        from TinTuc t 
+                        left join Files f on t.AnhDaiDien = f.ID
+                        where t.IDChuyenMuc in (" + cateIds + @")
+                        and t.TrangThai = 'public' and t.NgonNgu='vi' and t.NgayXuatBan >= '2021-01-01 00:00:00.001'
+                    ) ranked where RankRn_ = 1
+                ", new Dictionary<string, object> { }).ToList();
+                foreach (var row in ranked)
+                {
+                    var source = (IDictionary<string, object>)row;
+                    var post = new System.Dynamic.ExpandoObject() as IDictionary<string, object>;
+                    foreach (var kv in source)
+                    {
+                        if (kv.Key == "RankCateID_" || kv.Key == "RankRn_") continue;
+                        post.Add(kv.Key, kv.Value);
+                    }
+                    topByCate[Convert.ToInt32(source["RankCateID_"])] = post;
+                }
+            }
+            foreach (var cate in subCates)
+            {
+                dynamic topposts;
+                cate.TopPost = topByCate.TryGetValue(Convert.ToInt32(cate.ID), out topposts) ? topposts : null;
             }
 
             return Request.CreateResponse(HttpStatusCode.OK, new { subCates });
@@ -1352,7 +1446,7 @@ namespace API.Controllers
                 select t.ID, t.TieuDe, t.MoTa, t.ThoiGianXuatBan, f.Ten as TenAnh, f.LinkLuuTru as UrlAnh 
                 from ABL_AlbumAnh t 
                 left join Files f on t.AnhDaiDien = f.ID
-                and t.TrangThai = '1'
+                where t.TrangThai = '1'
                 ORDER BY ThoiGianXuatBan desc
             ");
 
@@ -1364,10 +1458,11 @@ namespace API.Controllers
         [HttpGet]
         public async Task<HttpResponseMessage> PhotoAlbumInfo(string ID)
         {
-            int id = Convert.ToInt32(ID);
+            int id;
+            if (!int.TryParse(ID, out id)) return Request.CreateResponse(HttpStatusCode.OK, (ABL_AlbumAnh)null);
             var data = _context.ABL_AlbumAnh
                 .Include(s => s.AlbumAnh_Files.Select(i => i.File))
-                .Where(x => x.ID == id).FirstOrDefault();
+                .Where(x => x.ID == id && x.TrangThai == "1").FirstOrDefault();
 
             return Request.CreateResponse(HttpStatusCode.OK, data);
         }
@@ -1379,7 +1474,7 @@ namespace API.Controllers
                 select t.ID, t.TieuDe, t.MoTa, t.ThoiGianXuatBan, f.Ten as TenAnh, f.LinkLuuTru as UrlAnh 
                 from ABL_AlbumVideo t 
                 left join Files f on t.AnhDaiDien = f.ID
-                and t.TrangThai = '1'
+                where t.TrangThai = '1'
                 ORDER BY ThoiGianXuatBan desc
             ");
 
@@ -1395,8 +1490,7 @@ namespace API.Controllers
                 select top 1 t.ID, t.TieuDe, t.MoTa, t.ThoiGianXuatBan, f.Ten as TenAnh, f.LinkLuuTru as UrlAnh 
                 from ABL_AlbumVideo t 
                 left join Files f on t.AnhDaiDien = f.ID
-                and t.TrangThai = '1'
-                WHERE IDChuyenMucAlbumVideo = @IDChuyenMuc
+                WHERE t.TrangThai = '1' and IDChuyenMucAlbumVideo = @IDChuyenMuc
                 ORDER BY ThoiGianXuatBan desc
             ");
 
@@ -1412,8 +1506,7 @@ namespace API.Controllers
                 select top 1 t.ID, t.TieuDe, t.MoTa, t.ThoiGianXuatBan, f.Ten as TenAnh, f.LinkLuuTru as UrlAnh 
                 from ABL_AlbumAnh t 
                 left join Files f on t.AnhDaiDien = f.ID
-                and t.TrangThai = '1'
-                WHERE IDChuyenMucAlbumAnh = @IDChuyenMuc
+                WHERE t.TrangThai = '1' and IDChuyenMucAlbumAnh = @IDChuyenMuc
                 ORDER BY ThoiGianXuatBan desc
             ");
 
@@ -1429,8 +1522,7 @@ namespace API.Controllers
                 select top 1 t.ID, t.TieuDe, t.MoTa, t.ThoiGianXuatBan, f.Ten as TenAnh, f.LinkLuuTru as UrlAnh 
                 from ABL_AlbumAudio t 
                 left join Files f on t.AnhDaiDien = f.ID
-                and t.TrangThai = '1'
-                WHERE IDChuyenMucAlbumAudio = @IDChuyenMuc
+                WHERE t.TrangThai = '1' and IDChuyenMucAlbumAudio = @IDChuyenMuc
                 ORDER BY ThoiGianXuatBan desc
             ");
 
@@ -1442,10 +1534,11 @@ namespace API.Controllers
         [HttpGet]
         public async Task<HttpResponseMessage> VideoAlbumInfo(string ID)
         {
-            int id = Convert.ToInt32(ID);
+            int id;
+            if (!int.TryParse(ID, out id)) return Request.CreateResponse(HttpStatusCode.OK, (ABL_AlbumVideo)null);
             var data = _context.ABL_AlbumVideo
                 .Include(s => s.AlbumVideo_Files.Select(i => i.File))
-                .Where(x => x.ID == id).FirstOrDefault();
+                .Where(x => x.ID == id && x.TrangThai == "1").FirstOrDefault();
 
             return Request.CreateResponse(HttpStatusCode.OK, data);
         }
@@ -1457,7 +1550,7 @@ namespace API.Controllers
                 select t.ID, t.TieuDe, t.MoTa, t.ThoiGianXuatBan, f.Ten as TenAnh, f.LinkLuuTru as UrlAnh 
                 from ABL_AlbumAudio t 
                 left join Files f on t.AnhDaiDien = f.ID
-                and t.TrangThai = '1'
+                where t.TrangThai = '1'
                 ORDER BY ThoiGianXuatBan desc
             ");
 
@@ -1469,10 +1562,11 @@ namespace API.Controllers
         [HttpGet]
         public async Task<HttpResponseMessage> AudioAlbumInfo(string ID)
         {
-            int id = Convert.ToInt32(ID);
+            int id;
+            if (!int.TryParse(ID, out id)) return Request.CreateResponse(HttpStatusCode.OK, (ABL_AlbumAudio)null);
             var data = _context.ABL_AlbumAudio
                 .Include(s => s.AlbumAudio_Files.Select(i => i.File))
-                .Where(x => x.ID == id).FirstOrDefault();
+                .Where(x => x.ID == id && x.TrangThai == "1").FirstOrDefault();
 
             return Request.CreateResponse(HttpStatusCode.OK, data);
         }
@@ -1590,7 +1684,7 @@ namespace API.Controllers
             var infographics = _context.CollectionFromSql(@"
                 select top 1 t.*, f.Ten as TenAnhDaiDien, f.LinkLuuTru as AnhDaiDienUrl from TinTuc t
                 left join Files f on t.AnhDaiDien = f.ID
-                where IDChuyenMuc = 11517
+                where IDChuyenMuc = 11517 and t.TrangThai = 'public'
                 order by t.NgayXuatBan desc
             ",
             new Dictionary<string, object> { }).FirstOrDefault();
@@ -1756,63 +1850,6 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.OK, new { data });
         }
 
-        private object _FaqStatistic = null;
-        public object FaqStatistic
-        {
-            get
-            {
-                if (_FaqStatistic == null)
-                {
-                    _FaqStatistic = (HttpContext.Current.Cache["FaqStatistic"] as object);
-                    if (_FaqStatistic == null)
-                    {
-                        _FaqStatistic = getFAQStatistic();
-                        HttpContext.Current.Cache.Insert("FaqStatistic", _FaqStatistic, null, DateTime.Now.AddHours(12), Cache.NoSlidingExpiration, CacheItemPriority.Default, null);
-                    }
-                }
-                return _FaqStatistic;
-            }
-            set
-            {
-                HttpContext.Current.Cache.Insert("FaqStatistic", _FaqStatistic, null, DateTime.Now.AddHours(12), Cache.NoSlidingExpiration, CacheItemPriority.Default, null);
-            }
-        }
-
-        public static object getFAQStatistic()
-        {
-            // From Web
-            var url = "https://bovoinddn.molisa.gov.vn/phan-anh-kien-nghi";
-            var web = new HtmlWeb();
-            var htmlDoc = web.Load(url);
-            var datraloi = htmlDoc.DocumentNode.SelectSingleNode("//div[contains(@class, 'border')]/ul/li[1]/p/span/text()");
-            var chuatraloi = htmlDoc.DocumentNode.SelectSingleNode("//div[contains(@class, 'border')]/ul/li[2]/p/span/text()");
-            var khonghople = htmlDoc.DocumentNode.SelectSingleNode("//div[contains(@class, 'border')]/ul/li[3]/p/span/text()");
-            var total = Convert.ToInt32(datraloi.InnerText) + Convert.ToInt32(chuatraloi.InnerText) + Convert.ToInt32(khonghople.InnerText);
-            return new { total, datraloi = Convert.ToInt32(datraloi.InnerText), chuatraloi = Convert.ToInt32(chuatraloi.InnerText), khonghople = Convert.ToInt32(khonghople.InnerText) };
-        }
-
-        [HttpGet]
-        public async Task<HttpResponseMessage> BoxNDDN(int limit)
-        {
-            var phcs = _context.CollectionFromSql(@"
-                select top 3 c.* from Crawler_LienKet c
-                join Crawler_Nguon cn on cn.ID = c.ID_NguonTin
-                join Crawler_ChuDe cc on cc.ID = cn.ChuDeID
-                where cc.ID = 38 and c.TrangThai = 1 order by c.NoiBat desc, c.NgayXuatBan desc
-            ",
-            new Dictionary<string, object> { }).ToList();
-
-            var news = _context.CollectionFromSql(@"
-                select top 3 c.* from Crawler_LienKet c
-                join Crawler_Nguon cn on cn.ID = c.ID_NguonTin
-                join Crawler_ChuDe cc on cc.ID = cn.ChuDeID
-                where cc.ID = 56 and c.TrangThai = 1 order by c.NoiBat desc, c.NgayXuatBan desc
-            ",
-            new Dictionary<string, object> { }).ToList();
-            //https://bovoinddn.molisa.gov.vn/phan-anh-kien-nghi
-            var faq = FaqStatistic;
-            return Request.CreateResponse(HttpStatusCode.OK, new { news, phcs, faq });
-        }
         [HttpGet]
         public async Task<HttpResponseMessage> BoxVBPLEn(int limit)
         {
@@ -2593,7 +2630,7 @@ namespace API.Controllers
         [Route("api/Public/GetBotMetaForVanBan")]
         public async Task<HttpResponseMessage> GetBotMetaForVanBan(int id)
         {
-            var article = _context.VanBans.FirstOrDefault(x => x.ID == id);
+            var article = _context.VanBans.FirstOrDefault(x => x.ID == id && x.TrangThai == 1);
 
             if (article == null)
             {
@@ -2636,7 +2673,7 @@ namespace API.Controllers
         [Route("api/Public/GetBotMetaForVanBanDuThao")]
         public async Task<HttpResponseMessage> GetBotMetaForVanBanDuThao(int id)
         {
-            var article = _context.VanBanDuThaos.FirstOrDefault(x => x.ID == id);
+            var article = _context.VanBanDuThaos.FirstOrDefault(x => x.ID == id && x.TrangThai == 1);
 
             if (article == null)
             {
@@ -2722,7 +2759,7 @@ namespace API.Controllers
         [Route("api/Public/GetBotMetaForPhoto")]
         public async Task<HttpResponseMessage> GetBotMetaForPhoto(int id)
         {
-            var article = _context.ABL_AlbumAnh.FirstOrDefault(x => x.ID == id);
+            var article = _context.ABL_AlbumAnh.FirstOrDefault(x => x.ID == id && x.TrangThai == "1");
             
             if (article == null)
             {
@@ -2774,7 +2811,7 @@ namespace API.Controllers
         [Route("api/Public/GetBotMetaForVideo")]
         public async Task<HttpResponseMessage> GetBotMetaForVideo(int id)
         {
-            var article = _context.ABL_AlbumVideo.FirstOrDefault(x => x.ID == id);
+            var article = _context.ABL_AlbumVideo.FirstOrDefault(x => x.ID == id && x.TrangThai == "1");
 
             if (article == null)
             {
@@ -2826,7 +2863,7 @@ namespace API.Controllers
         [Route("api/Public/GetBotMetaForAudio")]
         public async Task<HttpResponseMessage> GetBotMetaForAudio(int id)
         {
-            var article = _context.ABL_AlbumAudio.FirstOrDefault(x => x.ID == id);
+            var article = _context.ABL_AlbumAudio.FirstOrDefault(x => x.ID == id && x.TrangThai == "1");
 
             if (article == null)
             {

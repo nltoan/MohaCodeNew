@@ -14,7 +14,8 @@ foreach ($case in @(
     if ([regex]::Matches($html, '<meta data-portal-dc name="DC.Title"').Count -ne 1) { throw "Unexpected duplicate metadata for $($case.Path)" }
     Write-Output "PASS $($case.Path)"
 }
-foreach ($case in @(@{Path='/../web.config';Status=400}, @{Path='/tin-tuc/khong-co---id2147483647';Status=404})) {
+# Duong dan khong hop le / khong tim thay: API tra khung SPA (200) de React tu hien trang 404, khong tra loi tho.
+foreach ($case in @(@{Path='/../web.config';Status=200}, @{Path='/tin-tuc/khong-co---id2147483647';Status=200})) {
     try {
         $response = Invoke-WebRequest ($BaseUrl + '/api/Public/MetadataPage?path=' + [Uri]::EscapeDataString($case.Path)) -UseBasicParsing -TimeoutSec 30
         $actual = [int]$response.StatusCode
