@@ -205,6 +205,26 @@ export async function requestXForm(path, options = { method: "GET" }) {
   return data;
 }
 
+// Giống requestXForm nhưng trả về cả mã HTTP và nội dung lỗi (không biến lỗi thành null).
+export async function requestXFormRaw(path, options = { method: "GET" }) {
+  const cookies = new Cookies();
+  let access_token = cookies.get("access_token");
+  try {
+    const response = await fetch(`${window.env.REACT_APP_API_URL}/${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        Authorization: `Bearer ${access_token}`,
+      },
+    });
+    let data = null;
+    try { data = await response.json(); } catch { data = null; }
+    return { ok: response.ok, status: response.status, data };
+  } catch {
+    return { ok: false, status: 0, data: null };
+  }
+}
+
 export async function request(path, options = { method: "GET" }) {
   const cookies = new Cookies();
   let access_token = cookies.get("access_token");

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import {
   TabbedItem, Tab, SimpleItem, Form, ButtonItem, CompareRule, Label} from 'devextreme-react/form';
-import { createCustomStore, notify, request, requestXForm } from '../utils/api';
+import { createCustomStore, notify, request, requestXFormRaw } from '../utils/api';
 import { useAuth } from '../contexts/auth';
 
 export default function Profile() {
@@ -17,12 +17,19 @@ export default function Profile() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    let res = await requestXForm(`Home/UpdateProfile`, {
+    if (formData.Password) {
+      if (!formData.CurrentPassword) { notify("Vui lòng nhập mật khẩu hiện tại.", "error"); return; }
+      if (formData.Password.length < 12) { notify("Mật khẩu mới cần từ 12 ký tự trở lên.", "error"); return; }
+      if (formData.Password !== formData.ConfirmPassword) { notify("Mật khẩu nhập lại không khớp.", "error"); return; }
+    }
+    const res = await requestXFormRaw(`Home/UpdateProfile`, {
       method: "POST",
       body: new URLSearchParams({ values: JSON.stringify(formData) }).toString(),
     });
-    if (res.status == "ko") {
-      notify(`Cập nhật thông tin không thành công! : ${res.error}`, "error");
+    if (!res.ok || !res.data || res.data.status == "ko") {
+      const reason = res.data?.error
+        || (res.status === 401 ? "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại." : `Lỗi máy chủ (mã ${res.status}).`);
+      notify(`Cập nhật thông tin không thành công! : ${reason}`, "error");
       return;
     }
     notify("Cập nhật thông tin thành công!", "success");
@@ -70,7 +77,7 @@ export default function Profile() {
                   <SimpleItem dataField="Password" editorType="dxTextBox" editorOptions={{ mode: "password" }}>
                     <Label text="Mật khẩu" />
                   </SimpleItem>
-                  <SimpleItem name="ConfirmPassword" editorType="dxTextBox">
+                  <SimpleItem dataField="ConfirmPassword" editorType="dxTextBox" editorOptions={{ mode: "password" }}>
                     <Label text="Nhập lại mật khẩu" />
                     <CompareRule
                       comparisonTarget={() => {
