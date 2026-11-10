@@ -249,7 +249,6 @@ export default function MyCustomHtmlEditor({ defaultValue, onValueChange }) {
   }
 
   function onItemClick(e) {
-    console.log(e);
   }
   let fileEndsWith = (host, ends) => {
     let value = false;

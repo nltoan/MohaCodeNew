@@ -32,7 +32,7 @@ export const NghiQuyetTW4Layout = () => {
       try {
         const response = await getMenus();
         if (response.status === HttpStatusCode.Ok) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           
           const data = response.data.childs.length
             ? response.data.childs.map((f: any) => {
                 return { label: f.TenMenu, url: f.URL };
@@ -45,7 +45,7 @@ export const NghiQuyetTW4Layout = () => {
       }
     };
     fetchAppMenus();
-  }, [location.pathname]);
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);

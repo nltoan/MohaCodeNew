@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import FileManager, { Item, Permissions, ContextMenu } from 'devextreme-react/file-manager';
 import Notify from 'devextreme/ui/notify';
-import "plyr-react/plyr.css"
 import config from '../config';
 import { pathFile } from '../utils/api';
 import { useSearchParams } from 'react-router-dom';

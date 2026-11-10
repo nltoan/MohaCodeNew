@@ -31,7 +31,7 @@ export default function GioiThieuVanBan() {
   });
   const title = "Giới thiệu văn bản";
   const dataGridRef = useRef(null);
-  let rowData;
+  const rowDataRef = useRef();
 
   return (
     <div className="card">
@@ -69,11 +69,11 @@ export default function GioiThieuVanBan() {
           wordWrapEnabled={true}
           height="calc(100vh - 190px)"
           onInitNewRow={(e) => {
-            rowData = null;
+            rowDataRef.current = null;
             e.data.NgayXuatBan = new Date();
           }}
           onEditingStart={(e) => {
-            rowData = e.data;
+            rowDataRef.current = e.data;
           }}
           onRowInserted={(e) => {
             e.component.navigateToRow(e.key).done(function () {
@@ -99,9 +99,9 @@ export default function GioiThieuVanBan() {
             />
             <Form
               onInitialized={(e) => {
-                e.component.option("items[0].tabs[1].visible", !!rowData);
-                e.component.option("items[0].tabs[2].visible", !!rowData);
-                e.component.option("items[0].tabs[3].visible", !!rowData);
+                e.component.option("items[0].tabs[1].visible", !!rowDataRef.current);
+                e.component.option("items[0].tabs[2].visible", !!rowDataRef.current);
+                e.component.option("items[0].tabs[3].visible", !!rowDataRef.current);
               }}
             >
               <TabbedItem colSpan={2}>
@@ -128,7 +128,7 @@ export default function GioiThieuVanBan() {
                     onInitialized={(e) => {
                       setTimeout(function () {
                         var tmpDs = createCustomStore({
-                          loadUrl: `${window.env.REACT_APP_API_URL}/GioiThieuVanBan_Files/Get?filter=[['GioiThieuVanBanId','=',${rowData ? rowData.ID : ""}]]`,
+                          loadUrl: `${window.env.REACT_APP_API_URL}/GioiThieuVanBan_Files/Get?filter=[['GioiThieuVanBanId','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                           insertUrl: `${window.env.REACT_APP_API_URL}/GioiThieuVanBan_Files/Post`,
                           updateUrl: `${window.env.REACT_APP_API_URL}/GioiThieuVanBan_Files/Put`,
                           deleteUrl: `${window.env.REACT_APP_API_URL}/GioiThieuVanBan_Files/Delete`,
@@ -144,7 +144,7 @@ export default function GioiThieuVanBan() {
                     rowAlternationEnabled={true}
                     showBorders={true}
                     onInitNewRow={(e) => {
-                      e.data.GioiThieuVanBanId = rowData.ID;
+                      e.data.GioiThieuVanBanId = rowDataRef.current.ID;
                     }}
                   >
                     <FilterRow visible={true} />

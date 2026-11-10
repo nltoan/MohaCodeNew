@@ -1,3 +1,4 @@
+import { useRef } from "react";
 
 import DataGrid, {
   Column,
@@ -18,7 +19,7 @@ import MyImageFileUploader from '../components/MyImageFileUploader';
 export default function Banner() {
   const dataSourceViTriOptions = createLookupStore("QuangCao_ViTri");
   const dataSourceFileOptions = createLookupStore("Files");
-  let rowData;
+  const rowDataRef = useRef();
   return (
     <div className="card">
       <div className="card-header">
@@ -41,12 +42,12 @@ export default function Banner() {
           showBorders={true}
           height="calc(100vh - 190px)"
           onInitNewRow={(e) => {
-            rowData = null;
+            rowDataRef.current = null;
             e.data.NgayXuatBan = new Date();
             e.data.NgayTao = new Date();
           }}
           onEditingStart={(e) => {
-            rowData = e.data;
+            rowDataRef.current = e.data;
           }}
           onRowInserted={(e) => {
             e.component.navigateToRow(e.key).done(function () {
@@ -67,7 +68,7 @@ export default function Banner() {
             <Popup title="Thông tin" showTitle={true} />
             <Form
               onInitialized={(e) => {
-                e.component.option("items[0].tabs[1].visible", !!rowData);
+                e.component.option("items[0].tabs[1].visible", !!rowDataRef.current);
               }}
             >
               <TabbedItem colSpan={2}>
@@ -90,7 +91,7 @@ export default function Banner() {
                     onInitialized={(e) => {
                       setTimeout(function () {
                         var tmpDs = createCustomStore({
-                          loadUrl: `${window.env.REACT_APP_API_URL}/Banner_ViTri/Get?filter=[['ID_Banner','=',${rowData ? rowData.ID : ""}]]`,
+                          loadUrl: `${window.env.REACT_APP_API_URL}/Banner_ViTri/Get?filter=[['ID_Banner','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                           insertUrl: `${window.env.REACT_APP_API_URL}/Banner_ViTri/Post`,
                           updateUrl: `${window.env.REACT_APP_API_URL}/Banner_ViTri/Put`,
                           deleteUrl: `${window.env.REACT_APP_API_URL}/Banner_ViTri/Delete`,
@@ -102,7 +103,7 @@ export default function Banner() {
                       e.component.refresh();
                     }}
                     onInitNewRow={(e) => {
-                      e.data.ID_Banner = rowData.ID;
+                      e.data.ID_Banner = rowDataRef.current.ID;
                     }}
                   >
                     <Editing

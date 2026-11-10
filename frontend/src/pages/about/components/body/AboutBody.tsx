@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { forwardRef, type ReactNode } from 'react';
 import './AboutBody.scss';
 interface AboutBodyProps {

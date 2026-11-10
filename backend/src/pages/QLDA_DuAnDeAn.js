@@ -38,7 +38,7 @@ const dataSourceLoaiOptions = createLookupStore("QLDA_LoaiDuAn");
 
 
 export default function QLDA_DuAnDeAn() {
-  let rowData;
+  const rowDataRef = useRef();
   return (
     <div className="card">
       <div className="card-header">
@@ -61,10 +61,10 @@ export default function QLDA_DuAnDeAn() {
           rowAlternationEnabled={true}
           showBorders={true}
           onInitNewRow={(e) => {
-            rowData = null;
+            rowDataRef.current = null;
           }}
           onEditingStart={(e) => {
-            rowData = e.data;
+            rowDataRef.current = e.data;
           }}
           onRowInserted={(e) => {
             e.component.navigateToRow(e.key).done(function () {
@@ -85,8 +85,8 @@ export default function QLDA_DuAnDeAn() {
             <DataGridPopup title="Thông tin" showTitle={true} fullScreen={true} />
             <Form
               onInitialized={(e) => {
-                e.component.option("items[0].tabs[1].visible", !!rowData);
-                e.component.option("items[0].tabs[2].visible", !!rowData);
+                e.component.option("items[0].tabs[1].visible", !!rowDataRef.current);
+                e.component.option("items[0].tabs[2].visible", !!rowDataRef.current);
               }}
             >
               <TabbedItem colSpan={2}>
@@ -111,7 +111,7 @@ export default function QLDA_DuAnDeAn() {
                     onInitialized={(e) => {
                       setTimeout(function () {
                         var tmpDs = createCustomStore({
-                          loadUrl: `${window.env.REACT_APP_API_URL}/QLDA_VanBan/Get?filter=[['DuAnDeAnID','=',${rowData ? rowData.id : ""}]]`,
+                          loadUrl: `${window.env.REACT_APP_API_URL}/QLDA_VanBan/Get?filter=[['DuAnDeAnID','=',${rowDataRef.current ? rowDataRef.current.id : ""}]]`,
                           insertUrl: `${window.env.REACT_APP_API_URL}/QLDA_VanBan/Post`,
                           updateUrl: `${window.env.REACT_APP_API_URL}/QLDA_VanBan/Put`,
                           deleteUrl: `${window.env.REACT_APP_API_URL}/QLDA_VanBan/Delete`,
@@ -127,7 +127,7 @@ export default function QLDA_DuAnDeAn() {
                     rowAlternationEnabled={true}
                     showBorders={true}
                     onInitNewRow={(e) => {
-                      e.data.DuAnDeAnID = rowData.id;
+                      e.data.DuAnDeAnID = rowDataRef.current.id;
                     }}
                   >
                     <FilterRow visible={true} />
@@ -175,7 +175,7 @@ export default function QLDA_DuAnDeAn() {
                     onInitialized={(e) => {
                       setTimeout(function () {
                         var tmpDs = createCustomStore({
-                          loadUrl: `${window.env.REACT_APP_API_URL}/QLDA_HoSo/Get?filter=[['DuAnDeAnID','=',${rowData ? rowData.id : ""}]]`,
+                          loadUrl: `${window.env.REACT_APP_API_URL}/QLDA_HoSo/Get?filter=[['DuAnDeAnID','=',${rowDataRef.current ? rowDataRef.current.id : ""}]]`,
                           insertUrl: `${window.env.REACT_APP_API_URL}/QLDA_HoSo/Post`,
                           updateUrl: `${window.env.REACT_APP_API_URL}/QLDA_HoSo/Put`,
                           deleteUrl: `${window.env.REACT_APP_API_URL}/QLDA_HoSo/Delete`,
@@ -191,7 +191,7 @@ export default function QLDA_DuAnDeAn() {
                     rowAlternationEnabled={true}
                     showBorders={true}
                     onInitNewRow={(e) => {
-                      e.data.DuAnDeAnID = rowData.id;
+                      e.data.DuAnDeAnID = rowDataRef.current.id;
                     }}
                   >
                     <FilterRow visible={true} />

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import axiosInstance from '.';
 
 export const getScientificResearchs = async (activePage: number, pageSize: number) => {

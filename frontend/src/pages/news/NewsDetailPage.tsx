@@ -211,7 +211,7 @@ export const NewsDetailPage = () => {
                       className="mh-detail-sidebar-item"
                     >
                       <div className="mh-detail-sidebar-item-image">
-                        <Image src={getUrlImage(item.AnhDaiDienUrl)} alt={item.TieuDe} />
+                        <Image src={getUrlImage(item?.AnhDaiDienUrl)} alt={item?.TieuDe} loading="lazy" decoding="async" />
                       </div>
                       <div className="mh-detail-sidebar-item-info">
                         <div className="mh-detail-sidebar-item-title">{item.TieuDe}</div>

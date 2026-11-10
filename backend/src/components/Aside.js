@@ -18,14 +18,16 @@ const MenuItem = ({
     if (!auth.user) {
       return false;
     }
-    if (auth.user?.Role?.RolePermissions?.length <= 0) {
+    const perms = auth.user?.Role?.RolePermissions;
+    if (!Array.isArray(perms)) {
+      auth.signOut();
       return false;
     }
-    if (auth.user.Role.RolePermissions == undefined) {
-      auth.signOut();
+    if (perms.length <= 0) {
+      return false;
     }
-    for (var i = 0; i < auth.user.Role.RolePermissions.length; i++) {
-      let element = auth.user.Role.RolePermissions[i];
+    for (var i = 0; i < perms.length; i++) {
+      let element = perms[i];
       if (element.Permission.Name == name) {
         return true;
       }

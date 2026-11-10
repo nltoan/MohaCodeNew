@@ -6,7 +6,7 @@ Gói này cập nhật ba phần: portal React, admin React, API ASP.NET Framewo
 
 - HTML công khai của https://moha.gov.vn/ ngày 01/10/2026 khai báo API https://api-portal.moha.gov.vn/api/Public/ và media https://moha.gov.vn/.
 - Portal và admin trong repo có cấu hình IIS URL Rewrite cho React; API target .NET Framework 4.8. Máy dev dùng IIS Express, không có IIS production để lấy thông tin sites/app pools.
-- Chưa xác minh URL admin, server/path/app pool, database production, pipeline, reverse proxy/WAF và số node API. Các tên admin thông dụng được thử không có DNS tại máy dev; không coi đó là URL admin thực.
+- URL admin đã ghi trong deployment/production.json (AdminUrl). Chưa xác minh server/path/app pool, database production, pipeline, reverse proxy/WAF và số node API.
 
 ## Thành phần gói
 
@@ -23,6 +23,8 @@ Gói này cập nhật ba phần: portal React, admin React, API ASP.NET Framewo
 | deployment/Verify-HoiQuy.sql | Kiểm tra DB sau migration/import. |
 | import-data | Chỉ có khi đóng gói với -IncludeImportData: Excel gốc để import bằng admin. Giữ ngoài web root công khai. |
 | manifest.json | SHA256 và kích thước từng file, commit nguồn, trạng thái cấu hình admin. |
+
+Thư mục deployment trong gói chỉ gồm file cấu hình (*.fragment.xml, *.sql, *.txt, production.json) và các runbook hiện hành; ghi chú nội bộ theo ngày (GHI-CHU-THAY-DOI-*, DANH-SACH-FILE-DEPLOY-*, PORTAL-RECHECK-*, SECURITY-REVIEW-*, DUBLIN-CORE-STATIC.md) không được đóng gói.
 
 Gói không chứa Web.config API, chuỗi kết nối production, database backup, LocalDB hoặc tài khoản test. Node.js/pnpm/MSBuild dùng trên máy build; production không cần Vite, CRA dev server hoặc Node để phục vụ hai bundle tĩnh.
 
@@ -105,11 +107,12 @@ Sửa deployment/production.json theo môi trường đã xác nhận:
 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Prepare-ProductionRelease.ps1
 
-Dùng -UseExistingUiBuilds chỉ khi bundle đã build và nguồn không mới hơn bundle; script kiểm tra timestamp. Gói đặt tại .dev/releases; SHA256 nằm trong manifest.json. Với AdminUrl=null, admin vẫn là ứng viên chưa hoàn tất cấu hình.
+Dùng -UseExistingUiBuilds chỉ khi bundle đã build và nguồn không mới hơn bundle; script kiểm tra timestamp. Gói đặt tại .dev/releases; SHA256 nằm trong manifest.json. Nếu để trống AdminUrl, gói được tạo ở dạng ứng viên admin chưa hoàn tất cấu hình (manifest.AdminReady=false).
 
 Tham khảo Microsoft về maintenance với app_offline.htm: https://learn.microsoft.com/en-us/aspnet/web-forms/overview/deployment/visual-studio-web-deployment/deploying-a-code-update
 URL Rewrite IIS: https://learn.iis.net/downloads/microsoft/url-rewrite
-# Bản tối ưu hiệu năng và SEO portal
+
+## Bản tối ưu hiệu năng và SEO portal
 
 Vẫn là React CSR trên IIS, deploy file tĩnh theo cách hiện tại. Với gói portal-performance-seo, chỉ cập nhật portal; không cập nhật API/admin hay chạy migration DB. Build frontend rồi chạy scripts/Prepare-PortalRelease.ps1 để tạo gói riêng. Chép assets trước, runtime-config.js và các file public tiếp theo, index.html cuối; giữ Web.config production và assets cũ. Purge /, /index.html và /runtime-config.js. Không cần Node.js trên server hay thêm nguồn CSP cho phần SEO/layout. GA vẫn cần các nguồn CSP đã hướng dẫn riêng nếu chưa cấu hình.
 

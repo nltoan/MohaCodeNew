@@ -1,5 +1,5 @@
 const fs=require('node:fs'),assert=require('node:assert/strict'),path=require('node:path');
-const base='http://localhost:55104/api',rows=[];
+const base='http://localhost:55104/api',rows=[];fs.mkdirSync('.dev',{recursive:true});
 function pass(name,data={}){rows.push({name,status:'PASS',...data});console.log('PASS '+name);fs.writeFileSync('.dev/security-api-results.json',JSON.stringify(rows,null,2))}
 async function req(route,opts={}){const r=await fetch(base+route,{signal:AbortSignal.timeout(20000),...opts});const text=await r.text();let data;try{data=JSON.parse(text)}catch{data={}}return {status:r.status,headers:r.headers,data,text}}
 async function login(a){const r=await req('/Token?type=password',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'password',username:a.name,password:a.password})});assert.equal(r.status,200,'test login');assert.ok(r.data.access_token);return r.data.access_token}

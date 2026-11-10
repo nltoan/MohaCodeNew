@@ -6,7 +6,6 @@ import { PageFooter, PageHeader } from '@/components';
 import { IconPdfFile } from '@/components/icons';
 import { useEffect, useRef, useState } from 'react';
 import axiosInstance from '@/services';
-import DOMPurify from 'dompurify';
 import { useParams } from 'react-router-dom';
 import { getIdFromSlug } from '@/utils/getSlugKey';
 import { Helmet } from 'react-helmet-async';
@@ -63,7 +62,7 @@ export const FunctionsAndDutiesPage = () => {
         <AboutBodyMinus>
           <div
             dangerouslySetInnerHTML={{
-              __html: sanitizeHtml(DOMPurify.sanitize(resolveContentMedia(data?.NoiDung)?.replace(/contenteditable="true"/g, 'contenteditable="false"'))),
+              __html: sanitizeHtml(resolveContentMedia(data?.NoiDung)?.replace(/contenteditable="true"/g, 'contenteditable="false"')),
             }}
           />
         </AboutBodyMinus>

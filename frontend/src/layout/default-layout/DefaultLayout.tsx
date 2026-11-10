@@ -22,7 +22,7 @@ export const DefaultLayout = () => {
   const navigation = useNavigate();
 
   const [menus, setMenus] = useState<HeaderMenu[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const [headerBanner, setHeaderBanner] = useState<{src: string; link: string} | null>(null);
 
   useEffect(() => {

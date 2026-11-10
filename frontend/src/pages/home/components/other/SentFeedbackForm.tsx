@@ -39,22 +39,26 @@ const FeedbackForm: React.FC<{ID: string, onSubmitted:()=>void}> = ({ID, onSubmi
     });
 
     const onSubmit = async (data: FormData) => {
-        await generateReCaptchaToken('sendcomment'); // this will create a new token in the localStorage
-        const result = await sendComment(ID, data);
-        if(result === "Success"){
-            alert(`Gửi góp ý thành công!\n\nHọ tên: ${data.fullName}\nEmail: ${data.email}`);
-            onSubmitted();
-        } else if (result === "ReCaptcha validation failed."){
-			alert(`Mã bảo mật không đúng. Vui lòng thử lại sau hoặc liên hệ CongTTDT@moha.gov.vn`);
-        } else if (result === "Invalid ReCaptcha action."){
-			alert(`Nghi vấn gửi thông tin bởi robot. Vui lòng thử lại sau hoặc liên hệ CongTTDT@moha.gov.vn`);
-        } else if (result === "Bot activity detected."){
-			alert(`Nghi vấn gửi thông tin bởi robot. Vui lòng thử lại sau hoặc liên hệ CongTTDT@moha.gov.vn`);
-        } else if (result === "Invalid document."){
-			alert(`Văn bản gửi ý kiến không phù hợp. Vui lòng thử lại sau hoặc liên hệ CongTTDT@moha.gov.vn`);
-        } else {
-			alert(`Có lỗi xảy ra. Vui lòng thử lại sau hoặc liên hệ CongTTDT@moha.gov.vn`);
-		}
+        try {
+            await generateReCaptchaToken('sendcomment'); // this will create a new token in the localStorage
+            const result = await sendComment(ID, data);
+            if(result === "Success"){
+                alert(`Gửi góp ý thành công!\n\nHọ tên: ${data.fullName}\nEmail: ${data.email}`);
+                onSubmitted();
+            } else if (result === "ReCaptcha validation failed."){
+                alert(`Mã bảo mật không đúng. Vui lòng thử lại sau hoặc liên hệ CongTTDT@moha.gov.vn`);
+            } else if (result === "Invalid ReCaptcha action."){
+                alert(`Nghi vấn gửi thông tin bởi robot. Vui lòng thử lại sau hoặc liên hệ CongTTDT@moha.gov.vn`);
+            } else if (result === "Bot activity detected."){
+                alert(`Nghi vấn gửi thông tin bởi robot. Vui lòng thử lại sau hoặc liên hệ CongTTDT@moha.gov.vn`);
+            } else if (result === "Invalid document."){
+                alert(`Văn bản gửi ý kiến không phù hợp. Vui lòng thử lại sau hoặc liên hệ CongTTDT@moha.gov.vn`);
+            } else {
+                alert(`Có lỗi xảy ra. Vui lòng thử lại sau hoặc liên hệ CongTTDT@moha.gov.vn`);
+            }
+        } catch {
+            alert(`Có lỗi xảy ra. Vui lòng thử lại sau hoặc liên hệ CongTTDT@moha.gov.vn`);
+        }
     };
 
     return (

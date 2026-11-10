@@ -30,7 +30,7 @@ export default function VanBanDuThao() {
   const [title, setTitle] = useState("Quản lý văn bản dự thảo");
   const dataGridRef = useRef(null);
 
-  let rowData;
+  const rowDataRef = useRef();
   function getFilteredHinhThucVanBan(options) {
     return createFilterLookupStore(
       "HinhThucVanBans",
@@ -88,11 +88,11 @@ export default function VanBanDuThao() {
           wordWrapEnabled={true}
           height="calc(100vh - 190px)"
           onInitNewRow={(e) => {
-            rowData = null;
+            rowDataRef.current = null;
             e.data.NgayXuatBan = new Date();
           }}
           onEditingStart={(e) => {
-            rowData = e.data;
+            rowDataRef.current = e.data;
           }}
           onEditorPreparing={(e) => {
             if (
@@ -126,9 +126,9 @@ export default function VanBanDuThao() {
             />
             <Form
               onInitialized={(e) => {
-                e.component.option("items[0].tabs[1].visible", !!rowData);
-                e.component.option("items[0].tabs[2].visible", !!rowData);
-                e.component.option("items[0].tabs[3].visible", !!rowData);
+                e.component.option("items[0].tabs[1].visible", !!rowDataRef.current);
+                e.component.option("items[0].tabs[2].visible", !!rowDataRef.current);
+                e.component.option("items[0].tabs[3].visible", !!rowDataRef.current);
               }}
             >
               <TabbedItem colSpan={2}>
@@ -169,7 +169,7 @@ export default function VanBanDuThao() {
                     onInitialized={(e) => {
                       setTimeout(function () {
                         var tmpDs = createCustomStore({
-                          loadUrl: `${window.env.REACT_APP_API_URL}/VanBanDuThao_Files/Get?filter=[['VanBanDuThaoID','=',${rowData ? rowData.ID : ""}]]`,
+                          loadUrl: `${window.env.REACT_APP_API_URL}/VanBanDuThao_Files/Get?filter=[['VanBanDuThaoID','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                           insertUrl: `${window.env.REACT_APP_API_URL}/VanBanDuThao_Files/Post`,
                           updateUrl: `${window.env.REACT_APP_API_URL}/VanBanDuThao_Files/Put`,
                           deleteUrl: `${window.env.REACT_APP_API_URL}/VanBanDuThao_Files/Delete`,
@@ -185,7 +185,7 @@ export default function VanBanDuThao() {
                     rowAlternationEnabled={true}
                     showBorders={true}
                     onInitNewRow={(e) => {
-                      e.data.VanBanDuThaoID = rowData.ID;
+                      e.data.VanBanDuThaoID = rowDataRef.current.ID;
                     }}
                   >
                     <FilterRow visible={true} />
@@ -228,7 +228,7 @@ export default function VanBanDuThao() {
                     onInitialized={(e) => {
                       setTimeout(function () {
                         var tmpDs = createCustomStore({
-                          loadUrl: `${window.env.REACT_APP_API_URL}/VanBanDuThao_GopYs/Get?filter=[['VanBanDuThaoID','=',${rowData ? rowData.ID : ""}]]`,
+                          loadUrl: `${window.env.REACT_APP_API_URL}/VanBanDuThao_GopYs/Get?filter=[['VanBanDuThaoID','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                           updateUrl: `${window.env.REACT_APP_API_URL}/VanBanDuThao_GopYs/Put`,
                         });
                         e.component.option("dataSource", tmpDs);

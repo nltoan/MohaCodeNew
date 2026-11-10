@@ -1,10 +1,11 @@
+param([string]$BaseUrl = 'http://localhost:55104')
 $ErrorActionPreference = 'Stop'
 # Local development database only. Creates unique test users and removes them
 # in finally; never connects to production or reads real passwords.
 $connection = [System.Data.SqlClient.SqlConnection]::new('Data Source=(localdb)\MohaDev;Initial Catalog=CongTTDT_MOHA_Dev;Integrated Security=True;Connect Timeout=10')
 $prefix = '__codex_status_' + [Guid]::NewGuid().ToString('N') + '_'
 $password = [Guid]::NewGuid().ToString('N') + 'aA9!'
-[void][Reflection.Assembly]::LoadFrom((Resolve-Path 'api/bin/Google.Authenticator.dll'))
+[void][Reflection.Assembly]::LoadFrom((Resolve-Path (Join-Path (Split-Path $PSScriptRoot -Parent) 'api/bin/Google.Authenticator.dll')))
 $ids = [System.Collections.Generic.List[int]]::new()
 try {
     $connection.Open()
@@ -33,7 +34,7 @@ try {
         [void]$sql.Parameters.AddWithValue('@secret', 'local-test-secret')
         $ids.Add([int]$sql.ExecuteScalar())
         try {
-            $tokenUrl = 'http://localhost:55114/api/Token?type=password'
+            $tokenUrl = ($BaseUrl + '/api/Token?type=password')
             if ($case.WithCode) {
                 $otp = [Google.Authenticator.TwoFactorAuthenticator]::new().GetCurrentPIN('local-test-secret', $false)
                 $tokenUrl += '&code=' + [Uri]::EscapeDataString($otp)
@@ -43,9 +44,9 @@ try {
             $token = ($response.Content | ConvertFrom-Json).access_token
             if (!$token) { throw 'Missing token' }
             $auth = @{ Authorization = "Bearer $token" }
-            $profile = Invoke-WebRequest 'http://localhost:55114/api/User_Account/GetLoginUser' -Headers $auth -UseBasicParsing -TimeoutSec 30
+            $profile = Invoke-WebRequest ($BaseUrl + '/api/User_Account/GetLoginUser') -Headers $auth -UseBasicParsing -TimeoutSec 30
             if ($profile.StatusCode -ne 200) { throw 'Active-user authorization failed' }
-            $permissions = Invoke-WebRequest 'http://localhost:55114/api/User_Account/Get' -Headers $auth -UseBasicParsing -TimeoutSec 30
+            $permissions = Invoke-WebRequest ($BaseUrl + '/api/User_Account/Get') -Headers $auth -UseBasicParsing -TimeoutSec 30
             if ($permissions.StatusCode -ne 200) { throw 'Permission authorization failed' }
         } catch {
             if ($case.Ok -or !$_.Exception.Response -or [int]$_.Exception.Response.StatusCode -ne 400) { throw }

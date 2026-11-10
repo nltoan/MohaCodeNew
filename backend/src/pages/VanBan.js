@@ -31,7 +31,7 @@ export default function VanBan() {
   const { IdLopVanBan } = useParams();
   const dataGridRef = useRef(null);
 
-  let rowData;
+  const rowDataRef = useRef();
   React.useEffect(() => {
     setDataSourceOptions(
       createCustomStore({
@@ -78,11 +78,11 @@ export default function VanBan() {
   React.useEffect(() => {
     const getChucDanh = async function () {
       const items = await request(`/VanBans/GetLookUpChucDanh`);
-      setChucDanhOptions(items.data);
+      setChucDanhOptions(items?.data);
     };
     const getNguoiKy = async function () {
       const items = await request(`/VanBans/GetLookUpNguoiKy`);
-      setNguoiKyOptions(items.data);
+      setNguoiKyOptions(items?.data);
     };
     getChucDanh();
     getNguoiKy();
@@ -136,7 +136,7 @@ export default function VanBan() {
           wordWrapEnabled={true}
           height="calc(100vh - 190px)"
           onInitNewRow={(e) => {
-            rowData = null;
+            rowDataRef.current = null;
             e.data.NgayXuatBan = new Date();
             if (IdLopVanBan != 2125) {
               e.data.VanBan_LopVanBan = [{ LopVanBanID: IdLopVanBan }];
@@ -148,7 +148,7 @@ export default function VanBan() {
             );
           }}
           onEditingStart={(e) => {
-            rowData = e.data;
+            rowDataRef.current = e.data;
           }}
           onEditorPreparing={(e) => {
             if (
@@ -188,9 +188,9 @@ export default function VanBan() {
             />
             <Form
               onInitialized={(e) => {
-                e.component.option("items[0].tabs[1].visible", !!rowData);
-                e.component.option("items[0].tabs[2].visible", !!rowData);
-                e.component.option("items[0].tabs[3].visible", !!rowData);
+                e.component.option("items[0].tabs[1].visible", !!rowDataRef.current);
+                e.component.option("items[0].tabs[2].visible", !!rowDataRef.current);
+                e.component.option("items[0].tabs[3].visible", !!rowDataRef.current);
               }}
             >
               <TabbedItem colSpan={2}>
@@ -313,7 +313,7 @@ export default function VanBan() {
                     onInitialized={(e) => {
                       setTimeout(function () {
                         var tmpDs = createCustomStore({
-                          loadUrl: `${window.env.REACT_APP_API_URL}/VanBan_Files/Get?filter=[['VanBanID','=',${rowData ? rowData.ID : ""}]]`,
+                          loadUrl: `${window.env.REACT_APP_API_URL}/VanBan_Files/Get?filter=[['VanBanID','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                           insertUrl: `${window.env.REACT_APP_API_URL}/VanBan_Files/Post`,
                           updateUrl: `${window.env.REACT_APP_API_URL}/VanBan_Files/Put`,
                           deleteUrl: `${window.env.REACT_APP_API_URL}/VanBan_Files/Delete`,
@@ -329,7 +329,7 @@ export default function VanBan() {
                     rowAlternationEnabled={true}
                     showBorders={true}
                     onInitNewRow={(e) => {
-                      e.data.VanBanID = rowData.ID;
+                      e.data.VanBanID = rowDataRef.current.ID;
                     }}
                   >
                     <FilterRow visible={true} />
@@ -372,7 +372,7 @@ export default function VanBan() {
                     onInitialized={(e) => {
                       setTimeout(function () {
                         var tmpDs = createCustomStore({
-                          loadUrl: `${window.env.REACT_APP_API_URL}/VanBan_LienQuan/Get?filter=[['VanBanID','=',${rowData ? rowData.ID : ""}]]`,
+                          loadUrl: `${window.env.REACT_APP_API_URL}/VanBan_LienQuan/Get?filter=[['VanBanID','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                           insertUrl: `${window.env.REACT_APP_API_URL}/VanBan_LienQuan/Post`,
                           updateUrl: `${window.env.REACT_APP_API_URL}/VanBan_LienQuan/Put`,
                           deleteUrl: `${window.env.REACT_APP_API_URL}/VanBan_LienQuan/Delete`,
@@ -388,7 +388,7 @@ export default function VanBan() {
                     rowAlternationEnabled={true}
                     showBorders={true}
                     onInitNewRow={(e) => {
-                      e.data.VanBanID = rowData.id;
+                      e.data.VanBanID = rowDataRef.current.id;
                     }}
                   >
                     <FilterRow visible={true} />
@@ -430,7 +430,7 @@ export default function VanBan() {
                     onInitialized={(e) => {
                       setTimeout(function () {
                         var tmpDs = createCustomStore({
-                          loadUrl: `${window.env.REACT_APP_API_URL}/VanBan_BiTacDong/Get?filter=[['VanBanID','=',${rowData ? rowData.ID : ""}]]`,
+                          loadUrl: `${window.env.REACT_APP_API_URL}/VanBan_BiTacDong/Get?filter=[['VanBanID','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                           insertUrl: `${window.env.REACT_APP_API_URL}/VanBan_BiTacDong/Post`,
                           updateUrl: `${window.env.REACT_APP_API_URL}/VanBan_BiTacDong/Put`,
                           deleteUrl: `${window.env.REACT_APP_API_URL}/VanBan_BiTacDong/Delete`,
@@ -446,7 +446,7 @@ export default function VanBan() {
                     rowAlternationEnabled={true}
                     showBorders={true}
                     onInitNewRow={(e) => {
-                      e.data.VanBanID = rowData.id;
+                      e.data.VanBanID = rowDataRef.current.id;
                     }}
                   >
                     <FilterRow visible={true} />

@@ -14,6 +14,7 @@ const {chromium}=createRequire(path.join(process.env.LOCALAPPDATA,'MohaDev/brows
    assert.ok(!requests.some(url=>url.includes('HomeRefs-')||url.includes('HomeMedia-')||url.includes('HomeOther-')));
    const initialJs=requests.filter(url=>url.includes('/assets/')&&url.split('?')[0].endsWith('.js'));
    for(let i=0;i<4;i++){await sections.nth(i).scrollIntoViewIfNeeded(); await sections.nth(i).locator('section').waitFor({timeout:60000});}
+   await fs.mkdir('.dev',{recursive:true});
    await page.screenshot({path:'.dev/home-'+label+'-optimized.png',fullPage:true});
    assert.ok(requests.some(url=>url.includes('HomeMedia-')));
    assert.ok(!requests.some(url=>url.includes('googletagmanager')));

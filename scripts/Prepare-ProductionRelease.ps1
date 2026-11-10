@@ -45,7 +45,11 @@ New-Item -ItemType Directory -Path (Join-Path $release 'api-update\App_Data') -F
 Copy-Item (Join-Path $release 'portal\index.html') (Join-Path $release 'api-update\App_Data\portal-index.html')
 Copy-Item (Join-Path $root 'backend\build') (Join-Path $release 'admin-candidate') -Recurse
 Get-ChildItem (Join-Path $release 'admin-candidate') -Filter '*.map' -Recurse | Remove-Item
-Copy-Item (Join-Path $root 'deployment') (Join-Path $release 'deployment') -Recurse
+# Chi dong goi file cau hinh va huong dan hien hanh; khong kem ghi chu noi bo theo ngay.
+$deployDir=Join-Path $release 'deployment'
+New-Item -ItemType Directory -Path $deployDir -Force | Out-Null
+$deployRunbooks=@('DEPLOY-MOHA.md','SECURITY-HARDENING.md','NGON-NGU-TIN-TUC.md','SITEMAP-DONG.md','METADATA-HTML-THU-NGHIEM.md','LDAP-RESTORE-STAGING.md','FIX-UPLOAD-413.md')
+Get-ChildItem (Join-Path $root 'deployment') -File | Where-Object { $_.Name -like '*.fragment.xml' -or $_.Name -like '*.sql' -or $_.Name -like '*.txt' -or $_.Name -eq 'production.json' -or $deployRunbooks -contains $_.Name } | Copy-Item -Destination $deployDir
 # Dong goi moi migration trong db\migrations de khong sot file moi.
 Get-ChildItem (Join-Path $root 'db\migrations') -Filter '*.sql' | Copy-Item -Destination (Join-Path $release 'deployment')
 # IIS configurations are merge samples; never replace a production Web.config.

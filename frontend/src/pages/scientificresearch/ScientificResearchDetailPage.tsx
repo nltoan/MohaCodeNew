@@ -5,7 +5,6 @@ import { CardSection, Loading } from '@/components';
 import { Link, useParams } from 'react-router-dom';
 import { getScientificResearchDetail, getScientificResearchDetailByoid } from '@/services/scientificresearch';
 import { getIdFromSlug } from '@/utils/getSlugKey';
-import DOMPurify from 'dompurify';
 import { useTranslation } from 'react-i18next';
 import { DublinCore } from '@/components/DublinCore';
 
@@ -114,7 +113,7 @@ export const ScientificResearchDetailPage = () => {
                     <div
                       className="mt-3"
                       dangerouslySetInnerHTML={{
-                        __html: sanitizeHtml(DOMPurify.sanitize(detail?.noidung?.replace(/contenteditable="true"/g, 'contenteditable="false"'))),
+                        __html: sanitizeHtml(detail?.noidung?.replace(/contenteditable="true"/g, 'contenteditable="false"')),
                       }}
                     />
                   </td>

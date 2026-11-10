@@ -1,4 +1,4 @@
-IF OBJECT_ID('dbo.HoiQuyTrungUong','U') IS NULL
+﻿IF OBJECT_ID('dbo.HoiQuyTrungUong','U') IS NULL
 BEGIN
  CREATE TABLE dbo.HoiQuyTrungUong(
  ID int IDENTITY PRIMARY KEY, Name nvarchar(1000) NOT NULL, Type nvarchar(10) NOT NULL,

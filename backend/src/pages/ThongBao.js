@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import DataGrid, {
   Column,
   Pager,
@@ -25,7 +26,7 @@ export default function ThongBao() {
   const dataSourceFileOptions = createLookupStore({
     loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
   });
-  let rowData;
+  const rowDataRef = useRef();
   return (
     <div className="card">
       <div className="card-header">
@@ -57,12 +58,12 @@ export default function ThongBao() {
           showBorders={true}
           height="calc(100vh - 190px)"
           onInitNewRow={(e) => {
-            rowData = null;
+            rowDataRef.current = null;
             e.data.NgayDang = new Date();
             e.data.TenFileHienThi = "Bấm vào đây để tải về";
           }}
           onEditingStart={(e) => {
-            rowData = e.data;
+            rowDataRef.current = e.data;
           }}
           onRowInserted={(e) => {
             e.component.navigateToRow(e.key).done(function () {
@@ -84,7 +85,7 @@ export default function ThongBao() {
             <Popup title="Thông báo" showTitle={true} />
             <Form
               onInitialized={(e) => {
-                e.component.option("items[0].tabs[1].visible", !!rowData);
+                e.component.option("items[0].tabs[1].visible", !!rowDataRef.current);
               }}
             >
               <TabbedItem colSpan={2}>
@@ -102,7 +103,7 @@ export default function ThongBao() {
                     onInitialized={(e) => {
                       setTimeout(function () {
                         var tmpDs = createCustomStore({
-                          loadUrl: `${window.env.REACT_APP_API_URL}/ThongBao_Files/Get?filter=[['ThongBaoID','=',${rowData ? rowData.ID : ""}]]`,
+                          loadUrl: `${window.env.REACT_APP_API_URL}/ThongBao_Files/Get?filter=[['ThongBaoID','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                           insertUrl: `${window.env.REACT_APP_API_URL}/ThongBao_Files/Post`,
                           updateUrl: `${window.env.REACT_APP_API_URL}/ThongBao_Files/Put`,
                           deleteUrl: `${window.env.REACT_APP_API_URL}/ThongBao_Files/Delete`,
@@ -118,7 +119,7 @@ export default function ThongBao() {
                     rowAlternationEnabled={true}
                     showBorders={true}
                     onInitNewRow={(e) => {
-                      e.data.ThongBaoId = rowData.ID;
+                      e.data.ThongBaoId = rowDataRef.current.ID;
                     }}
                   >
                     <FilterRow visible={true} />

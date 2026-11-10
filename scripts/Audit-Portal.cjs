@@ -22,5 +22,6 @@ const {chromium}=createRequire(path.join(process.env.LOCALAPPDATA,'MohaDev/brows
    await context.close();
   }
  }finally{await browser.close();}
+ await fs.mkdir('.dev',{recursive:true});
  await fs.writeFile('.dev/portal-audit.json',JSON.stringify(results,null,2));
 })().catch(e=>{console.error(e);process.exitCode=1;});

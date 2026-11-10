@@ -5,7 +5,7 @@ const path = require('node:path');
 const { createRequire } = require('node:module');
 const { chromium } = createRequire(path.join(process.env.LOCALAPPDATA, 'MohaDev/browser-tests/package.json'))('playwright');
 
-const base = process.env.DC_PREVIEW_URL || 'http://127.0.0.1:5199';
+const base = process.env.DC_PREVIEW_URL || 'http://127.0.0.1:5175';
 if (!/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(base)) throw Error('DC_PREVIEW_URL must be a local preview');
 const input = process.argv[2];
 const output = process.argv[3];

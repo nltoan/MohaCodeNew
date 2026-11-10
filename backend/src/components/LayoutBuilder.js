@@ -47,8 +47,6 @@ const LayoutBuilder = ({ initialData, onChangeLayout }) => {
 
   const handleDrop = useCallback(
     (dropZone, item) => {
-      console.log("dropZone", dropZone);
-      console.log("item", item);
 
       const splitDropZonePath = dropZone.path.split("-");
       const pathToDropZone = splitDropZonePath.slice(0, -1).join("-");
@@ -85,8 +83,6 @@ const LayoutBuilder = ({ initialData, onChangeLayout }) => {
             newItem,
           ),
         );
-        console.log(components);
-        console.log(layout);
         return;
       }
 

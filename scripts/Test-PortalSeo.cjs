@@ -16,6 +16,7 @@ const {chromium}=createRequire(path.join(process.env.LOCALAPPDATA,'MohaDev/brows
   await page.goto('http://localhost:5175/tin-tuc');await page.waitForFunction(()=>document.querySelector('.mh-news-header h1')?.textContent.length>0);await check();
   const menu=page.locator('.mh-document-accordion').first(),content=page.locator('.mh-news-content').first();
   assert.ok((await content.boundingBox()).y<(await menu.boundingBox()).y);
+  require('node:fs').mkdirSync('.dev',{recursive:true});
   await page.screenshot({path:'.dev/news-mobile-seo-optimized.png'});
   await page.goto('http://localhost:5175/tra-cuu-hoi-quy');await page.getByPlaceholder('Tên tổ chức').waitFor();await check();
   assert.equal(errors.length,0,errors.join('\n'));console.log('PASS metadata: one absolute canonical, one description, matching og:url; SPA article/back updates; mobile news precedes sidebar; no JS errors.');

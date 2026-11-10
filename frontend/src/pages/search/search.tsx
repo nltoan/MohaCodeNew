@@ -139,7 +139,7 @@ export const SearchPage = () => {
                 {item.Type == 'tin-tuc' && (
                   <div className="mh-searchbox-item" key={item?.ID}>
                     <Link to={getNewURL('tin-tuc', item.TieuDe, item?.ID)} className="mh-searchbox-item-image">
-                      <Image src={getUrlImage(item?.AnhDaiDienUrl)} alt={item?.TieuDe} />
+                      <Image src={getUrlImage(item?.AnhDaiDienUrl)} alt={item?.TieuDe} loading="lazy" decoding="async" />
                     </Link>
                     <div className="mh-searchbox-item-info">
                       <Link to={getNewURL('tin-tuc', item.TieuDe, item?.ID)} className="mh-searchbox-item-title">

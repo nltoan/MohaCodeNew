@@ -112,4 +112,13 @@ public class VanBanDuThao_GopYsController : ApiController
                 messages.Add(error.ErrorMessage);
         return String.Join(" ", messages);
     }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _context.Dispose();
+        }
+        base.Dispose(disposing);
+    }
 }

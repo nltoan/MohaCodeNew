@@ -101,6 +101,15 @@ namespace API.Controllers
         public async Task Delete(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
             var model = await _context.Roles.FirstOrDefaultAsync(item => item.ID == key);
+            if (model == null)
+            {
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotFound, "Role not found."));
+            }
+            // Cung quy tac voi giao dien admin: chi vai tro co Removable == 1 moi duoc xoa.
+            if (model.Removable != 1)
+            {
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.BadRequest, "This role cannot be removed."));
+            }
 
             _context.Roles.Remove(model);
             await _context.SaveChangesAsync();

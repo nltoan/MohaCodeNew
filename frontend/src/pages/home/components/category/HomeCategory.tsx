@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { Col, Container, Image, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { CardEvent, CardNotice, Loading, type CardEventProps, type CardNoticeProps } from '@/components';

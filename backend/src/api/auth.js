@@ -64,7 +64,7 @@ export async function signIn(email, password, code, type) {
     var data = await request(
       `/User_Account/GetLoginUser`,
     );
-    if (data.data.length == 0) {
+    if (!data?.data?.length) {
       return {
         isOk: false,
         message: "Authentication failed",
@@ -105,34 +105,3 @@ export async function getUser() {
   }
 }
 
-export async function changePassword(email, recoveryCode) {
-  try {
-    // Send request
-    console.log(email, recoveryCode);
-
-    return {
-      isOk: true,
-    };
-  } catch {
-    return {
-      isOk: false,
-      message: "Failed to change password",
-    };
-  }
-}
-
-export async function resetPassword(email) {
-  try {
-    // Send request
-    console.log(email);
-
-    return {
-      isOk: true,
-    };
-  } catch {
-    return {
-      isOk: false,
-      message: "Failed to reset password",
-    };
-  }
-}

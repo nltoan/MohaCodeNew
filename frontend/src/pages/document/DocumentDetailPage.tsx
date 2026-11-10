@@ -7,7 +7,6 @@ import { Link, useParams } from 'react-router-dom';
 import { getDocumentDetail, getDocumentDetailByqpid, getDocumentDetailBycdid, getDocumentDetailBytbid } from '@/services/documents';
 import { getIdFromSlug } from '@/utils/getSlugKey';
 import { vnFormatter } from '@/utils/dateUtils';
-import DOMPurify from 'dompurify';
 import { getUrlPdfFile } from '@/utils/image';
 import { useTranslation } from 'react-i18next';
 import { IconDocumentDownload } from '@/components/icons';
@@ -175,7 +174,7 @@ export const DocumentDetailPage = () => {
                     <div
                       className="mt-3"
                       dangerouslySetInnerHTML={{
-                        __html: sanitizeHtml(DOMPurify.sanitize(detail.content)),
+                        __html: sanitizeHtml(detail.content),
                       }}
                     />
                   </td>

@@ -105,6 +105,7 @@ namespace API.OAuth.Providers
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Trace.TraceError("Login failed with exception: " + ex);
                 //context.SetError("invalid_grant", "Username hay mật khẩu không đúng!");
                 context.SetError("invalid_grant", "Username hay mật khẩu không đúng!");
                 return;

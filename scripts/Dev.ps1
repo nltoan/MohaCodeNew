@@ -32,7 +32,11 @@ if ($Action -eq 'Build') {
     return
 }
 if ($Action -eq 'Test') {
-    foreach ($url in @('http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:55104/api/Public/Menu?lang=vi')) {
+    $testUrls = @('http://localhost:5173', 'http://localhost:5174')
+    if (Test-Path (Join-Path $root 'frontend\dist\index.html')) { $testUrls += 'http://localhost:5175' }
+    else { Write-Host 'SKIP preview 5175: frontend\dist\index.html not found (run -Action Build first).' }
+    $testUrls += 'http://localhost:55104/api/Public/Menu?lang=vi'
+    foreach ($url in $testUrls) {
         $deadline = (Get-Date).AddMinutes(5)
         do {
             try {

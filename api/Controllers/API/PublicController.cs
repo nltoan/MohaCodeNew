@@ -863,6 +863,10 @@ namespace API.Controllers
         [HttpPost]
         public async Task<HttpResponseMessage> SendCommentVBDT([FromBody] CommentModel model)
         {
+            if (model == null)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid request.");
+            }
             var recaptchaService = new ReCaptchaValidator();
             var captchaResult = await recaptchaService.VerifyTokenAsync(model.recaptcha);
 
@@ -922,9 +926,9 @@ namespace API.Controllers
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { data = (string)null, reason = "language_unavailable" });
             }
+            // Atomic increment in the database (avoids lost updates); keep the in-memory value for the response only.
+            _context.Database.ExecuteSqlCommand("UPDATE TinTuc SET PageCount = ISNULL(PageCount, 0) + 1 WHERE ID = @p0", ID);
             post.PageCount = post.PageCount + 1 ?? 1;
-            _context.Entry(post).Property(x => x.PageCount).IsModified = true;
-            _context.SaveChanges();
 
 
             var parents = _context.CollectionFromSql(@"
@@ -993,6 +997,10 @@ namespace API.Controllers
         private HttpResponseMessage ChuyenMucDetailById(int ID, int limitTopPost = 6)
         {
             var chuyenmuc = _context.ChuyenMucs.Find(ID);
+            if (chuyenmuc == null)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Category not found.");
+            }
 
             var parents = _context.CollectionFromSql(@"
                 with name_tree as 
@@ -1220,6 +1228,10 @@ namespace API.Controllers
         public async Task<HttpResponseMessage> MenuDetail(int ID)
         {
             var menu = _context.Menu_FrontEnd.Find(ID);
+            if (menu == null)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Menu not found.");
+            }
             var childs = _context.CollectionFromSql(@"
                 select * from Menu_FrontEnd where IDMenuCha = @IDMenuCha and HienThi = 1 ORDER BY STT asc
             ",
@@ -1623,6 +1635,10 @@ namespace API.Controllers
                 ORDER BY t.ID desc
             ",
             new Dictionary<string, object> { }).FirstOrDefault();
+            if (top == null)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Post not found.");
+            }
             var data = _context.CollectionFromSql(@"
                 WITH cte AS 
                 (
@@ -2140,6 +2156,10 @@ namespace API.Controllers
         public async Task<HttpResponseMessage> CoCauToChucDetail(int ID)
         {
             var data = _context.CoCauToChucs.Find(ID);
+            if (data == null)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Organization unit not found.");
+            }
             var childs = _context.CollectionFromSql(@"
                 select * from CoCauToChuc where IDDVCha = @ID and HienThi = 1 order by SoThuTu asc
             ",
@@ -2306,6 +2326,10 @@ namespace API.Controllers
                 .Include(s => s.QLDA_GiaiDoan)
                 .Include(s => s.QLDA_HoSo.Select(x => x.QLDA_HoSo_Files.Select(y => y.File)))
                 .Where(x => x.id == id).FirstOrDefault();
+            if (data == null)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Project not found.");
+            }
             var relates = _context.CollectionFromSql(@"
                 select * from QLDA_DuAnDeAn 
                 where ID <> @ID and TrangThai = 1 and LoaiID = @LoaiID ORDER BY ID desc
@@ -2424,6 +2448,10 @@ namespace API.Controllers
                 .Include(s => s.LoaiSuKien)
                 .Include(s => s.SuKienHoiThao_Files.Select(y => y.File))
                 .Where(x => x.ID == ID).FirstOrDefault();
+            if (data == null)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Event not found.");
+            }
 
             var relates = _context.SuKienHoiThaos
                 .Include(s => s.LoaiSuKien)
@@ -2484,8 +2512,11 @@ namespace API.Controllers
             {
                 int anhDaiDienId = Convert.ToInt32(article.AnhDaiDien);
                 var anhDaiDien = _context.Files.FirstOrDefault(x => x.ID == anhDaiDienId);
-                imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + anhDaiDien.LinkLuuTru;
-                imageUrl = Uri.EscapeUriString(imageUrl);
+                if (anhDaiDien != null)
+                {
+                    imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + anhDaiDien.LinkLuuTru;
+                    imageUrl = Uri.EscapeUriString(imageUrl);
+                }
             }
 
             string html = $@"
@@ -2706,7 +2737,10 @@ namespace API.Controllers
             {
                 int anhDaiDienId = Convert.ToInt32(article.AnhDaiDien);
                 var anhDaiDien = _context.Files.FirstOrDefault(x => x.ID == anhDaiDienId);
-                imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + anhDaiDien.LinkLuuTru;
+                if (anhDaiDien != null)
+                {
+                    imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + anhDaiDien.LinkLuuTru;
+                }
             }
 
             string html = $@"
@@ -2755,7 +2789,10 @@ namespace API.Controllers
             {
                 int anhDaiDienId = Convert.ToInt32(article.AnhDaiDien);
                 var anhDaiDien = _context.Files.FirstOrDefault(x => x.ID == anhDaiDienId);
-                imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + anhDaiDien.LinkLuuTru;
+                if (anhDaiDien != null)
+                {
+                    imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + anhDaiDien.LinkLuuTru;
+                }
             }
 
             string html = $@"
@@ -2804,7 +2841,10 @@ namespace API.Controllers
             {
                 int anhDaiDienId = Convert.ToInt32(article.AnhDaiDien);
                 var anhDaiDien = _context.Files.FirstOrDefault(x => x.ID == anhDaiDienId);
-                imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + anhDaiDien.LinkLuuTru;
+                if (anhDaiDien != null)
+                {
+                    imageUrl = ConfigurationManager.AppSettings["frontendSiteUrl"] + anhDaiDien.LinkLuuTru;
+                }
             }
 
             string html = $@"
@@ -2832,6 +2872,15 @@ namespace API.Controllers
             var response = Request.CreateResponse(HttpStatusCode.OK);
             response.Content = new StringContent(html, Encoding.UTF8, "text/html");
             return response;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _context.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }

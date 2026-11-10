@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import "devextreme-react/html-editor";
 import config from "../config";
 import DataGrid, {
@@ -25,7 +26,7 @@ export default function SuKienHoiThao() {
   const dataSourceFileOptions = createLookupStore({
     loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
   });
-  let rowData;
+  const rowDataRef = useRef();
   return (
     <div className="card">
       <div className="card-header">
@@ -59,10 +60,10 @@ export default function SuKienHoiThao() {
           showBorders={true}
           height="calc(100vh - 190px)"
           onInitNewRow={(e) => {
-            rowData = null;
+            rowDataRef.current = null;
           }}
           onEditingStart={(e) => {
-            rowData = e.data;
+            rowDataRef.current = e.data;
           }}
           onRowInserted={(e) => {
             e.component.navigateToRow(e.key).done(function () {
@@ -88,7 +89,7 @@ export default function SuKienHoiThao() {
             />
             <Form
               onInitialized={(e) => {
-                e.component.option("items[0].tabs[1].visible", !!rowData);
+                e.component.option("items[0].tabs[1].visible", !!rowDataRef.current);
               }}
             >
               <TabbedItem colSpan={2}>
@@ -112,7 +113,7 @@ export default function SuKienHoiThao() {
                     onInitialized={(e) => {
                       setTimeout(function () {
                         var tmpDs = createCustomStore({
-                          loadUrl: `${window.env.REACT_APP_API_URL}/SuKienHoiThao_Files/Get?filter=[['SuKienHoiThaoID','=',${rowData ? rowData.ID : ""}]]`,
+                          loadUrl: `${window.env.REACT_APP_API_URL}/SuKienHoiThao_Files/Get?filter=[['SuKienHoiThaoID','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                           insertUrl: `${window.env.REACT_APP_API_URL}/SuKienHoiThao_Files/Post`,
                           updateUrl: `${window.env.REACT_APP_API_URL}/SuKienHoiThao_Files/Put`,
                           deleteUrl: `${window.env.REACT_APP_API_URL}/SuKienHoiThao_Files/Delete`,
@@ -128,7 +129,7 @@ export default function SuKienHoiThao() {
                     rowAlternationEnabled={true}
                     showBorders={true}
                     onInitNewRow={(e) => {
-                      e.data.SuKienHoiThaoID = rowData.ID;
+                      e.data.SuKienHoiThaoID = rowDataRef.current.ID;
                     }}
                   >
                     <FilterRow visible={true} />

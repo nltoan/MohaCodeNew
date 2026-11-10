@@ -15,7 +15,7 @@ import { createCustomStore } from '../utils/api';
 
 export default function Banner_ViTri() {
   const dataSourceOptions = createCustomStore("Banner_ViTri");
-  const dataSourceBannerOptions = createCustomStore("Banner");
+  const dataSourceBannerOptions = createCustomStore("Banners");
   return (
     <div className="card">
       <div className="card-header">

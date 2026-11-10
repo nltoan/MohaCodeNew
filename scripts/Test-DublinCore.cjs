@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 const { createRequire } = require('node:module');
 const { chromium } = createRequire(path.join(process.env.LOCALAPPDATA, 'MohaDev/browser-tests/package.json'))('playwright');
-const base = process.env.PORTAL_TEST_URL || 'http://127.0.0.1:5199';
+const base = process.env.PORTAL_TEST_URL || 'http://127.0.0.1:5175';
 if (!/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(base)) throw new Error('Only a local preview may be tested');
 
 (async () => {

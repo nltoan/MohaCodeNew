@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import DataGrid, {
   Column,
   Pager,
@@ -28,7 +29,7 @@ export default function ABL_AlbumAnh() {
   const dataSourceFileWithPathOptions = createLookupStore({
     loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetFilePath`,
   });
-  let rowData;
+  const rowDataRef = useRef();
   return (
     <div className="card">
       <div className="card-header">
@@ -62,10 +63,10 @@ export default function ABL_AlbumAnh() {
           rowAlternationEnabled={true}
           height="calc(100vh - 190px)"
           onInitNewRow={(e) => {
-            rowData = null;
+            rowDataRef.current = null;
           }}
           onEditingStart={(e) => {
-            rowData = e.data;
+            rowDataRef.current = e.data;
           }}
           onRowInserted={(e) => {
             e.component.navigateToRow(e.key).done(function () {
@@ -87,7 +88,7 @@ export default function ABL_AlbumAnh() {
             <Popup title="Album Ảnh" showTitle={true} />
             <Form
               onInitialized={(e) => {
-                e.component.option("items[0].tabs[1].visible", !!rowData);
+                e.component.option("items[0].tabs[1].visible", !!rowDataRef.current);
               }}
             >
               <TabbedItem colSpan={2}>
@@ -106,7 +107,7 @@ export default function ABL_AlbumAnh() {
                     onInitialized={(e) => {
                       setTimeout(function () {
                         var tmpDs = createCustomStore({
-                          loadUrl: `${window.env.REACT_APP_API_URL}/AlbumAnh_Files/Get?filter=[['AlbumId','=',${rowData ? rowData.ID : ""}]]`,
+                          loadUrl: `${window.env.REACT_APP_API_URL}/AlbumAnh_Files/Get?filter=[['AlbumId','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                           insertUrl: `${window.env.REACT_APP_API_URL}/AlbumAnh_Files/Post`,
                           updateUrl: `${window.env.REACT_APP_API_URL}/AlbumAnh_Files/Put`,
                           deleteUrl: `${window.env.REACT_APP_API_URL}/AlbumAnh_Files/Delete`,
@@ -123,7 +124,7 @@ export default function ABL_AlbumAnh() {
                     showBorders={true}
                     width="100%"
                     onInitNewRow={(e) => {
-                      e.data.AlbumID = rowData.ID;
+                      e.data.AlbumID = rowDataRef.current.ID;
                     }}
                   >
                     <FilterRow visible={true} />

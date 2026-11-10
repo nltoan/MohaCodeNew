@@ -1,4 +1,4 @@
-param([string]$BaseUrl = 'http://localhost:55111')
+param([string]$BaseUrl = 'http://localhost:55104')
 $ErrorActionPreference = 'Stop'
 if ($BaseUrl -notmatch '^http://(localhost|127\.0\.0\.1)(:\d+)?$') { throw 'Only a local staging URL may be used.' }
 

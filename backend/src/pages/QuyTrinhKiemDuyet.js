@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import DataGrid, {
   Column,
   Pager,
@@ -16,7 +17,7 @@ import { createCustomStore, createLookupStore } from '../utils/api';
 
 export default function QuyTrinhKiemDuyet() {
   const dataSourceUsersOptions = createLookupStore("User_Account", "UserID");
-  let rowData;
+  const rowDataRef = useRef();
   return (
     <div className="card">
       <div className="card-header">
@@ -50,10 +51,10 @@ export default function QuyTrinhKiemDuyet() {
           showBorders={true}
           height="calc(100vh - 190px)"
           onInitNewRow={(e) => {
-            rowData = null;
+            rowDataRef.current = null;
           }}
           onEditingStart={(e) => {
-            rowData = e.data;
+            rowDataRef.current = e.data;
           }}
           onRowInserted={(e) => {
             e.component.navigateToRow(e.key).done(function () {
@@ -78,7 +79,7 @@ export default function QuyTrinhKiemDuyet() {
             />
             <Form
               onInitialized={(e) => {
-                e.component.option("items[0].tabs[1].visible", !!rowData);
+                e.component.option("items[0].tabs[1].visible", !!rowDataRef.current);
               }}
             >
               <TabbedItem colSpan={2}>
@@ -97,7 +98,7 @@ export default function QuyTrinhKiemDuyet() {
                       onInitialized={(e) => {
                         setTimeout(function () {
                           var tmpDs = createCustomStore({
-                            loadUrl: `${window.env.REACT_APP_API_URL}/BuocQuyTrinhs/Get?filter=[['IDQuyTrinh','=',${rowData ? rowData.ID : ""}]]`,
+                            loadUrl: `${window.env.REACT_APP_API_URL}/BuocQuyTrinhs/Get?filter=[['IDQuyTrinh','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                             insertUrl: `${window.env.REACT_APP_API_URL}/BuocQuyTrinhs/Post`,
                             updateUrl: `${window.env.REACT_APP_API_URL}/BuocQuyTrinhs/Put`,
                             deleteUrl: `${window.env.REACT_APP_API_URL}/BuocQuyTrinhs/Delete`,
@@ -109,7 +110,7 @@ export default function QuyTrinhKiemDuyet() {
                         e.component.refresh();
                       }}
                       onInitNewRow={(e) => {
-                        e.data.IDQuyTrinh = rowData.ID;
+                        e.data.IDQuyTrinh = rowDataRef.current.ID;
                       }}
                       allowColumnResizing={true}
                       allowColumnReordering={true}

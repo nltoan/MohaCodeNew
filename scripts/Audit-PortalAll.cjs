@@ -3,7 +3,7 @@ const {createRequire}=require('node:module');
 const {chromium}=createRequire(path.join(process.env.LOCALAPPDATA,'MohaDev/browser-tests/package.json'))('playwright');
 const base='http://localhost:5175';
 const targeted=process.env.PORTAL_AUDIT_ROUTES ? JSON.parse(process.env.PORTAL_AUDIT_ROUTES) : null;
-const output=process.env.PORTAL_AUDIT_OUTPUT || '.dev/portal-full-audit.json';
+const output=process.env.PORTAL_AUDIT_OUTPUT || '.dev/portal-full-audit.json';require('node:fs').mkdirSync(path.dirname(path.resolve(output)),{recursive:true});
 const routes=targeted || ['/','/trang-chu','/gioi-thieu','/gioi-thieu/lich-su-hinh-thanh-va-phat-trien','/van-ban','/van-ban/du-thao-van-ban','/tin-tuc','/chuyen-muc','/tim-kiem','/tim-kiem/'+encodeURIComponent('nội vụ'),'/tra-cuu-hoi-quy','/nghien-cuu-khoa-hoc','/multimedia','/multimedia/photo','/multimedia/video','/multimedia/audio','/photo','/video','/audio','/du-lieu','/phan-anh-kien-nghi','/khong-ton-tai','/bo-truong','/bo-truong/trang-chu','/bo-truong/gioi-thieu-bo-truong','/bo-truong/tin-tuc','/bo-truong/chuyen-muc','/nghi-quyet-tw4','/nghi-quyet-tw4/trang-chu','/nghi-quyet-tw4/tin-tuc','/nghi-quyet-tw4/chuyen-muc'];
 const families=new Map();
 function discover(hrefs){if(targeted)return;for(let href of hrefs){if(!href)continue;try{const u=new URL(href,base);if(![new URL(base).host,'moha.gov.vn','www.moha.gov.vn'].includes(u.host))continue;href=u.pathname;}catch{continue;}

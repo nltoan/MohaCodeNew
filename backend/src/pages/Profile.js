@@ -115,10 +115,10 @@ export default function Profile() {
                           const vbs = await request(
                             `Home/GenerateAuthenticateSecret`,
                           );
-                          setAuthenSetupImg(vbs.imageUrl);
+                          setAuthenSetupImg(vbs?.imageUrl);
                           setFormData({
                             ...formData,
-                            EntryKey: vbs.entryKey,
+                            EntryKey: vbs?.entryKey,
                             IsTwoFA: e.value,
                           });
                         } else {

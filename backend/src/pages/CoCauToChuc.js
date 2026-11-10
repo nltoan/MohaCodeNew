@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import DataGrid, {
   Column as DataGridColumn,
   SearchPanel as DataGridSearchPanel,
@@ -56,7 +57,7 @@ export default function CoCauToChuc() {
       </>
     );
   }
-  let rowData;
+  const rowDataRef = useRef();
   function getFilteredCoCauToChucs(options) {
     return createFilterLookupStore(
       "CoCauToChucs",
@@ -105,10 +106,10 @@ export default function CoCauToChuc() {
           keyExpr="ID"
           parentIdExpr="IDDVCha"
           onInitNewRow={(e) => {
-            rowData = null;
+            rowDataRef.current = null;
           }}
           onEditingStart={(e) => {
-            rowData = e.data;
+            rowDataRef.current = e.data;
           }}
           onRowInserted={(e) => {
             e.component.navigateToRow(e.key).done(function () {
@@ -139,8 +140,8 @@ export default function CoCauToChuc() {
             />
             <Form
               onInitialized={(e) => {
-                e.component.option("items[0].tabs[1].visible", !!rowData);
-                e.component.option("items[0].tabs[2].visible", !!rowData);
+                e.component.option("items[0].tabs[1].visible", !!rowDataRef.current);
+                e.component.option("items[0].tabs[2].visible", !!rowDataRef.current);
               }}
             >
               <TabbedItem colSpan={2}>
@@ -167,7 +168,7 @@ export default function CoCauToChuc() {
                     onInitialized={(e) => {
                       setTimeout(function () {
                         var tmpDs = createCustomStore({
-                          loadUrl: `${window.env.REACT_APP_API_URL}/DonVi_LanhDao/Get?filter=[['IDDonVi','=',${rowData ? rowData.ID : ""}]]`,
+                          loadUrl: `${window.env.REACT_APP_API_URL}/DonVi_LanhDao/Get?filter=[['IDDonVi','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                           insertUrl: `${window.env.REACT_APP_API_URL}/DonVi_LanhDao/Post`,
                           updateUrl: `${window.env.REACT_APP_API_URL}/DonVi_LanhDao/Put`,
                           deleteUrl: `${window.env.REACT_APP_API_URL}/DonVi_LanhDao/Delete`,
@@ -183,7 +184,7 @@ export default function CoCauToChuc() {
                     rowAlternationEnabled={true}
                     showBorders={true}
                     onInitNewRow={(e) => {
-                      e.data.IDDonVi = rowData.ID;
+                      e.data.IDDonVi = rowDataRef.current.ID;
                     }}
                   >
                     <DataGridFilterRow visible={true} />
@@ -267,7 +268,7 @@ export default function CoCauToChuc() {
                     onInitialized={(e) => {
                       setTimeout(function () {
                         var tmpDs = createCustomStore({
-                          loadUrl: `${window.env.REACT_APP_API_URL}/CoCauToChucs/Get?filter=[['IDDVCha','=',${rowData ? rowData.ID : ""}]]`,
+                          loadUrl: `${window.env.REACT_APP_API_URL}/CoCauToChucs/Get?filter=[['IDDVCha','=',${rowDataRef.current ? rowDataRef.current.ID : ""}]]`,
                           insertUrl: `${window.env.REACT_APP_API_URL}/CoCauToChucs/Post`,
                           updateUrl: `${window.env.REACT_APP_API_URL}/CoCauToChucs/Put`,
                           deleteUrl: `${window.env.REACT_APP_API_URL}/CoCauToChucs/Delete`,
@@ -283,7 +284,7 @@ export default function CoCauToChuc() {
                     rowAlternationEnabled={true}
                     showBorders={true}
                     onInitNewRow={(e) => {
-                      e.data.IDDVCha = rowData.ID;
+                      e.data.IDDVCha = rowDataRef.current.ID;
                     }}
                   >
                     <DataGridFilterRow visible={true} />

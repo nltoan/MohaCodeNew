@@ -11,6 +11,7 @@ const {chromium}=createRequire(path.join(process.env.LOCALAPPDATA,'MohaDev/brows
   assert.ok((await page.locator('main').innerText()).length>150);
   await page.goto('http://localhost:5175/gioi-thieu/lich-su-bo/---id13036');await page.getByRole('link',{name:'Tải về',exact:true}).first().waitFor();
   const download=await page.getByRole('link',{name:'Tải về',exact:true}).first().boundingBox();assert.ok(download.x+download.width<=390,'History download link must fit mobile viewport');
+  require('node:fs').mkdirSync('.dev',{recursive:true});
   await page.screenshot({path:'.dev/history-mobile-sections.png',fullPage:true});
   await page.goto('http://localhost:5175/van-ban');await page.waitForURL('**/van-ban/van-ban-chi-dao/**');await page.locator('.mh-document-filter').waitFor();
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Document mobile overflow');

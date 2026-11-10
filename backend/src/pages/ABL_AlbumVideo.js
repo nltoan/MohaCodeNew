@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import DataGrid, {
   Column,
   Pager,
@@ -28,7 +29,7 @@ export default function ABL_AlbumVideo() {
   const dataSourceFileWithPathOptions = createLookupStore({
     loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetFilePath`,
   });
-  let rowData;
+  const rowDataRef = useRef();
   return (
     <div className="card">
       <div className="card-header">
@@ -62,10 +63,10 @@ export default function ABL_AlbumVideo() {
           rowAlternationEnabled={true}
           height="calc(100vh - 190px)"
           onInitNewRow={(e) => {
-            rowData = null;
+            rowDataRef.current = null;
           }}
           onEditingStart={(e) => {
-            rowData = e.data;
+            rowDataRef.current = e.data;
           }}
           onRowInserted={(e) => {
             e.component.navigateToRow(e.key).done(function () {
@@ -87,7 +88,7 @@ export default function ABL_AlbumVideo() {
             <Popup title="Album Video" showTitle={true} />
             <Form
               onInitialized={(e) => {
-                e.component.option("items[0].tabs[1].visible", !!rowData);
+                e.component.option("items[0].tabs[1].visible", !!rowDataRef.current);
               }}
             >
               <TabbedItem colSpan={2}>
@@ -109,7 +110,7 @@ export default function ABL_AlbumVideo() {
                           loadUrl: `${
                             window.env.REACT_APP_API_URL
                           }/AlbumVideo_Files/Get?filter=[['AlbumId','=',${
-                            rowData ? rowData.ID : ""
+                            rowDataRef.current ? rowDataRef.current.ID : ""
                           }]]`,
                           insertUrl: `${window.env.REACT_APP_API_URL}/AlbumVideo_Files/Post`,
                           updateUrl: `${window.env.REACT_APP_API_URL}/AlbumVideo_Files/Put`,
@@ -127,7 +128,7 @@ export default function ABL_AlbumVideo() {
                     showBorders={true}
                     width="100%"
                     onInitNewRow={(e) => {
-                      e.data.AlbumID = rowData.ID;
+                      e.data.AlbumID = rowDataRef.current.ID;
                     }}
                   >
                     <FilterRow visible={true} />

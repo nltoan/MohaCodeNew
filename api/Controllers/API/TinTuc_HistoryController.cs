@@ -27,6 +27,10 @@ namespace API.Controllers
         public async Task<HttpResponseMessage> GetCompare(int ID)
         {
             var left = _context.TinTuc_History.Where(x=>x.ID == ID).FirstOrDefault();
+            if (left == null)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "History not found.");
+            }
             var right = _context.TinTuc_History.Where(x => x.ID < ID). Where(x=>x.TinTucID == left.TinTucID).OrderByDescending(x => x.ID).FirstOrDefault();
 
             return Request.CreateResponse(HttpStatusCode.OK, new { left, right });

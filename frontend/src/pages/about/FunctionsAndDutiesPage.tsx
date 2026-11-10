@@ -6,7 +6,6 @@ import { PageFooter, PageHeader } from '@/components';
 import { IconPdfFile } from '@/components/icons';
 import { useEffect, useRef, useState } from 'react';
 import axiosInstance from '@/services';
-import DOMPurify from 'dompurify';
 import { useLocation, useParams } from 'react-router-dom';
 import { getIdFromSlug } from '@/utils/getSlugKey';
 import { Helmet } from 'react-helmet-async';
@@ -60,7 +59,7 @@ export const FunctionsAndDutiesPage = () => {
           <div
             className={isHistory ? 'mh-about-history' : undefined}
             dangerouslySetInnerHTML={{
-              __html: sanitizeHtml(DOMPurify.sanitize(resolveContentMedia(isHistory ? data?.NoiDung?.replace(/&nbsp;|\u00a0/g, ' ') : data?.NoiDung)?.replace(/contenteditable="true"/g, 'contenteditable="false"'))),
+              __html: sanitizeHtml(resolveContentMedia(isHistory ? data?.NoiDung?.replace(/&nbsp;|\u00a0/g, ' ') : data?.NoiDung)?.replace(/contenteditable="true"/g, 'contenteditable="false"')),
             }}
           />
         </AboutBody>

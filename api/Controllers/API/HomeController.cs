@@ -175,5 +175,14 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.OK, new { imageUrl, entryKey });
         }
 
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _context.Dispose();
+            }
+            base.Dispose(disposing);
+        }
     }
 }

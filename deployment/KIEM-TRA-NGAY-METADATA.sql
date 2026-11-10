@@ -1,4 +1,4 @@
--- Read-only audit. Run in the intended database; no rows are modified.
+﻿-- Read-only audit. Run in the intended database; no rows are modified.
 SELECT DB_NAME() AS TenCoSoDuLieu;
 
 SELECT N'Chuyên mục đang hoạt động' AS Loai, COUNT_BIG(*) AS Tong,

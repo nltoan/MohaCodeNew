@@ -59,7 +59,7 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
       const parentPath = currentPath;
       currentPath = `${currentPath}/${segment}`;
       const label = BREADCRUMB_LABELS[segment];
-      var path = index === location.pathname.split('/').filter(Boolean).length - 1 ? undefined : currentPath;
+      let path = index === location.pathname.split('/').filter(Boolean).length - 1 ? undefined : currentPath;
       if(segment === 'van-ban'){
         path = '/van-ban/van-ban-chi-dao/---id' + APP_DATA_CONFIG.DOCUMENT_DEFAULT_CATEGORY.CDDH;
       } else if(segment === 'van-ban-chi-dao'){

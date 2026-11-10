@@ -85,7 +85,7 @@ export const VideoAlbumDetailPage = () => {
                 {pagination?.albums?.map((item) => (
                   <div className="mh-gallery-item" key={item?.ID}>
                     <Link to={getNewURL('video', item.TieuDe, item?.ID)} className="mh-gallery-item-image">
-                      <Image src={getUrlImage(item?.UrlAnh)} alt={item?.TieuDe} />
+                      <Image src={getUrlImage(item?.UrlAnh)} alt={item?.TieuDe} loading="lazy" decoding="async" />
                     </Link>
                     <div className="mh-gallery-item-info">
                       <Link to={getNewURL('video', item.TieuDe, item?.ID)} className="mh-gallery-item-title">

@@ -218,7 +218,7 @@ export const NewsCategoryPage = () => {
                     {pagination?.news?.map((item) => (
                       <div className="mh-news-item" key={item?.ID}>
                         <Link to={getNewURL('bo-truong/tin-tuc', item.TieuDe, item?.ID)} className="mh-news-item-image">
-                          <Image src={getUrlImage(item?.AnhDaiDienUrl)} alt={item?.TieuDe} />
+                          <Image src={getUrlImage(item?.AnhDaiDienUrl)} alt={item?.TieuDe} loading="lazy" decoding="async" />
                         </Link>
                         <div className="mh-news-item-info">
                           <Link to={getNewURL('bo-truong/tin-tuc', item.TieuDe, item?.ID)} className="mh-news-item-title">

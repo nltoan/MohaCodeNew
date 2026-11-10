@@ -226,7 +226,7 @@ export const NewsCategoryPage = () => {
                               className="mh-news-banner-card"
                             >
                               <div className="mh-news-banner-card-image">
-                                <Image src={getUrlImage(item?.AnhDaiDienUrl)} alt={item?.TieuDe} />
+                                <Image src={getUrlImage(item?.AnhDaiDienUrl)} alt={item?.TieuDe} loading="lazy" decoding="async" />
                               </div>
 
                               <div className="mh-news-banner-card-title">{item?.TieuDe}</div>
@@ -241,7 +241,7 @@ export const NewsCategoryPage = () => {
                     {pagination?.news?.map((item) => (
                       <div className="mh-news-item" key={item?.ID}>
                         <Link to={getNewURL('tin-tuc', item.TieuDe, item?.ID)} className="mh-news-item-image">
-                          <Image src={getUrlImage(item?.AnhDaiDienUrl)} alt={item?.TieuDe} />
+                          <Image src={getUrlImage(item?.AnhDaiDienUrl)} alt={item?.TieuDe} loading="lazy" decoding="async" />
                         </Link>
                         <div className="mh-news-item-info">
                           <Link to={getNewURL('tin-tuc', item.TieuDe, item?.ID)} className="mh-news-item-title">
