@@ -111,6 +111,7 @@ namespace API.Controllers
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { });
             }
+            bool passwordChanged = false;
             if (values.Contains("IsReceiveEmail") && Convert.ToInt32(values["IsReceiveEmail"]) != aUser.IsReceiveEmail)
             {
                 int isReceiveEmail = Convert.ToInt32(values["IsReceiveEmail"]);
@@ -135,9 +136,17 @@ namespace API.Controllers
                     return Request.CreateResponse(HttpStatusCode.BadRequest, new { status = "ko", error = "Mật khẩu hiện tại không đúng." });
                 if (Password.Length < 12 || Password.Length > 255)
                     return Request.CreateResponse(HttpStatusCode.BadRequest, new { status = "ko", error = "Mật khẩu mới cần từ 12 đến 255 ký tự." });
+                if (Password == Convert.ToString(values["CurrentPassword"]))
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { status = "ko", error = "Mật khẩu mới phải khác mật khẩu hiện tại." });
                 aUser.MatKhau = API.Services.PasswordSecurity.Hash(Password);
+                passwordChanged = true;
             }
+            // Phien bi han che do mat khau mac dinh: phai doi mat khau VA co 2FA thi moi hoan tat.
+            var principal = User as System.Security.Claims.ClaimsPrincipal;
+            if (principal != null && principal.HasClaim(API.Services.DefaultPasswordPolicy.SetupClaim, "1") && (!passwordChanged || aUser.IsTwoFA != 1))
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new { status = "ko", error = "Cần đặt mật khẩu mới và bật Google Authenticator (nhập mã xác nhận) cùng lúc." });
             _context.SaveChanges();
+            if (passwordChanged) API.Services.DefaultPasswordPolicy.Clear(_context, ID);
             return Request.CreateResponse(HttpStatusCode.OK, new { status = "ok"});
         }
 

@@ -117,6 +117,8 @@ namespace API.Controllers
 
             var result = _context.User_Account.Add(model);
             await _context.SaveChangesAsync();
+            // Mat khau do quan tri dat la mat khau mac dinh: chi dung dang nhap vai lan, sau do bat buoc doi + bat 2FA.
+            if (values.Contains("MatKhau")) API.Services.DefaultPasswordPolicy.MarkDefault(_context, result.UserID);
 
             return Request.CreateResponse(HttpStatusCode.Created, new { result.UserID });
         }
@@ -138,6 +140,7 @@ namespace API.Controllers
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, GetFullErrorMessage(ModelState));
 
             await _context.SaveChangesAsync();
+            if (values.Contains("MatKhau")) API.Services.DefaultPasswordPolicy.MarkDefault(_context, model.UserID);
 
             return Request.CreateResponse(HttpStatusCode.OK);
         }

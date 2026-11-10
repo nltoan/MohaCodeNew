@@ -23,6 +23,13 @@ namespace API.OAuth.Providers
             context.Validated();
         }
         
+        public override Task TokenEndpoint(OAuthTokenEndpointContext context)
+        {
+            if (context.Identity != null && context.Identity.HasClaim(DefaultPasswordPolicy.SetupClaim, "1"))
+                context.AdditionalResponseParameters.Add(DefaultPasswordPolicy.SetupClaim, "1");
+            return Task.FromResult(0);
+        }
+
         public override async Task GrantResourceOwnerCredentials(OAuthGrantResourceOwnerCredentialsContext context)
         {
             // CORS set setting
@@ -74,6 +81,15 @@ namespace API.OAuth.Providers
                     if (!PasswordSecurity.IsHash(model.MatKhau)) {
                         model.MatKhau = PasswordSecurity.Hash(context.Password);
                         await _context.SaveChangesAsync();
+                    }
+                    // Mat khau mac dinh: cho dang nhap toi da N lan, sau do chi duoc vao man hinh doi mat khau + bat 2FA.
+                    var policy = DefaultPasswordPolicy.Get(_context, model.UserID);
+                    if (policy.MatKhauMacDinh == 1)
+                    {
+                        if (policy.SoLanDangNhapMacDinh >= DefaultPasswordPolicy.MaxLogins)
+                            identity.AddClaim(new Claim(DefaultPasswordPolicy.SetupClaim, "1"));
+                        else
+                            DefaultPasswordPolicy.CountLogin(_context, model.UserID);
                     }
                     HttpRuntime.Cache.Remove(attemptKey);
                     context.Validated(identity);

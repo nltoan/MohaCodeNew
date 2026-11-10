@@ -54,6 +54,13 @@ export default function Profile() {
           </div>
         </div>
         <div className="card-body">
+          {localStorage.getItem("setup_required") === "1" && (
+            <div className="alert alert-warning">
+              Mật khẩu mặc định đã hết số lần đăng nhập cho phép. Vui lòng nhập mật khẩu hiện tại,
+              đặt mật khẩu mới (từ 12 ký tự), bật Google Authenticator và nhập mã xác nhận,
+              sau đó bấm Cập nhật để tiếp tục sử dụng hệ thống.
+            </div>
+          )}
           <form onSubmit={handleSubmit}>
             <Form formData={formData}>
               <TabbedItem colSpan={2}>

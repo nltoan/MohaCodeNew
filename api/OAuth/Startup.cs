@@ -48,6 +48,23 @@ namespace API.OAuth
                 await next();
             });
             ConfigureOAuth(appBuilder);
+            // Phien dang nhap bang mat khau mac dinh da het luot: chi cho doi mat khau + bat 2FA.
+            var allowedDuringSetup = new[] {
+                "/api/home/updateprofile", "/api/home/generateauthenticatesecret", "/api/user_account/getloginuser"
+            };
+            appBuilder.Use(async (context, next) => {
+                var principal = context.Request.User as System.Security.Claims.ClaimsPrincipal;
+                if (principal != null && principal.Identity.IsAuthenticated &&
+                    principal.HasClaim(API.Services.DefaultPasswordPolicy.SetupClaim, "1") &&
+                    !allowedDuringSetup.Contains((context.Request.Path.Value ?? "").TrimEnd('/').ToLowerInvariant()))
+                {
+                    context.Response.StatusCode = 403;
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsync("{\"error\":\"setup_required\",\"error_description\":\"Bạn cần đổi mật khẩu và bật Google Authenticator trước khi sử dụng hệ thống.\"}");
+                    return;
+                }
+                await next();
+            });
             WebApiConfig.Register(httpConfiguration);
             appBuilder.UseWebApi(httpConfiguration);
         }

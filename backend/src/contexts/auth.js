@@ -32,7 +32,7 @@ function AuthProvider(props) {
     const result = await sendSignInRequest(email, password, code, type);
     if (result.isOk) {
       setUser(result.data);
-      navigate("/");
+      navigate(result.setupRequired ? "/Profile" : "/");
     }
 
     return result;
@@ -41,6 +41,7 @@ function AuthProvider(props) {
   const signOut = useCallback(() => {
     localStorage.removeItem("user");
     localStorage.removeItem("access_token");
+    localStorage.removeItem("setup_required");
     const cookies = new Cookies();
     cookies.remove("access_token", { path: "/" });
     setUser(undefined);

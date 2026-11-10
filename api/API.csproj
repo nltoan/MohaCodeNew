@@ -706,6 +706,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\API\HoiQuyController.cs" />
+    <Compile Include="Services\DefaultPasswordPolicy.cs" />
     <Compile Include="Services\PasswordSecurity.cs" />
     <Compile Include="Services\HoiQuy\HoiQuyModels.cs" />
     <Compile Include="Services\HoiQuy\HoiQuyStore.cs" />
