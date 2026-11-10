@@ -31,9 +31,13 @@ namespace API.Controllers
         {
             // Validate before any upload handler writes a file, including direct legacy upload endpoints.
             var request = HttpContext.Current.Request;
+            // Upload theo phan (DevExtreme): phan du lieu duoc gui duoi dang blob khong co ten ("blob"),
+            // ten file that nam trong chunkMetadata va duoc kiem tra ben duoi / trong FileSystem().
+            var isChunkUpload = !string.IsNullOrEmpty(request.Form["chunkMetadata"]) ||
+                string.Equals(request["command"], "UploadChunk", StringComparison.OrdinalIgnoreCase);
             foreach (string key in request.Files) {
                 var file = request.Files[key];
-                if (!FileManagerController.SafeUploadName(file.FileName) || file.ContentLength <= 0 || file.ContentLength > 80 * 1024 * 1024)
+                if ((!isChunkUpload && !FileManagerController.SafeUploadName(file.FileName)) || file.ContentLength <= 0 || file.ContentLength > 80 * 1024 * 1024)
                     { context.Response = context.Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid upload file."); return; }
             }
             if (!string.IsNullOrEmpty(request.Form["chunkMetadata"])) {
@@ -60,6 +64,10 @@ namespace API.Controllers
         internal static bool SafeUploadName(string name) {
             return !string.IsNullOrWhiteSpace(name) && name.Length <= 200 && name.IndexOfAny(new[] { '/', '\\', ':', '<', '>', '\"', '|', '?', '*' }) < 0 &&
                 name == Path.GetFileName(name) && SafeUploadExtensions.Contains(Path.GetExtension(name), StringComparer.OrdinalIgnoreCase);
+        }
+        internal static bool SafeDirectoryName(string name) {
+            return !string.IsNullOrWhiteSpace(name) && name.Length <= 200 && name.IndexOfAny(new[] { '/', '\\', ':', '<', '>', '\"', '|', '?', '*' }) < 0 &&
+                name == Path.GetFileName(name) && name.Trim('.', ' ').Length > 0;
         }
         public FileManagerController()
         {
@@ -404,11 +412,23 @@ namespace API.Controllers
             FileSystemCommand command;
             Enum.TryParse(request["command"], out command);
             string arguments = request["arguments"];
-            if (command == FileSystemCommand.UploadChunk || command == FileSystemCommand.Rename) {
+            // Chi kiem tra TEN FILE moi. Truoc day doan nay quet moi thuoc tinh "name" trong arguments, ke ca ten
+            // THU MUC dich (destinationPathInfo) va bo qua ten file that (nam trong chuoi chunkMetadata), nen moi lan
+            // upload qua trinh quan ly file deu bi tu choi.
+            if (command == FileSystemCommand.UploadChunk) {
                 try {
-                    var args = JToken.Parse(arguments);
-                    var names = ((JContainer)args).Descendants().OfType<JProperty>().Where(p => p.Name.Equals("fileName", StringComparison.OrdinalIgnoreCase) || p.Name.Equals("name", StringComparison.OrdinalIgnoreCase)).Select(p => p.Value.ToString()).ToArray();
-                    if (names.Length == 0 || names.Any(n => !SafeUploadName(n)))
+                    var args = JObject.Parse(arguments);
+                    var metadata = JObject.Parse((string)args["chunkMetadata"]);
+                    if (!SafeUploadName((string)metadata["FileName"]))
+                        return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid file name.");
+                } catch { return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid upload arguments."); }
+            }
+            else if (command == FileSystemCommand.Rename) {
+                try {
+                    var args = JObject.Parse(arguments);
+                    var newName = (string)args["name"];
+                    var isDirectory = args["isDirectory"] != null && args["isDirectory"].Type == JTokenType.Boolean && (bool)args["isDirectory"];
+                    if (isDirectory ? !SafeDirectoryName(newName) : !SafeUploadName(newName))
                         return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid file name.");
                 } catch { return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid upload arguments."); }
             }
