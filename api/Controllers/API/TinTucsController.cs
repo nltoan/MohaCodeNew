@@ -161,6 +161,17 @@ namespace API.Controllers
             //};
             return Request.CreateResponse(ret);
         }
+        // Xem truoc noi dung tin (ke ca tin nhap/chua cong khai) ngay trong CMS.
+        // Yeu cau dang nhap (class [Authorize] + loc tai khoan hoat dong); KHONG mo ra cong khai.
+        [HttpGet]
+        public HttpResponseMessage Preview(int ID)
+        {
+            var post = _context.TinTucs.Where(x => x.ID == ID)
+                .Select(x => new { x.ID, x.TieuDe, x.MoTa, x.NoiDung, x.NgayXuatBan, x.NgayTao, x.TenNguoiTao, x.TrangThai })
+                .FirstOrDefault();
+            if (post == null) return Request.CreateResponse(HttpStatusCode.NotFound);
+            return Request.CreateResponse(HttpStatusCode.OK, post);
+        }
         private bool isVNLanguage(int iDChuyenMuc) {
             var sql = String.Format(@"
                 with name_tree as 

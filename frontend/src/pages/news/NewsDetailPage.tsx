@@ -130,7 +130,14 @@ export const NewsDetailPage = () => {
         <meta name="twitter:description" content={plainDescription} />
         <meta name="twitter:image" content={imageUrl} />
       </Helmet>
-      {loadingDetail ? <div className="mh-detail-loading" aria-label="Đang tải bài viết" /> : detail?.Type === 3 ? ///Emagazine
+      {loadingDetail ? <div className="mh-detail-loading" aria-label="Đang tải bài viết" /> : !detail ?
+        <div className="mh-detail" style={{ minHeight: 300 }}>
+          <Container>
+            <h1 style={{ fontSize: 24 }}>Bài viết không tồn tại hoặc chưa được xuất bản</h1>
+            <p><a href="/tin-tuc">Quay lại trang Tin tức</a></p>
+          </Container>
+        </div>
+      : detail?.Type === 3 ? ///Emagazine
         <div className="mh-detail">
           <div className="mh-detail-content">
             <div

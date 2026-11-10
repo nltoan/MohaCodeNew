@@ -34,6 +34,7 @@ import ApprovePopup from '../components/ApprovePopup';
 import ActionPopup from '../components/ActionPopup';
 import SendApprovePopup from '../components/SendApprovePopup';
 import ViewPopup from '../components/ViewPopup';
+import NewsPreviewPopup from '../components/NewsPreviewPopup';
 import { useWindowSize } from "../utils/windowResize"; 
 
 export default function TinTuc() {
@@ -186,6 +187,12 @@ export default function TinTuc() {
         <div className="card-body">
           {action && action.type == "view" && (
             <ViewPopup rowview={action.data} />
+          )}
+          {action && action.type == "preview" && (
+            <NewsPreviewPopup
+              ID={action.data}
+              onHidden={() => setAction({ type: "", data: "" })}
+            />
           )}
           {action && action.type == "approve" && (
             <ApprovePopup
@@ -951,6 +958,16 @@ export default function TinTuc() {
               visible={false}
             />
             <Column type="buttons">
+              <DataGridButton
+                hint={"Xem trước (kể cả tin nháp)"}
+                cssClass={"fas fa-search"}
+                onClick={(e) => {
+                  setAction({
+                    type: "preview",
+                    data: e.row.data.ID,
+                  });
+                }}
+              />
               <DataGridButton
                 hint={"Xem web"}
                 cssClass={"fas fa-eye"}
