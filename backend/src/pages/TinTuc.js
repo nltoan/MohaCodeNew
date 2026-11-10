@@ -342,7 +342,7 @@ export default function TinTuc() {
                       colSpan={2}
                     />
                     <Item dataField="TieuDe" colSpan={2} isRequired={true} />
-                    <Item dataField="NgonNgu" isRequired={true} />
+                    <Item dataField="NgonNgu" colSpan={2} isRequired={true} />
                     <Item dataField="MoTa" colSpan={2} />
                     <Item dataField="NoiDung" colSpan={2} />
                     <Item dataField="TacGia" />

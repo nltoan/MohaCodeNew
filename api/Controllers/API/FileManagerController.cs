@@ -32,9 +32,10 @@ namespace API.Controllers
         {
             // Validate before any upload handler writes a file, including direct legacy upload endpoints.
             var request = HttpContext.Current.Request;
+            bool chunkUpload = string.Equals(request["command"], "UploadChunk", StringComparison.OrdinalIgnoreCase);
             foreach (string key in request.Files) {
                 var file = request.Files[key];
-                if (!FileManagerController.SafeUploadName(file.FileName) || file.ContentLength <= 0 || file.ContentLength > 80 * 1024 * 1024)
+                if ((!chunkUpload && !FileManagerController.SafeUploadName(file.FileName)) || file.ContentLength <= 0 || file.ContentLength > 80 * 1024 * 1024)
                     { context.Response = context.Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid upload file."); return; }
             }
             if (!string.IsNullOrEmpty(request.Form["chunkMetadata"])) {
@@ -368,7 +369,18 @@ namespace API.Controllers
             FileSystemCommand command;
             Enum.TryParse(request["command"], out command);
             string arguments = request["arguments"];
-            if (command == FileSystemCommand.UploadChunk || command == FileSystemCommand.Rename) {
+            if (command == FileSystemCommand.UploadChunk) {
+                try {
+                    var args = JObject.Parse(arguments);
+                    var metadata = JObject.Parse((string)args["chunkMetadata"]);
+                    Guid uploadId;
+                    int index = (int)metadata["Index"], total = (int)metadata["TotalCount"];
+                    long size = (long)metadata["FileSize"];
+                    if (!SafeUploadName((string)metadata["FileName"]) || !Guid.TryParse((string)metadata["UploadId"], out uploadId) || total < 1 || total > 10000 || index < 0 || index >= total || size <= 0 || size > 80L * 1024 * 1024)
+                        return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid upload metadata.");
+                } catch { return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid upload metadata."); }
+            }
+            if (command == FileSystemCommand.Rename) {
                 try {
                     var args = JToken.Parse(arguments);
                     var names = ((JContainer)args).Descendants().OfType<JProperty>().Where(p => p.Name.Equals("fileName", StringComparison.OrdinalIgnoreCase) || p.Name.Equals("name", StringComparison.OrdinalIgnoreCase)).Select(p => p.Value.ToString()).ToArray();
