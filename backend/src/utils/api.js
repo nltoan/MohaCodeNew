@@ -209,7 +209,7 @@ async function readJson(response) {
 // Giong request nhung form-urlencoded, tra ve ca ma HTTP va noi dung loi (khong bien loi thanh null).
 export async function requestXFormRaw(path, options = { method: "GET" }) {
   try {
-    const response = await fetch(`${window.env.REACT_APP_API_URL}/${path}`, {
+    const response = await fetch(`${window.env.REACT_APP_API_URL}/${String(path).replace(/^\/+/, "")}`, {
       ...options,
       headers: {
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -228,7 +228,7 @@ export async function requestXFormRaw(path, options = { method: "GET" }) {
 }
 
 export async function request(path, options = { method: "GET" }) {
-  const response = await fetch(`${window.env.REACT_APP_API_URL}/${path}`, {
+  const response = await fetch(`${window.env.REACT_APP_API_URL}/${String(path).replace(/^\/+/, "")}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
