@@ -16,14 +16,3 @@
 .cke_dialog_body {
 	position: relative;
 }
-
-.cke_dialog_contents >tbody > tr > td {
-    max-height: 500px; /* Đổi giá trị tùy ý */
-    overflow-y: auto;
-	width: auto !important;
-    height: auto !important;
-}
-
-.cke_dialog_contents >tbody > tr > td, .cke_dialog_contents >tbody, .cke_dialog_contents >tbody > tr, .cke_dialog_contents {
-    display: block;
-}

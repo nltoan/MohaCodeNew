@@ -1,3 +1,4 @@
+import "devextreme/dist/css/dx.light.compact.css";
 import { loadMessages, locale } from "devextreme/localization";
 import * as viMessages from "devextreme/localization/messages/vi.json";
 import "./contexts/i18n";

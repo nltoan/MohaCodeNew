@@ -95,13 +95,13 @@ export default function VanBan() {
   const onChucDanhItemCreating = useCallback((args) => {
     const newValue = { Name: args.text };
     args.customItem = newValue;
-    chucDanhOptions.push(newValue);
+    setChucDanhOptions((prev) => [...(prev || []), newValue]);
   }, []);
 
   const onNguoiKyItemCreating = useCallback((args) => {
     const newValue = { Name: args.text };
     args.customItem = newValue;
-    nguoiKyOptions.push(newValue);
+    setNguoiKyOptions((prev) => [...(prev || []), newValue]);
   }, []);
 
   return (
@@ -163,16 +163,10 @@ export default function VanBan() {
             }
           }}
           onRowInserted={(e) => {
-            setChucDanhOptions(chucDanhOptions);
-            setNguoiKyOptions(nguoiKyOptions);
             e.component.navigateToRow(e.key).done(function () {
               var rowindex = e.component.getRowIndexByKey(e.key);
               e.component.editRow(rowindex);
             });
-          }}
-          onRowUpdated={(e) => {
-            setChucDanhOptions(chucDanhOptions);
-            setNguoiKyOptions(nguoiKyOptions);
           }}
         >
           <FilterRow visible={true} />

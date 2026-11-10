@@ -2,7 +2,6 @@ import parse from '../utils/safe-html';
 import HtmlDiff from "htmldiff-js";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import Button from 'devextreme-react/button';
 import { request } from "../utils/api";
 
 export default function DiffPage({}) {
@@ -56,9 +55,6 @@ export default function DiffPage({}) {
               </div>
             </>
           )}
-          <Button>
-            Bỏ qua
-          </Button>
         </>
       </div>
       <div className="card-footer"></div>

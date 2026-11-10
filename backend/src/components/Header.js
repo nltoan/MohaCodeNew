@@ -19,40 +19,6 @@ export default function Header({}) {
         </li>
       </ul>
       <ul className="navbar-nav ml-auto">
-        <li className="nav-item">
-          <a
-            className="nav-link"
-            data-widget="navbar-search"
-            href="#"
-            role="button"
-          >
-            <i className="fas fa-search" />
-          </a>
-          <div className="navbar-search-block">
-            <form className="form-inline">
-              <div className="input-group input-group-sm">
-                <input
-                  className="form-control form-control-navbar"
-                  type="search"
-                  placeholder="Search"
-                  aria-label="Search"
-                />
-                <div className="input-group-append">
-                  <button className="btn btn-navbar" type="submit">
-                    <i className="fas fa-search" />
-                  </button>
-                  <button
-                    className="btn btn-navbar"
-                    type="button"
-                    data-widget="navbar-search"
-                  >
-                    <i className="fas fa-times" />
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </li>
         {/* <li className="nav-item dropdown">
           <a id="dropdownSubMenu1" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" className="nav-link dropdown-toggle">{auth.language}</a>
           <ul aria-labelledby="dropdownSubMenu1" className="dropdown-menu border-0 shadow">

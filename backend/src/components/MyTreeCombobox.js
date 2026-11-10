@@ -11,7 +11,7 @@ export default function MyTreeCombobox({
   defaultValue,
   onValueChanged,
 }) {
-  const [treeBoxValue, setTreeBoxValue] = useState(Number | []);
+  const [treeBoxValue, setTreeBoxValue] = useState(defaultValue ?? []);
   const [isTreeBoxOpened, setIsTreeBoxOpened] = useState(false);
   const treeviewRef = useRef();
 

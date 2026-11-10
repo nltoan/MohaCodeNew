@@ -10,12 +10,16 @@ import { decodeBase64Url } from '../utils/helpers';
 export default function FilePicker() {
   const [currentPath, setCurrentPath] = useState("");
   const [searchParams] = useSearchParams();
-  const siteUrl1 = decodeBase64Url(searchParams.get('s1'));
+  const s1 = searchParams.get('s1');
+  const siteUrl1 = s1 ? decodeBase64Url(s1) : '';
+  // CKEditor appends CKEditorFuncNum to the browse URL; fall back to 1 when absent/invalid.
+  const parsedFuncNum = parseInt(searchParams.get('CKEditorFuncNum'), 10);
+  const funcNum = Number.isNaN(parsedFuncNum) ? 1 : parsedFuncNum;
 
   function onSelected(e) {
     if(e.file.dataItem){
       var parentWindow = (window.parent == window) ? window.opener : window.parent;
-      parentWindow['CKEDITOR'].tools.callFunction(1, e.file.dataItem.url.replace(siteUrl1, ''), '');
+      parentWindow['CKEDITOR'].tools.callFunction(funcNum, siteUrl1 ? e.file.dataItem.url.replace(siteUrl1, '') : e.file.dataItem.url, '');
       window.close();
     }
   }
@@ -27,7 +31,7 @@ export default function FilePicker() {
     if (e.itemData.name === "copypath") {
       const selectedFile = e.fileSystemItem;
       try {
-        await navigator.clipboard.writeText(selectedFile.dataItem.url.replace(siteUrl1, ''));
+        await navigator.clipboard.writeText(siteUrl1 ? selectedFile.dataItem.url.replace(siteUrl1, '') : selectedFile.dataItem.url);
         Notify(
           {
             message: `Copy thành công!`,

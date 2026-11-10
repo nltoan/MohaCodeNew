@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import FileUploader from 'devextreme-react/file-uploader';
 import { createLookupStore } from "../utils/api";
 import { getToken } from "../utils/token";
@@ -20,20 +20,30 @@ export default function MyImageResizeUploader({ onUploaded }) {
   }, []);
   return (
     <>
-      <input type={`radio`} name="imagesize" checked /> Giữ nguyên <br />
+      {/* size === undefined means "keep original": the upload URL then sends empty Width/Height. */}
+      <input
+        type={`radio`}
+        name="imagesize"
+        checked={!size}
+        onChange={() => {
+          setSize(undefined);
+        }}
+      />{" "}
+      Giữ nguyên <br />
       {imageSizes &&
         imageSizes.map((item, index) => (
-          <>
+          <Fragment key={item.ID ?? index}>
             <input
               type={`radio`}
               name="imagesize"
               value={item.ID}
-              onClick={() => {
+              checked={!!size && size.ID === item.ID}
+              onChange={() => {
                 setSize(item);
               }}
             />
             {item.Name} ({item.Width} x {item.Height} )<br />
-          </>
+          </Fragment>
         ))}
       <FileUploader
         multiple={false}

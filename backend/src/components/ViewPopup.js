@@ -32,7 +32,7 @@ export default function ViewPopup({ rowview }) {
         setPopupVisible(false);
       }}
       onShown={(e) => {
-        formRef.current._instance._refresh();
+        formRef.current.instance.repaint();
       }}
       contentRender={() => {
         return (

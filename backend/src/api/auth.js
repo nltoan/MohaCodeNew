@@ -8,8 +8,8 @@ export async function signIn(email, password, code, type) {
     //
     if (type === "ldap") {
       email = email.trim();
-      const domain = (window.env.REACT_APP_LDAP_DOMAIN || 'molisa.gov.vn').replace(/^@/, '');
-      if (!email.includes('@')) email = `${email}@${domain}`;
+      const domain = (window.env.REACT_APP_LDAP_DOMAIN || '').replace(/^@/, '');
+      if (domain && !email.includes('@')) email = `${email}@${domain}`;
     }
     // Send request
     const response = await fetch(

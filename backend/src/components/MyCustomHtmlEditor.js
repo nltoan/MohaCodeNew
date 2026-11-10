@@ -115,7 +115,7 @@ export default function MyCustomHtmlEditor({ defaultValue, onValueChange }) {
             icon: "image",
             text: "Up và resize ảnh",
             onClick: function () {
-              setCursorIndex(htmlEditorRef.current._instance.getSelection());
+              setCursorIndex(htmlEditorRef.current.instance.getSelection());
               setPopupImageUploadVisible(true);
             },
           },
@@ -126,7 +126,7 @@ export default function MyCustomHtmlEditor({ defaultValue, onValueChange }) {
             icon: "video",
             text: "Up và chèn video",
             onClick: function () {
-              setCursorIndex(htmlEditorRef.current._instance.getSelection());
+              setCursorIndex(htmlEditorRef.current.instance.getSelection());
               setPopupVideoUploadVisible(true);
             },
           },
@@ -137,7 +137,7 @@ export default function MyCustomHtmlEditor({ defaultValue, onValueChange }) {
             icon: "file",
             text: "Chọn từ thư viện",
             onClick: function () {
-              setCursorIndex(htmlEditorRef.current._instance.getSelection());
+              setCursorIndex(htmlEditorRef.current.instance.getSelection());
               setPopupFileManagerVisible(true);
             },
           },
@@ -164,8 +164,8 @@ export default function MyCustomHtmlEditor({ defaultValue, onValueChange }) {
             },
             onItemClick: function (ele) {
               const selection =
-                htmlEditorRef.current._instance.getSelection(true);
-              htmlEditorRef.current._instance.formatText(
+                htmlEditorRef.current.instance.getSelection(true);
+              htmlEditorRef.current.instance.formatText(
                 selection.index,
                 selection.length,
                 "color",
@@ -197,7 +197,7 @@ export default function MyCustomHtmlEditor({ defaultValue, onValueChange }) {
     editor2.Panels.getButton("options", "sw-visibility").set("active", false);
     commands.add("save-gjs", (editor) => {
       var htmlAndCssInline = editor.runCommand("gjs-get-inlined-html");
-      htmlEditorRef.current._instance.option("value", htmlAndCssInline);
+      htmlEditorRef.current.instance.option("value", htmlAndCssInline);
       setPopupGjsVisible(false);
     });
 
@@ -239,7 +239,7 @@ export default function MyCustomHtmlEditor({ defaultValue, onValueChange }) {
       togglable: false,
     });
     editor2.on("load", () => {
-      editor2.setComponents(htmlEditorRef.current._instance.option("value"));
+      editor2.setComponents(htmlEditorRef.current.instance.option("value"));
     });
   };
   function displayImagePopup(e) {
@@ -262,7 +262,7 @@ export default function MyCustomHtmlEditor({ defaultValue, onValueChange }) {
   function onSelectionChanged(e) {
     var isClose = false;
     e.selectedItems.map((item) => {
-      var aEditor = htmlEditorRef.current._instance;
+      var aEditor = htmlEditorRef.current.instance;
       var index = (cursorIndex && cursorIndex.index) || 0;
       if (item.isDirectory) {
         return;
@@ -419,7 +419,7 @@ export default function MyCustomHtmlEditor({ defaultValue, onValueChange }) {
                     return;
                   }
                   var imgUrl = res?.docfiles[0];
-                  var aEditor = htmlEditorRef.current._instance;
+                  var aEditor = htmlEditorRef.current.instance;
                   var range = aEditor.getSelection();
                   var index = (range && range.index) || 0;
                   aEditor.insertEmbed(index, "extendedImage", {
@@ -452,7 +452,7 @@ export default function MyCustomHtmlEditor({ defaultValue, onValueChange }) {
                   }
                   var imgUrl = res?.docfiles[0];
                   setTimeout(() => {
-                    var aEditor = htmlEditorRef.current._instance;
+                    var aEditor = htmlEditorRef.current.instance;
                     var index = (cursorIndex && cursorIndex.index) || 0;
                     var videoUrl = pathFile(imgUrl);
                     aEditor.insertEmbed(index, "video", videoUrl);

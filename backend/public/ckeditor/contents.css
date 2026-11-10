@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2003-2020, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2023, CKSource Holding sp. z o.o. All rights reserved.
 For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
 */
 
@@ -21,7 +21,7 @@ body
 
 .cke_editable
 {
-	font-size: 18px;
+	font-size: 13px;
 	line-height: 1.6;
 
 	/* Fix for missing scrollbars with RTL texts. (#10488) */
@@ -111,25 +111,21 @@ span[lang]
 	font-style: italic;
 }
 
-figure {
-	text-align: left;
-	background: #e9e9e9;
+figure
+{
+	text-align: center;
+	outline: solid 1px #ccc;
+	background: rgba(0,0,0,0.05);
+	padding: 10px;
+	margin: 10px 20px;
 	display: inline-block;
-	margin-bottom: 24px;
 }
-	figure img {
-		vertical-align: middle;
-	}
 
-	figure  figcaption {
-		display:flex;
-		padding: 5px 8px;
-	}
-	figure figcaption > div {
-		flex-grow: 1;
-		width: 0;
-	}
-
+figure > figcaption
+{
+	text-align: center;
+	display: block; /* For IE8 */
+}
 
 a > img {
 	padding: 1px;

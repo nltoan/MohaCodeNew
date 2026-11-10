@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { encodeBase64Url } from '../utils/helpers';
 import { CKEditor } from 'ckeditor4-react';
 import { LoadPanel } from 'devextreme-react/load-panel';
-import 'devextreme/dist/css/dx.light.css'; 
 import './ckeditor.css'; 
 import { getToken } from "../utils/token";
 
@@ -40,7 +39,8 @@ const CKEditor4Wrapper = ({
                     filebrowserImageBrowseUrl: urlCkfider,
                     filebrowserImageUploadUrl: urlUpload,
                     filebrowserBrowseUrl: urlCkfiderVideo,
-                    removePlugins: 'elementspath', 
+                    filebrowserLinkBrowseUrl: urlCkfiderVideo,
+                    removePlugins: 'elementspath,scayt,wsc',
                     allowedContent: true,
                     fileTools_requestHeaders:{
                         Authorization: `Bearer ${access_token}`

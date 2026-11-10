@@ -33,14 +33,12 @@ import DongGopYKien_ChuDe from "./pages/DongGopYKien_ChuDe";
 import DongSuKien from "./pages/DongSuKien";
 import DonVi_LanhDao from "./pages/DonVi_LanhDao";
 import File from "./pages/File";
-import ForgotPassword from "./pages/ForgotPassword";
 import GioiThieuVanBan from "./pages/GioiThieuVanBan";
 import HinhThucVanBan from "./pages/HinhThucVanBan";
 import Home from "./pages/Home";
 import ImageSize from "./pages/ImageSize";
 import LinhVuc from "./pages/LinhVuc";
 import LoaiSuKien from "./pages/LoaiSuKien";
-import Login from "./pages/Login";
 import LopVanBan from "./pages/LopVanBan";
 import MediaFileManager from "./pages/MediaFileManager";
 import Menu_Backend from "./pages/Menu_Backend";
@@ -104,8 +102,6 @@ const routes = [
   { path: "/VanBan/HinhThucVanBan", element: HinhThucVanBan },
   { path: "/VanBan/LinhVuc", element: LinhVuc },
   { path: "/Event/LoaiSuKien", element: LoaiSuKien },
-  { path: "/Login", element: Login },
-  { path: "/ForgotPassword", element: ForgotPassword },
   { path: "/VanBan/LopVanBan", element: LopVanBan },
   { path: "/Menu_Backend", element: Menu_Backend },
   { path: "/System/Menu_FrontEnd", element: Menu_FrontEnd },

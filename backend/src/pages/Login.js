@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/auth';
 import LayoutLogin from '../layouts/LayoutLogin';
 
@@ -122,7 +122,7 @@ export default function Login() {
             </div>
             </form>
             <p className="mb-1">
-              <Link to="/ForgotPassword">Quên mật khẩu</Link>
+              Quên mật khẩu? Liên hệ quản trị hệ thống để được cấp lại.
             </p>
           </div>
         </div>

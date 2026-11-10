@@ -25,16 +25,14 @@ CKEDITOR.editorConfig = function( config ) {
 	
 	config.language = 'vi';
 	config.baseFloatZIndex = 9999999;
-	config.extraPlugins = 'html5video,lineheight,dialogadvtab,chart';
-	//Browser Image
-	config.filebrowserImageBrowseUrl = '/UserControls/AnhDaiDien/fckFinder.aspx?type=Images&UrlWeb=/KND/TT/Lists/TinTuc&option=1&CKEditor=MoTa&CKEditorFuncNum=517&langCode=vi';
-	//Upload
-	config.filebrowserImageUploadUrl = '/UserControls/AnhDaiDien/pUploadImages.ashx?folder=PublishingImages/VKS Ảnh Nội Dung&UrlWeb=/knd/tt&type=pImage';
-	//Browser Link (Attachment)
-	config.filebrowserLinkBrowseUrl = "/UserControls/AnhDaiDien/fckFinder.aspx?type=Video&UrlWeb=/content/hinhanhvideo/&option=1";
-	//Browser Video
-	config.filebrowserBrowseUrl = "/UserControls/AnhDaiDien/fckFinder.aspx?type=Video&UrlWeb=/content/hinhanhvideo/&option=1";
-	
+	// colorbutton, font, image2 and justify were compiled into the old custom build;
+	// in the 4.22 build they are loaded as external plugins (panelbutton is a dependency).
+	config.extraPlugins = 'html5video,lineheight,dialogadvtab,chart,colorbutton,font,image2,justify';
+	// Spell-check plugins call third-party services (webspellchecker.net): never load them.
+	config.removePlugins = 'scayt,wsc';
+	// Suppress the "version is not secure" notification (4.22.x is the last open-source release).
+	config.versionCheck = false;
+	// File browser / upload URLs are set by src/components/CKEditorWrapper.js.
 	config.fontSize_defaultLabel = '18px';
 	
 	// The toolbar groups arrangement, optimized for two toolbar rows.

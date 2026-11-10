@@ -186,7 +186,7 @@ export default function TinTuc() {
             <ApprovePopup
               ID={action.data}
               onHidden={() => {
-                gridRef.current._instance.refresh();
+                gridRef.current.instance.refresh();
                 setAction({type:"",data:""});
               }}
             />
@@ -196,7 +196,7 @@ export default function TinTuc() {
               ID={action.data}
               action={action.type}
               onHidden={() => {
-                gridRef.current._instance.refresh();
+                gridRef.current.instance.refresh();
                 setAction({type:"",data:""});
               }}
             />
@@ -210,7 +210,7 @@ export default function TinTuc() {
                 ID={action.data}
                 action={action.type}
                 onHidden={() => {
-                  gridRef.current._instance.refresh();
+                  gridRef.current.instance.refresh();
                   setAction({type:"",data:""});
                 }}
               />
@@ -308,7 +308,7 @@ export default function TinTuc() {
                     icon: "save",
                     text: "Lưu",
                     onClick: (e) => {
-                      gridRef.current._instance.saveEditData();
+                      gridRef.current.instance.saveEditData();
                     },
                   }}
                 />
@@ -320,7 +320,7 @@ export default function TinTuc() {
                     icon: "close",
                     text: "Hủy",
                     onClick: (e) => {
-                      gridRef.current._instance.cancelEditData();
+                      gridRef.current.instance.cancelEditData();
                     },
                   }}
                 />
