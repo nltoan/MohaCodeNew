@@ -19,7 +19,7 @@ Commit: `0bce499` (mật khẩu mặc định), `7ff7f05` (preview + sửa kho�
 
 - API `GET api/TinTucs/Preview?ID=` (cần đăng nhập) trả tin bất kể trạng thái.
 - Admin: nút 🔍 "Xem trước (kể cả tin nháp)" ở danh sách tin (`pages/TinTuc.js`), popup `components/NewsPreviewPopup.js` hiển thị trong iframe `sandbox` (không chạy script).
-- Hiện mọi người đã đăng nhập CMS xem được mọi tin (giống quyền xem danh sách hiện tại).
+- Quyền xem trước: chỉ người tạo tin và người phê duyệt được gán vào bất kỳ bước nào của cùng quy trình duyệt của tin đó (bảng UserBuocQuyTrinh); nhóm quản trị (có quyền manage-user) xem được mọi tin; người khác nhận 403. Tin chưa gắn quy trình thì chỉ người tạo xem được.
 
 ## 3. Portal: sửa khoảng trống ở trang chi tiết tin
 

@@ -22,7 +22,7 @@ import 'devextreme-react/html-editor';
 import {getFrontEndURL} from '../utils/helpers';
 import { Item } from 'devextreme-react/form';
 import config from '../config';
-import { createCustomStore, createFilterLookupStore, createLookupStore } from '../utils/api';
+import { createCustomStore, createFilterLookupStore, createLookupStore, notify } from '../utils/api';
 import { Popup } from 'devextreme-react';
 import MyImageFileUploader from '../components/MyImageFileUploader';
 import MyFileFileUploader from '../components/MyFileFileUploader';
@@ -287,10 +287,17 @@ export default function TinTuc() {
                   options={{
                     icon: "email",
                     text: "Xem trước",
-                    onClick: (e) => {
-                      gridRef.current._instance.saveEditData();
-                      let tmpUrl = `${getFrontEndURL("tin-tuc", e.row.data.TieuDe, e.row.data.ID)}`;
-                      window.open(tmpUrl, "_blank", "noopener,noreferrer");
+                    onClick: async () => {
+                      // Lưu rồi xem trước ngay trong CMS (kể cả tin nháp), không mở trang công khai.
+                      const grid = gridRef.current._instance;
+                      const key = grid.option("editing.editRowKey");
+                      await grid.saveEditData();
+                      if (grid.option("editing.editRowKey") != null) return; // còn lỗi nhập liệu, popup vẫn mở
+                      if (key == null) {
+                        notify("Đã lưu tin mới. Bấm biểu tượng kính lúp ở dòng tin trong danh sách để xem trước.", "success");
+                        return;
+                      }
+                      setAction({ type: "preview", data: key });
                     },
                   }}
                 />
