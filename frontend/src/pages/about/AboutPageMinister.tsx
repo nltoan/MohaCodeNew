@@ -2,7 +2,7 @@ import { Col, Container, Row } from 'react-bootstrap';
 import { Outlet } from 'react-router-dom';
 import './AboutPage.scss';
 
-export const AboutPage = () => {
+export const AboutPageMinister = () => {
   return (
     <div className="mh-about">
       <Container>

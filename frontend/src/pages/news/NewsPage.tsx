@@ -6,6 +6,7 @@ import './NewsPage.scss';
 import { CardSection, Pagination } from '@/components';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useSettledStatus } from '@/hooks/useSettledStatus';
 import { getUrlImage } from '@/utils/image';
 import { vnFormatter } from '@/utils';
 import { getMenuNew, getPostsByCategory, getTopPostNews } from '@/services/news';
@@ -49,15 +50,16 @@ export const NewsPage = () => {
     pageSize: 10,
   });
 
-  const [listStatus, setListStatus] = useState<'loading' | 'ready' | 'error'>('loading');
-  const [topStatus, setTopStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [attempt, setAttempt] = useState(0);
+  const topKey = `${keyQuery}|${attempt}`;
+  const [topStatus, settleTop] = useSettledStatus(topKey);
+  const listKey = `${keyQuery}|${pagination.activePage}|${pagination.pageSize}|${attempt}`;
+  const [listStatus, settleList] = useSettledStatus(listKey);
   const [titlePage, setTitlePage] = useState(undefined);
   const [categoryMetadata, setCategoryMetadata] = useState<{ MoTa?: string; NgayTao?: string }>();
 
   useEffect(() => {
     let active = true;
-    setTopStatus('loading');
     const fetchData = async () => {
       try {
         const res = await getTopPostNews(keyQuery!, 4);
@@ -66,20 +68,19 @@ export const NewsPage = () => {
           setTopPost({ main, cards: cards });
         setTitlePage(res.data.TenChuyenMuc);
         setCategoryMetadata(res.data);
-        if (active) setTopStatus('ready');
+        if (active) settleTop({ key: topKey, status: 'ready' });
       } catch (err) {
-        if (active) setTopStatus('error');
+        if (active) settleTop({ key: topKey, status: 'error' });
         console.error(err);
       }
     };
 
     fetchData();
     return () => { active = false; };
-  }, [keyQuery, attempt]);
+  }, [keyQuery, attempt, topKey, settleTop]);
 
   useEffect(() => {
     let active = true;
-    setListStatus('loading');
     const fetchData = async () => {
       try {
         const resNew = await getPostsByCategory(keyQuery!, pagination.activePage, pagination.pageSize);
@@ -89,15 +90,15 @@ export const NewsPage = () => {
           news: resNew.data,
           totalPages: Math.ceil(resNew.totalCount / prev.pageSize),
         }));
-        if (active) setListStatus('ready');
+        if (active) settleList({ key: listKey, status: 'ready' });
       } catch (err) {
-        if (active) setListStatus('error');
+        if (active) settleList({ key: listKey, status: 'error' });
         console.error(err);
       }
     };
     fetchData();
     return () => { active = false; };
-  }, [pagination.activePage, pagination.pageSize, keyQuery, attempt]);
+  }, [pagination.activePage, pagination.pageSize, keyQuery, attempt, listKey, settleList]);
 
   useEffect(() => {
     const fetchData = async () => {

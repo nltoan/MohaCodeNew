@@ -7,6 +7,7 @@ import '../news-shared/NewsPage.scss';
 import { Pagination } from '@/components';
 import { Link, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useSettledStatus } from '@/hooks/useSettledStatus';
 import { getUrlImage } from '@/utils/image';
 import { vnFormatter } from '@/utils';
 import { getPostsByCategory, getPostsByCategoryBynqid, getTopPostNews, getTopPostNewsBynqid } from '@/services/news';
@@ -69,12 +70,15 @@ export const NewsCategoryPage = () => {
     pageSize: 10,
   });
 
-  const [listStatus, setListStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [titlePage, setTitlePage] = useState('');
   const [categoryMetadata, setCategoryMetadata] = useState<{ MoTa?: string; NgayTao?: string }>();
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const topKey = `${keyQuery}|${slug}|${attempt}`;
+  const [topStatus, settleTop] = useSettledStatus(topKey);
+  const loading = topStatus === 'loading';
+  const loadError = topStatus === 'error';
+  const listKey = `${keyQuery}|${slug}|${pagination.activePage}|${pagination.pageSize}|${attempt}`;
+  const [listStatus, settleList] = useSettledStatus(listKey);
   const [speechSidebar, setSpeechSidebar] = useState<NghiQuyetTW4SidebarItem[]>([]);
   const [staticSidebar, setStaticSidebar] = useState<NghiQuyetTW4SidebarItem[]>([]);
 
@@ -107,9 +111,6 @@ export const NewsCategoryPage = () => {
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
-    setLoadError(false);
-    setTopPost({ main: {} as BannerItem, cards: [] });
     const id = getIdFromSlug(slug || '', 'nqid');
     const fetchTop = () => id ? getTopPostNewsBynqid(id, 4) : getTopPostNews(keyQuery, 4);
     const request = fetchTop().catch(() => {
@@ -122,14 +123,13 @@ export const NewsCategoryPage = () => {
       setTopPost({ main, cards });
       setTitlePage(response.data?.TenChuyenMuc || 'Tin tức - sự kiện');
       setCategoryMetadata(response.data);
-    }).catch(() => { if (active) setLoadError(true); })
-      .finally(() => { if (active) setLoading(false); });
+      settleTop({ key: topKey, status: 'ready' });
+    }).catch(() => { if (active) settleTop({ key: topKey, status: 'error' }); });
     return () => { active = false; };
-  }, [keyQuery, slug, attempt]);
+  }, [keyQuery, slug, attempt, topKey, settleTop]);
 
   useEffect(() => {
     let active = true;
-    setListStatus('loading');
     const fetchData = async () => {
       try {
         let id = getIdFromSlug(slug || '', 'nqid');
@@ -151,15 +151,15 @@ export const NewsCategoryPage = () => {
             totalPages: Math.ceil(resNew.totalCount / prev.pageSize),
           }));
         }
-        if (active) setListStatus('ready');
+        if (active) settleList({ key: listKey, status: 'ready' });
       } catch (err) {
-        if (active) setListStatus('error');
+        if (active) settleList({ key: listKey, status: 'error' });
         console.error(err);
       }
     };
     fetchData();
     return () => { active = false; };
-  }, [pagination.activePage, pagination.pageSize, keyQuery, slug, attempt]);
+  }, [pagination.activePage, pagination.pageSize, keyQuery, slug, attempt, listKey, settleList]);
 
 
   return (
@@ -173,7 +173,7 @@ export const NewsCategoryPage = () => {
                 <h1>{titlePage}</h1>
               </div>
               {(loading || listStatus === 'loading') && <LoadingFallback />}
-              {(loadError || listStatus === 'error') && <div role="alert">Không tải được dữ liệu. <button type="button" onClick={() => setAttempt(value => value + 1)}>Thử lại</button></div>}
+              {(loadError || listStatus === 'error') && <div role="alert">Không tải được dữ liệu. <button type="button" onClick={() => { setTopPost({ main: {} as BannerItem, cards: [] }); setAttempt(value => value + 1); }}>Thử lại</button></div>}
               {!loading && !loadError && listStatus === 'ready' && !topPost?.main?.ID && pagination.news.length === 0 && <div className="text-center">{t('common.no_data')}</div>}
               {topPost?.main?.ID && (
                 <div className="mh-news-body">

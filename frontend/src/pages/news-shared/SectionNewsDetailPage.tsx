@@ -52,8 +52,6 @@ export const SectionNewsDetailPage = ({
 
   useEffect(() => {
     let active = true;
-    setLoadingDetail(true);
-    setDetail(null);
     const fetchData = async () => {
       try {
         let id = getIdFromSlug(slug || '', idPrefix);

@@ -44,8 +44,12 @@ const mapResponseToItem = (item: any): NewsItem => ({
 export const NghiQuyetTW4HomePage = () => {
   const { t, i18n } = useTranslation();
   type Section = 'news' | 'reports' | 'capture' | 'direction' | 'protection' | 'contest';
-  const [status, setStatus] = useState<Partial<Record<Section, 'loading' | 'ready' | 'error'>>>({});
+  type SectionStatus = Partial<Record<Section, 'loading' | 'ready' | 'error'>>;
   const [attempt, setAttempt] = useState(0);
+  // Status belongs to one request (retry counter + language); a new request starts empty ("loading") without a reset inside the effect.
+  const requestKey = `${attempt}|${i18n.resolvedLanguage}`;
+  const [statusState, setStatusState] = useState<{ key: string; value: SectionStatus }>({ key: requestKey, value: {} });
+  const status: SectionStatus = statusState.key === requestKey ? statusState.value : {};
   const renderSection = (key: Section, content: ReactNode) => !status[key] || status[key] === 'loading' ? <LoadingFallback /> : status[key] === 'error' ? <div role="alert">Không tải được dữ liệu. <button type="button" onClick={() => setAttempt(value => value + 1)}>Thử lại</button></div> : content;
   // --- State ---
   const [captureNews, setCaptureNews] = useState<NghiQuyetTW4TopNewsProps>({ id: '', title: '', items: [] });
@@ -57,7 +61,6 @@ export const NghiQuyetTW4HomePage = () => {
 
   useEffect(() => {
     let active = true;
-    setStatus({});
     const load = async (key: Section, config: { VI: string; EN: string }, count: number, label: string, setter: (value: any) => void) => {
       try {
         const id = getConfigId(config, getLang());
@@ -70,9 +73,9 @@ export const NghiQuyetTW4HomePage = () => {
         if (!Array.isArray(response?.data)) throw new Error('Invalid news response');
         if (!active) return;
         setter({ id, title: t(label), items: response.data.map(mapResponseToItem) });
-        setStatus(previous => ({ ...previous, [key]: 'ready' }));
+        setStatusState(previous => ({ key: requestKey, value: { ...(previous.key === requestKey ? previous.value : {}), [key]: 'ready' } }));
       } catch {
-        if (active) setStatus(previous => ({ ...previous, [key]: 'error' }));
+        if (active) setStatusState(previous => ({ key: requestKey, value: { ...(previous.key === requestKey ? previous.value : {}), [key]: 'error' } }));
       }
     };
     void load('news', NghiQuyetTW4_DATA_CONFIG.HOME_NEWS, 10, 'nghiquyettw4.home_page.news', setNews);
@@ -82,7 +85,7 @@ export const NghiQuyetTW4HomePage = () => {
     void load('protection', NghiQuyetTW4_DATA_CONFIG.HOME_PROTECTION, 4, 'nghiquyettw4.home_page.protection', setProtectionNews);
     void load('contest', NghiQuyetTW4_DATA_CONFIG.HOME_CONTEST, 3, 'nghiquyettw4.home_page.contest', setContestNews);
     return () => { active = false; };
-  }, [attempt, i18n.resolvedLanguage, t]);
+  }, [attempt, i18n.resolvedLanguage, t, requestKey]);
 
   return (
     <div className="mh-nqtw4">

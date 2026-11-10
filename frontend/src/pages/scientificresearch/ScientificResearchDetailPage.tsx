@@ -1,5 +1,5 @@
 import { sanitizeHtml } from '@/utils/sanitizeHtml';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { Col, Container, Row, Table } from 'react-bootstrap';
 import { CardSection, Loading } from '@/components';
 import { Link, useParams } from 'react-router-dom';
@@ -22,13 +22,16 @@ interface ScientificResearchDetailState {
 export const ScientificResearchDetailPage = () => {
   const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [detail, setDetail] = useState<ScientificResearchDetailState | null>(null);
+  // Result is tagged with the slug it was loaded for: loading is derived, no state reset inside the effect.
+  const [loaded, setLoaded] = useState<{ slug: string; detail: ScientificResearchDetailState | null } | null>(null);
+  const isLoading = !!slug && loaded?.slug !== slug;
+  const detail = loaded && loaded.slug === slug ? loaded.detail : null;
 
-  const fetchDetail = useCallback(async () => {
+  useEffect(() => {
     if (!slug) return;
-
-    setIsLoading(true);
+    let active = true;
+    const fetchDetail = async () => {
+    let result: ScientificResearchDetailState | null = null;
     try {
       let id = getIdFromSlug(slug, 'oid');
       let response: Record<string, string> | undefined;
@@ -41,7 +44,7 @@ export const ScientificResearchDetailPage = () => {
       const data = response;
 
       if (data) {
-        setDetail({
+        result = {
           tendetai: data.TenDeTai || '',
           capquanly: data.CapQuanLy || '',
           linhvuc: data.LinhVuc ||  '',
@@ -50,18 +53,17 @@ export const ScientificResearchDetailPage = () => {
           mota: data.MoTa || '',
           noidung: data.NoiDung || '',
           ngaytao: data.NgayTao || '',
-        });
+        };
       }
     } catch (error) {
       console.error('Error fetching scientific research details:', error);
     } finally {
-      setIsLoading(false);
+      if (active) setLoaded({ slug, detail: result });
     }
+    };
+    void fetchDetail();
+    return () => { active = false; };
   }, [slug]);
-
-  useEffect(() => {
-    fetchDetail();
-  }, [fetchDetail]);
 
   if (isLoading) return <Loading />;
   if (!detail) return <div className="p-4 text-center">{t("scientificresearch.detail.not_found")}</div>;

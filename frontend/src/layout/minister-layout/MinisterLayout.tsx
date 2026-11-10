@@ -67,7 +67,7 @@ export const MinisterLayout = () => {
         image={{ src: imageLeft, alt: 'Quốc huy Cộng hòa Xã hội chủ nghĩa Việt Nam' }}
         title={t("minister.minister_page")}
       />
-      <HeaderNavbar menuTitle="MENU" items={menus} className="mh-header-bg-main" />
+      <HeaderNavbar items={menus} className="mh-header-bg-main" />
       <HeaderUtils
         minister
         breadcrumbs={breadcrumbs}

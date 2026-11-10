@@ -16,10 +16,11 @@ interface HeaderNavbarProps {
   items: HeaderMenu[];
   className?: string;
 }
-export const HeaderNavbar = ({ menuTitle='', items, className }: HeaderNavbarProps) => {
+export const HeaderNavbar = ({ menuTitle, items, className }: HeaderNavbarProps) => {
   const { isActive } = useActiveMenu();
   const { pathname } = useLocation();
-  menuTitle = (getLang() === 'vi' ? 'CHUNG MỤC' : 'MENU');
+  // Default title when the layout does not pass one.
+  const offcanvasTitle = menuTitle || (getLang() === 'vi' ? 'CHUNG MỤC' : 'MENU');
   const [showOffcanvas, setShowOffcanvas] = useState(false);
   const handleClose = () => setShowOffcanvas(false);
   const handleShow = () => setShowOffcanvas(true);
@@ -32,7 +33,7 @@ export const HeaderNavbar = ({ menuTitle='', items, className }: HeaderNavbarPro
         {/* Offcanvas */}
         <Navbar.Offcanvas id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel" placement="start" show={showOffcanvas} onHide={handleClose}>
           <Offcanvas.Header closeButton>
-            <Offcanvas.Title id="offcanvasNavbarLabel">{menuTitle}</Offcanvas.Title>
+            <Offcanvas.Title id="offcanvasNavbarLabel">{offcanvasTitle}</Offcanvas.Title>
           </Offcanvas.Header>
 
           <Offcanvas.Body>

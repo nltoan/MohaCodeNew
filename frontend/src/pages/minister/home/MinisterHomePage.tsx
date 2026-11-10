@@ -51,11 +51,17 @@ const mapResponseToItem = (item: any): NewsItem => ({
   description: item?.MoTa || ""
 });
 
+type Section = 'activities' | 'speech' | 'direction' | 'others';
+type SectionStatus = Record<Section, 'loading' | 'ready' | 'error'>;
+const allLoading: SectionStatus = { activities: 'loading', speech: 'loading', direction: 'loading', others: 'loading' };
+
 export const MinisterHomePage = () => {
   const { t, i18n } = useTranslation();
   const [attempt, setAttempt] = useState(0);
-  type Section = 'activities' | 'speech' | 'direction' | 'others';
-  const [status, setStatus] = useState<Record<Section, 'loading' | 'ready' | 'error'>>({ activities: 'loading', speech: 'loading', direction: 'loading', others: 'loading' });
+  // Status belongs to one request (retry counter + language); a new request starts from "loading" without a reset inside the effect.
+  const requestKey = `${attempt}|${i18n.resolvedLanguage}`;
+  const [statusState, setStatusState] = useState<{ key: string; value: SectionStatus }>({ key: requestKey, value: allLoading });
+  const status = statusState.key === requestKey ? statusState.value : allLoading;
   const renderSection = (key: Section, content: React.ReactNode) => status[key] === 'loading' ? <LoadingFallback /> : status[key] === 'error' ? <div role="alert">Không tải được dữ liệu. <button type="button" onClick={() => setAttempt(value => value + 1)}>Thử lại</button></div> : content;
   // --- State ---
   const [banners, setBanners] = useState<BannerItem[]>([]);
@@ -75,7 +81,6 @@ export const MinisterHomePage = () => {
   useEffect(() => {
     let active = true;
     const language = getLang() === 'vi' ? 'VI' : 'EN';
-    setStatus({ activities: 'loading', speech: 'loading', direction: 'loading', others: 'loading' });
     const loadNews = async (key: Section, config: { VI: string; EN: string }, count: number, title: string, setter: (value: any) => void) => {
       try {
         const id = getConfigId(config, getLang());
@@ -90,9 +95,9 @@ export const MinisterHomePage = () => {
         if (!Array.isArray(response?.data)) throw new Error('Invalid news response');
         if (!active) return;
         setter({ id, title, items: response.data.map(mapResponseToItem) });
-        setStatus(previous => ({ ...previous, [key]: 'ready' }));
+        setStatusState(previous => ({ key: requestKey, value: { ...(previous.key === requestKey ? previous.value : allLoading), [key]: 'ready' } }));
       } catch {
-        if (active) setStatus(previous => ({ ...previous, [key]: 'error' }));
+        if (active) setStatusState(previous => ({ key: requestKey, value: { ...(previous.key === requestKey ? previous.value : allLoading), [key]: 'error' } }));
       }
     };
     void loadNews('activities', MINISTER_DATA_CONFIG.HOME_ACTIVITIES, 4, t('minister.home_page.activities'), setActivitiesNews);
@@ -103,7 +108,7 @@ export const MinisterHomePage = () => {
       if (active && response.status === HttpStatusCode.Ok) setBanners((response.data.data || []).map((item: any) => ({ title: item.TenBanner, url: item.URL, image: getUrlImage(item.AnhBannerUrl) })));
     }).catch(() => { if (active) setBanners([]); });
     return () => { active = false; };
-  }, [attempt, i18n.resolvedLanguage, t]);
+  }, [attempt, i18n.resolvedLanguage, t, requestKey]);
 
   return (
     <div className="mh-minister">

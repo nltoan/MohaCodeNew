@@ -1,24 +1,23 @@
-import { Suspense, lazy, type FC } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
-import { LoadingFallback } from '@/components/LoadingFallback';
+import { lazy } from 'react';
+import { Outlet } from 'react-router-dom';
+import { RouteSuspense } from './RouteSuspense';
+import type { FC } from 'react';
 import { HomePage } from '@/pages/home/HomePage';
 import { PortalSectionIndex } from '@/components/PortalSectionIndex';
-import { ArticleLanguageUnavailable } from '@/components/ArticleLanguageUnavailable';
-import { getLang } from '@/services';
 
 const HoiQuyPage = lazy(() => import('@/pages/hoi-quy/HoiQuyPage').then(m => ({ default: m.HoiQuyPage })));
 // Lazy load all pages
 const AboutPage = lazy(() => import('@/pages/about/AboutPage').then((m) => ({ default: m.AboutPage })));
-const AboutPageMis = lazy(() => import('@/pages/about/AboutPageMinius').then((m) => ({ default: m.AboutPage })));
+const AboutPageMinister = lazy(() => import('@/pages/about/AboutPageMinister').then((m) => ({ default: m.AboutPageMinister })));
 const FunctionsAndDutiesPage = lazy(() =>
   import('@/pages/about/FunctionsAndDutiesPage').then((m) => ({
     default: m.FunctionsAndDutiesPage,
   })),
 );
 
-const FunctionsAndDutiesPageMinus = lazy(() =>
-  import('@/pages/about/FunctionsAndDutiesPageMinus').then((m) => ({
-    default: m.FunctionsAndDutiesPage,
+const FunctionsAndDutiesPageMinister = lazy(() =>
+  import('@/pages/about/FunctionsAndDutiesPageMinister').then((m) => ({
+    default: m.FunctionsAndDutiesPageMinister,
   })),
 );
 
@@ -178,18 +177,7 @@ const SearchPage = lazy(() =>
 const MinisterHomePage = lazy(() => import('@/pages/minister/home/MinisterHomePage').then((m) => ({ default: m.MinisterHomePage })))
 const NghiQuyetHomePage = lazy(() => import('@/pages/nghiquyettw4/home/NghiQuyetTW4HomePage').then((m) => ({ default: m.NghiQuyetTW4HomePage })))
 
-const RouteComponent = ({ component: Component }: { component: FC }) => {
-  const { pathname } = useLocation();
-  const newsList = /^\/(?:tin-tuc\/?$|chuyen-muc(?:\/|$)|tim-kiem(?:\/|$)|(?:bo-truong|nghi-quyet-tw4)\/(?:tin-tuc\/?$|chuyen-muc(?:\/|$)))/.test(pathname);
-  if (getLang() === 'en' && newsList) return <ArticleLanguageUnavailable collection />;
-  return <Component key={pathname} />;
-};
-
-const withSuspense = (Component: FC) => (
-  <Suspense fallback={<LoadingFallback />}>
-    <RouteComponent component={Component} />
-  </Suspense>
-);
+const withSuspense = (Component: FC) => <RouteSuspense component={Component} />;
 
 export const ministerRouters = [
   {
@@ -205,7 +193,7 @@ export const ministerRouters = [
       },
       {
         path: 'gioi-thieu-bo-truong',
-        element: withSuspense(() => <AboutPageMis />),
+        element: withSuspense(() => <AboutPageMinister />),
         children: [
           {
             index: true,
@@ -213,7 +201,7 @@ export const ministerRouters = [
           },
           {
             path: ':slug',
-            element: withSuspense(() => <FunctionsAndDutiesPageMinus />),
+            element: withSuspense(() => <FunctionsAndDutiesPageMinister />),
           },
         ]
       },

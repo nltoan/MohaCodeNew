@@ -1,6 +1,6 @@
 import { sanitizeHtml } from '@/utils/sanitizeHtml';
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { Col, Row, Table } from 'react-bootstrap';
 import { CardSection, Loading } from '@/components';
 import { Link, useParams } from 'react-router-dom';
@@ -32,13 +32,16 @@ interface DocumentDetailState {
 export const DocumentDetailPage = () => {
   const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [detail, setDetail] = useState<DocumentDetailState | null>(null);
+  // Result is tagged with the slug it was loaded for: loading is derived, no state reset inside the effect.
+  const [loaded, setLoaded] = useState<{ slug: string; detail: DocumentDetailState | null } | null>(null);
+  const isLoading = !!slug && loaded?.slug !== slug;
+  const detail = loaded && loaded.slug === slug ? loaded.detail : null;
 
-  const fetchDetail = useCallback(async () => {
+  useEffect(() => {
     if (!slug) return;
-
-    setIsLoading(true);
+    let active = true;
+    const fetchDetail = async () => {
+    let result: DocumentDetailState | null = null;
     try {
       let id = getIdFromSlug(slug, 'qpid');
       let response: any;
@@ -61,7 +64,7 @@ export const DocumentDetailPage = () => {
       const data = response;
 
       if (data) {
-        setDetail({
+        result = {
           documentNumber: data.SoKyHieu || '',
           summary: data.TrichYeu || '',
           issueDate: data.NgayBanHanh ? vnFormatter(data.NgayBanHanh) ?? '' : '',
@@ -78,18 +81,17 @@ export const DocumentDetailPage = () => {
             })) || [],
           content: data.NoiDung || '',
           lopvanbanid: data.VanBan_LopVanBan?.[0]?.LopVanBan?.ID
-        });
+        };
       }
     } catch (error) {
       console.error('Error fetching document details:', error);
     } finally {
-      setIsLoading(false);
+      if (active) setLoaded({ slug, detail: result });
     }
+    };
+    void fetchDetail();
+    return () => { active = false; };
   }, [slug]);
-
-  useEffect(() => {
-    fetchDetail();
-  }, [fetchDetail]);
 
   if (isLoading) return <Loading />;
   if (!detail) return <div className="p-4 text-center">{t('documents.detail.not_found')}</div>;

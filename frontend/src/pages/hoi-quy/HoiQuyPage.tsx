@@ -19,7 +19,6 @@ function OrganizationLogo({ id, name }: { id: number; name: string }) {
   useEffect(() => {
     const controller = new AbortController();
     let active = true;
-    setSrc('');
     void (async () => {
       try {
         // API origin is allowed by connect-src; data: images are allowed by portal CSP.
@@ -45,11 +44,19 @@ export function HoiQuyPage() {
   const [detail, setDetail] = useState<Organization | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  async function refresh() {
-    setCaptcha(null); setCode(''); setSubmitted(null); setResults(null);
+  async function loadCaptcha() {
     try { setCaptcha(await get<Challenge>('Captcha')); } catch (e) { setError((e as Error).message); }
   }
-  useEffect(() => { void refresh(); }, []);
+  function refresh() {
+    setCaptcha(null); setCode(''); setSubmitted(null); setResults(null);
+    void loadCaptcha();
+  }
+  // On mount the state is already in its initial (reset) form; only the fetch is needed.
+  useEffect(() => {
+    let active = true;
+    get<Challenge>('Captcha').then(challenge => { if (active) setCaptcha(challenge); }).catch((e: Error) => { if (active) setError(e.message); });
+    return () => { active = false; };
+  }, []);
   async function search(event?: FormEvent, page = 1) {
     event?.preventDefault();
     if (!name.trim()) { setResults(null); setError('Vui lòng nhập tên tổ chức để tra cứu.'); return; }
@@ -69,7 +76,7 @@ export function HoiQuyPage() {
       <form onSubmit={search} className="hq-form">
         <label className="hq-name"><span className="visually-hidden">Tên tổ chức</span><input className="form-control" value={name} maxLength={200} placeholder="Tên tổ chức" onChange={e => { setName(e.target.value); setResults(null); }} /></label>
         <label><span className="visually-hidden">Mã xác nhận</span><input className="form-control" value={code} placeholder="Mã xác nhận" autoComplete="off" maxLength={5} onChange={e => setCode(e.target.value)} /></label>
-        <div className="hq-captcha">{captcha && <img src={captcha.Image} alt="Mã xác nhận gồm 5 ký tự" />}<button type="button" onClick={() => { setError(''); void refresh(); }} disabled={busy} aria-label="Đổi mã xác nhận">↻</button></div>
+        <div className="hq-captcha">{captcha && <img src={captcha.Image} alt="Mã xác nhận gồm 5 ký tự" />}<button type="button" onClick={() => { setError(''); refresh(); }} disabled={busy} aria-label="Đổi mã xác nhận">↻</button></div>
         <button className="btn hq-submit" type="submit" disabled={busy || !captcha}>{busy ? 'Đang tìm…' : '⌕ Tra cứu'}</button>
       </form>
       {error && <p className="hq-error" role="alert">{error}</p>}

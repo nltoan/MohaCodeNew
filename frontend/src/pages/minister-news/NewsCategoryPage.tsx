@@ -7,6 +7,7 @@ import '../news-shared/NewsPage.scss';
 import { Pagination } from '@/components';
 import { Link, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useSettledStatus } from '@/hooks/useSettledStatus';
 import { getUrlImage } from '@/utils/image';
 import { vnFormatter } from '@/utils';
 import { getPostsByCategory, getPostsByCategoryBybtid, getTopPostNews, getTopPostNewsBybtid } from '@/services/news';
@@ -68,9 +69,11 @@ export const NewsCategoryPage = () => {
     pageSize: 10,
   });
 
-  const [listStatus, setListStatus] = useState<'loading' | 'ready' | 'error'>('loading');
-  const [topStatus, setTopStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [attempt, setAttempt] = useState(0);
+  const topKey = `${slug}|${attempt}`;
+  const [topStatus, settleTop] = useSettledStatus(topKey);
+  const listKey = `${slug}|${pagination.activePage}|${pagination.pageSize}|${attempt}`;
+  const [listStatus, settleList] = useSettledStatus(listKey);
   const [titlePage, setTitlePage] = useState('');
   const [categoryMetadata, setCategoryMetadata] = useState<{ MoTa?: string; NgayTao?: string }>();
   const [speechSidebar, setSpeechSidebar] = useState<MinisterSidebarItem[]>([]);
@@ -105,7 +108,6 @@ export const NewsCategoryPage = () => {
 
   useEffect(() => {
     let active = true;
-    setTopStatus('loading');
     const fetchData = async () => {
       try {
         let id = getIdFromSlug(slug || '', 'btid');
@@ -125,20 +127,19 @@ export const NewsCategoryPage = () => {
           setTitlePage(res.data.TenChuyenMuc);
           setCategoryMetadata(res.data);
         }
-        if (active) setTopStatus('ready');
+        if (active) settleTop({ key: topKey, status: 'ready' });
       } catch (err) {
-        if (active) setTopStatus('error');
+        if (active) settleTop({ key: topKey, status: 'error' });
         console.error(err);
       }
     };
 
     fetchData();
     return () => { active = false; };
-  }, [slug, attempt]);
+  }, [slug, attempt, topKey, settleTop]);
 
   useEffect(() => {
     let active = true;
-    setListStatus('loading');
     const fetchData = async () => {
       try {
         let id = getIdFromSlug(slug || '', 'btid');
@@ -160,15 +161,15 @@ export const NewsCategoryPage = () => {
             totalPages: Math.ceil(resNew.totalCount / prev.pageSize),
           }));
         }
-        if (active) setListStatus('ready');
+        if (active) settleList({ key: listKey, status: 'ready' });
       } catch (err) {
-        if (active) setListStatus('error');
+        if (active) settleList({ key: listKey, status: 'error' });
         console.error(err);
       }
     };
     fetchData();
     return () => { active = false; };
-  }, [pagination.activePage, pagination.pageSize, slug, attempt]);
+  }, [pagination.activePage, pagination.pageSize, slug, attempt, listKey, settleList]);
 
 
   return (

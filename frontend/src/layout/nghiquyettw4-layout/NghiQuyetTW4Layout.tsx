@@ -64,7 +64,7 @@ export const NghiQuyetTW4Layout = () => {
         imageRight={NghiQuyetTW4_DATA_CONFIG.header.top.imageRight}
         title={t('nghiquyettw4.header')}
       />
-      <HeaderNavbar menuTitle="MENU" items={menus} className="mh-header-bg-main" />
+      <HeaderNavbar items={menus} className="mh-header-bg-main" />
       <HeaderUtils
         nqtw4
         breadcrumbs={breadcrumbs}

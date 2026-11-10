@@ -81,7 +81,7 @@ export const DefaultLayout = () => {
         imageRight={APP_CONFIG.header.top.imageRight}
         title={t('header.title')}
       />
-      <HeaderNavbar menuTitle="MENU" items={menus} className="mh-header-bg-main" />
+      <HeaderNavbar items={menus} className="mh-header-bg-main" />
       <HeaderBanner src={headerBanner?.src || ''} link={headerBanner?.link || ''} title='Header Banner'/>
       <HeaderUtils breadcrumbs={breadcrumbs} onSearch={handleSearch} onLanguageChange={handleLanguageChange} />
       <main id="main-content" tabIndex={-1} className="mh-main-content">

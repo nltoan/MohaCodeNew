@@ -1,7 +1,8 @@
 /* Font Faces */
 @font-face {
   font-family: 'UTM Times';
-  src: url('UtmTimes.ttf') format('truetype');
+  src: url('UtmTimes.woff2') format('woff2'),
+       url('UtmTimes.ttf') format('truetype');
   font-display: swap;
   font-weight: normal;
   font-style: normal;
@@ -9,7 +10,8 @@
 
 @font-face {
   font-family: 'UTM Times';
-  src: url('Utmtimesitalic.ttf') format('truetype');
+  src: url('Utmtimesitalic.woff2') format('woff2'),
+       url('Utmtimesitalic.ttf') format('truetype');
   font-display: swap;
   font-weight: normal;
   font-style: italic;
@@ -17,7 +19,8 @@
 
 @font-face {
   font-family: 'UTM Times';
-  src: url('Utmtimesbold.ttf') format('truetype');
+  src: url('Utmtimesbold.woff2') format('woff2'),
+       url('Utmtimesbold.ttf') format('truetype');
   font-display: swap;
   font-weight: bold;
   font-style: normal;
@@ -25,7 +28,8 @@
 
 @font-face {
   font-family: 'UTM Times';
-  src: url('UtmtimesboldItalic.ttf') format('truetype');
+  src: url('UtmtimesboldItalic.woff2') format('woff2'),
+       url('UtmtimesboldItalic.ttf') format('truetype');
   font-display: swap;
   font-weight: bold;
   font-style: italic;

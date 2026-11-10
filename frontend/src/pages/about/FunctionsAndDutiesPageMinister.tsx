@@ -15,7 +15,7 @@ import { DublinCore } from '@/components/DublinCore';
 import { ArticleLanguageUnavailable } from '@/components/ArticleLanguageUnavailable';
 import { getLang } from '@/services';
 
-export const FunctionsAndDutiesPage = () => {
+export const FunctionsAndDutiesPageMinister = () => {
   const { t } = useTranslation();
   const contentRef = useRef(null);
   const [data, setData] = useState<any>();
@@ -28,7 +28,6 @@ export const FunctionsAndDutiesPage = () => {
   useEffect(() => {
     if (getLang() === 'en') return;
     let active = true;
-    setData(undefined);
     const loadData = async () => {
       try {
       let id = getIdFromSlug(slug || '', 'gtbtid');

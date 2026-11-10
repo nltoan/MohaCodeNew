@@ -22,26 +22,28 @@ const hideBadge = () => {
 }
 
 const useReCaptcha = (): { reCaptchaLoaded: boolean; generateReCaptchaToken: (action: string) => Promise<string> } => {
-  const [reCaptchaLoaded, setReCaptchaLoaded] = useState(false)
+  const [scriptLoaded, setScriptLoaded] = useState(false)
   const grecaptcha = window.grecaptcha;
+  // Loaded when our script finished loading, or when grecaptcha already exists (derived, not copied into state by an effect)
+  const reCaptchaLoaded = scriptLoaded || !!grecaptcha
 
   // Load ReCaptcha script
   useEffect(() => {
-    if (typeof window === 'undefined' || reCaptchaLoaded) return
+    if (typeof window === 'undefined') return
     if (grecaptcha) {
       showBadge()
-      setReCaptchaLoaded(true)
       return
     }
+    if (scriptLoaded) return
     const script = document.createElement('script')
     script.async = true
     script.src = `https://www.google.com/recaptcha/api.js?render=${APP_CONFIG.recaptcha.token}`
     script.addEventListener('load', () => {
-      setReCaptchaLoaded(true)
+      setScriptLoaded(true)
       showBadge()
     })
     document.body.appendChild(script)
-  }, [reCaptchaLoaded, grecaptcha])
+  }, [scriptLoaded, grecaptcha])
 
   // Hide badge when unmount
   useEffect(() => hideBadge, [])
@@ -51,7 +53,7 @@ const useReCaptcha = (): { reCaptchaLoaded: boolean; generateReCaptchaToken: (ac
     return new Promise((resolve, reject) => {
       if (!reCaptchaLoaded) return reject(new Error('ReCaptcha not loaded'))
       if (typeof window === 'undefined' || !grecaptcha) {
-        setReCaptchaLoaded(false)
+        setScriptLoaded(false)
         return reject(new Error('ReCaptcha not loaded'))
       }
       grecaptcha.ready(() => {

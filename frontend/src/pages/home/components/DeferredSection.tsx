@@ -2,9 +2,9 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 export function DeferredSection({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(() => !('IntersectionObserver' in window));
   useEffect(() => {
-    if (!('IntersectionObserver' in window)) { setVisible(true); return; }
+    if (!('IntersectionObserver' in window)) return; // already visible (lazy initial state)
     // Finish loading public content without requiring scroll/click (including crawlers).
     let idle: number | undefined;
     const timer = window.setTimeout(() => {
