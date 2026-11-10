@@ -12,6 +12,7 @@ using System.Net.Http.Formatting;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.ModelBinding;
+using API.OAuth.Providers;
 using API.Models;
 
 namespace API.Controllers
@@ -38,6 +39,7 @@ namespace API.Controllers
             return Request.CreateResponse(await DataSourceLoader.LoadAsync(source, loadOptions));
         }
 
+        [PermissionAuthorize("manage-chitieu")]
         [HttpPost]
         public async Task<HttpResponseMessage> Post(FormDataCollection form)
         {
@@ -55,6 +57,7 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.Created, new { model.ID });
         }
 
+        [PermissionAuthorize("manage-chitieu")]
         [HttpPut]
         public async Task<HttpResponseMessage> Put(FormDataCollection form)
         {
@@ -75,11 +78,13 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
+        [PermissionAuthorize("manage-chitieu")]
         [HttpDelete]
         public async Task Delete(FormDataCollection form)
         {
             var key = Convert.ToInt32(form.Get("key"));
             var model = await _context.ChiTieux.FirstOrDefaultAsync(item => item.ID == key);
+            if (model == null) throw new HttpResponseException(HttpStatusCode.NotFound);
 
             if (model != null)
             {

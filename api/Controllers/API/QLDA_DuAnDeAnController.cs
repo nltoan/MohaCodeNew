@@ -13,6 +13,7 @@ using System.Net.Http.Formatting;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.ModelBinding;
+using API.OAuth.Providers;
 using API.Models;
 
 namespace API.Controllers
@@ -64,6 +65,7 @@ namespace API.Controllers
             return Request.CreateResponse(await DataSourceLoader.LoadAsync(qlda_duandean, loadOptions));
         }
 
+        [PermissionAuthorize("manage-setting")]
         [HttpPost]
         public async Task<HttpResponseMessage> Post(FormDataCollection form) {
             var model = new QLDA_DuAnDeAn();
@@ -80,6 +82,7 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.Created, new { result.id });
         }
 
+        [PermissionAuthorize("manage-setting")]
         [HttpPut]
         public async Task<HttpResponseMessage> Put(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
@@ -99,10 +102,12 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
+        [PermissionAuthorize("manage-setting")]
         [HttpDelete]
         public async Task Delete(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
             var model = await _context.QLDA_DuAnDeAn.FirstOrDefaultAsync(item => item.id == key);
+            if (model == null) throw new HttpResponseException(HttpStatusCode.NotFound);
 
             _context.QLDA_DuAnDeAn.Remove(model);
             await _context.SaveChangesAsync();

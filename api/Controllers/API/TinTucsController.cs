@@ -15,9 +15,11 @@ using System.Web.Http;
 using System.Web.Http.ModelBinding;
 using Microsoft.AspNet.Identity;
 
+using API.OAuth.Providers;
 using API.Models;
 using System.Net.Mail;
 using System.Text;
+using System.Configuration;
 
 namespace API.Controllers
 {
@@ -52,7 +54,8 @@ namespace API.Controllers
             }
             else if (type == "cancel")
             {
-                condition = String.Format("and t.NguoiTaoID = {0}", userId);
+                // Tin bi tra ve (TrangThai 'rejectapprove' - xem Action "reject" va bo loc trang thai o TinTuc.js)
+                condition = String.Format("and t.NguoiTaoID = {0} and t.TrangThai = '{1}'", userId, "rejectapprove");
             }
             else if (type == "draft")
             {
@@ -208,6 +211,7 @@ namespace API.Controllers
         }
 
 
+        [PermissionAuthorize("manage-tintuc")]
         [HttpPost]
         public async Task<HttpResponseMessage> Post(FormDataCollection form) {
             var model = new TinTuc();
@@ -303,13 +307,101 @@ namespace API.Controllers
             return step;
         }
 
-        [HttpGet]
+        // Quy tac phan quyen quy trinh tin tuc - PHAI khop voi cac cot CanPublish/CanUnPublish/CanApprove/CanSendApprove/CanEdit
+        // tinh trong SQL cua Get. Mot noi duy nhat; Action/Put/Delete deu goi ham nay.
+        private bool HasNewsRight(TinTuc m, int userId, string right)
+        {
+            string st = m.TrangThai ?? "";
+            bool isCreator = m.NguoiTaoID == userId;
+            bool atStep = false, atFinalStep = false;
+            if (m.BuocQuyTrinhID != null)
+            {
+                var stepId = m.BuocQuyTrinhID.Value;
+                atStep = _context.UserBuocQuyTrinhs.Any(u => u.UserID == userId && u.BuocQuyTrinhId == stepId);
+                if (atStep)
+                {
+                    var step = _context.BuocQuyTrinhs.Where(b => b.ID == stepId).Select(b => new { b.IDQuyTrinh, b.SoThuTu }).FirstOrDefault();
+                    if (step != null && step.IDQuyTrinh != null)
+                    {
+                        var idQt = step.IDQuyTrinh;
+                        var maxStep = _context.BuocQuyTrinhs.Where(b => b.IDQuyTrinh == idQt).Max(b => b.SoThuTu);
+                        atFinalStep = step.SoThuTu != null && step.SoThuTu == maxStep;
+                    }
+                }
+            }
+            bool isSt(string v) { return string.Equals(st, v, StringComparison.OrdinalIgnoreCase); }
+            switch (right)
+            {
+                case "CanPublish": return isSt("cancelpublic") && atFinalStep;
+                case "CanUnPublish": return isSt("public") && atFinalStep;
+                case "CanApprove": return isSt("waitapprove") && atStep; // = CanApprove (buoc cuoi) hoac CanSendNext (buoc giua)
+                case "CanSendApprove": return (isSt("rejectapprove") || isSt("draft")) && isCreator;
+                case "CanEdit":
+                    return (isSt("rejectapprove") && isCreator)
+                        || (isSt("draft") && isCreator)
+                        || (isSt("waitapprove") && isCreator)
+                        || (isSt("waitapprove") && atStep)
+                        || (st != "" && !isSt("draft") && atFinalStep);
+                default: return false;
+            }
+        }
+
+        // Cot ngoai EF model (db/migrations/20261111-TinTucHistory-BoSungCot.sql) - bo qua neu cot chua co.
+        private void UpdateHistoryExtraColumns(TinTuc_History his, TinTuc model)
+        {
+            try
+            {
+                _context.Database.ExecuteSqlCommand(
+                    "UPDATE dbo.TinTuc_History SET NgonNgu = @p0, NoiBat = @p1, NguoiTaoID = @p2, BuocQuyTrinhID = @p3 WHERE ID = @p4",
+                    new System.Data.SqlClient.SqlParameter("@p0", (object)model.NgonNgu ?? DBNull.Value),
+                    new System.Data.SqlClient.SqlParameter("@p1", (object)model.NoiBat ?? DBNull.Value),
+                    new System.Data.SqlClient.SqlParameter("@p2", (object)model.NguoiTaoID ?? DBNull.Value),
+                    new System.Data.SqlClient.SqlParameter("@p3", (object)model.BuocQuyTrinhID ?? DBNull.Value),
+                    new System.Data.SqlClient.SqlParameter("@p4", his.ID));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceWarning("TinTuc_History extra columns not updated (migration 20261111-TinTucHistory-BoSungCot.sql applied?): " + ex.Message);
+            }
+        }
+
+        private async Task SaveHistoryAsync(TinTuc model)
+        {
+            TinTuc_History his = CloneFromTinTuc(model);
+            _context.TinTuc_History.Add(his);
+            await _context.SaveChangesAsync();
+            UpdateHistoryExtraColumns(his, model);
+        }
+
+        [PermissionAuthorize("manage-tintuc")]
+        [AcceptVerbs("GET", "POST")]
         public async Task<HttpResponseMessage> Action(int ID, string action, string comment="")
         {
             var model = await _context.TinTucs.FirstOrDefaultAsync(item => item.ID == ID);
             if (model == null)
                 return Request.CreateResponse(HttpStatusCode.Conflict, "Object not found");
             var userId = User.Identity.GetUserId();
+            int userIdInt = Convert.ToInt32(userId);
+
+            string requiredRight;
+            switch (action)
+            {
+                case "public": requiredRight = "CanPublish"; break;
+                case "cancelpublic":
+                case "star":
+                case "unstar": requiredRight = "CanUnPublish"; break;
+                case "sendapprove": requiredRight = "CanSendApprove"; break;
+                case "approve":
+                case "reject": requiredRight = "CanApprove"; break;
+                default: return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Hành động không hợp lệ.");
+            }
+            if (!HasNewsRight(model, userIdInt, requiredRight))
+                return Request.CreateErrorResponse(HttpStatusCode.Forbidden, "Bạn không có quyền thực hiện thao tác này với tin.");
+            if ((action == "sendapprove" || action == "approve" || action == "reject") && model.IDChuyenMuc == null)
+                return Request.CreateErrorResponse(HttpStatusCode.Conflict, "Tin chưa có chuyên mục nên không thể chuyển quy trình duyệt.");
+            if ((action == "approve" || action == "reject") && model.BuocQuyTrinhID == null)
+                return Request.CreateErrorResponse(HttpStatusCode.Conflict, "Tin chưa ở bước nào của quy trình duyệt.");
+
             if (action == "public")
             {
                 model.TrangThai = "public";
@@ -332,21 +424,21 @@ namespace API.Controllers
             {
                 model.TrangThai = "waitapprove";
                 //set buoc quy trinh gan nhat
-                var firstStep = GetBuocQuyTrinh((int)model.IDChuyenMuc, model.BuocQuyTrinhID, null);
+                var firstStep = GetBuocQuyTrinh(model.IDChuyenMuc.Value, model.BuocQuyTrinhID, null);
                 model.BuocQuyTrinhID = firstStep?.ID;
             }
             else if (action == "approve")
             {
                 model.TinTuc_QuyTrinh.Add(new TinTuc_QuyTrinh
                 {
-                    NguoiXuLyID = Convert.ToInt32(userId),
+                    NguoiXuLyID = userIdInt,
                     TinTucID = model.ID,
                     NgayTao = DateTime.Now,
                     BinhLuan = comment,
-                    BuocQuyTrinhID = (int)model.BuocQuyTrinhID
+                    BuocQuyTrinhID = model.BuocQuyTrinhID.Value
                 });
                 //Kiem tra neu la buoc cuoi cung
-                var next = GetBuocQuyTrinh((int)model.IDChuyenMuc, model.BuocQuyTrinhID, "next");
+                var next = GetBuocQuyTrinh(model.IDChuyenMuc.Value, model.BuocQuyTrinhID, "next");
                 if (next == null)
                 {
                     model.TrangThai = "public";
@@ -360,13 +452,13 @@ namespace API.Controllers
             {
                 model.TinTuc_QuyTrinh.Add(new TinTuc_QuyTrinh
                 {
-                    NguoiXuLyID = Convert.ToInt32(userId),
+                    NguoiXuLyID = userIdInt,
                     TinTucID = model.ID,
                     NgayTao = DateTime.Now,
                     BinhLuan = comment,
-                    BuocQuyTrinhID = (int)model.BuocQuyTrinhID
+                    BuocQuyTrinhID = model.BuocQuyTrinhID.Value
                 });
-                var prev = GetBuocQuyTrinh((int)model.IDChuyenMuc, model.BuocQuyTrinhID, "prev");
+                var prev = GetBuocQuyTrinh(model.IDChuyenMuc.Value, model.BuocQuyTrinhID, "prev");
                 if(prev != null)
                 {
                     model.BuocQuyTrinhID = prev.ID;
@@ -377,6 +469,8 @@ namespace API.Controllers
                 }
             }
             await _context.SaveChangesAsync();
+            //Tao lich su
+            await SaveHistoryAsync(model);
             //Send mail
             TinTuc tmp = new TinTuc
             {
@@ -431,12 +525,15 @@ namespace API.Controllers
             };
             return his;
         }
+        [PermissionAuthorize("manage-tintuc")]
         [HttpPut]
         public async Task<HttpResponseMessage> Put(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
             var model = await _context.TinTucs.FirstOrDefaultAsync(item => item.ID == key);
             if(model == null)
                 return Request.CreateResponse(HttpStatusCode.Conflict, "Object not found");
+            if (!HasNewsRight(model, Convert.ToInt32(User.Identity.GetUserId()), "CanEdit"))
+                return Request.CreateErrorResponse(HttpStatusCode.Forbidden, "Bạn không có quyền sửa tin này.");
 
             var values = JsonConvert.DeserializeObject<IDictionary>(form.Get("values"));
             PopulateModel(model, values);
@@ -450,9 +547,7 @@ namespace API.Controllers
 
             await _context.SaveChangesAsync();
             //Tao lich su
-            TinTuc_History his = CloneFromTinTuc(model);
-            _context.TinTuc_History.Add(his);
-            await _context.SaveChangesAsync();
+            await SaveHistoryAsync(model);
 
             //Send mail
             TinTuc tmp = new TinTuc
@@ -467,49 +562,43 @@ namespace API.Controllers
 
             return Request.CreateResponse(HttpStatusCode.OK);
         }
-        private bool RemoteServerCertificateValidationCallback(object sender, 
-            System.Security.Cryptography.X509Certificates.X509Certificate certificate, 
-            System.Security.Cryptography.X509Certificates.X509Chain chain, 
-            System.Net.Security.SslPolicyErrors sslPolicyErrors)
+        // Chi bo qua kiem tra chung chi TLS khi appSetting SmtpAllowInvalidCertificate = "true" (mac dinh: kiem tra day du).
+        // Callback chi gan khi bat co, va chi gan mot lan - khong tat xac thuc TLS cho toan tien trinh mac dinh.
+        private static bool _smtpCertCallbackSet;
+        private static bool SmtpAllowInvalidCertificate()
         {
-            return true;
+            return string.Equals(ConfigurationManager.AppSettings["SmtpAllowInvalidCertificate"], "true", StringComparison.Ordinal);
         }
         private async Task SendEmail(TinTuc model)
         {
-            CongTTDT_MOHAEntities _context2 = new CongTTDT_MOHAEntities();
-            var cauhinh = _context2.ThamSoHeThongs.FirstOrDefault();
-            if (cauhinh != null
-                && !string.IsNullOrEmpty(cauhinh.EmailHost)
-                && !string.IsNullOrEmpty(cauhinh.EmailPort)
-                && !string.IsNullOrEmpty(cauhinh.EmailAddress)
-                && !string.IsNullOrEmpty(cauhinh.EmailPassword)
-            )
+            try
             {
-                try
+                using (var _context2 = new CongTTDT_MOHAEntities())
                 {
-                    System.Net.ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(RemoteServerCertificateValidationCallback);
+                    var cauhinh = _context2.ThamSoHeThongs.FirstOrDefault();
+                    if (cauhinh != null
+                        && !string.IsNullOrEmpty(cauhinh.EmailHost)
+                        && !string.IsNullOrEmpty(cauhinh.EmailPort)
+                        && !string.IsNullOrEmpty(cauhinh.EmailAddress)
+                        && !string.IsNullOrEmpty(cauhinh.EmailPassword)
+                    )
+                    {
+                        if (SmtpAllowInvalidCertificate() && !_smtpCertCallbackSet)
+                        {
+                            System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, errors) => true;
+                            _smtpCertCallbackSet = true;
+                            System.Diagnostics.Trace.TraceWarning("SmtpAllowInvalidCertificate=true: TLS certificate validation is disabled for this process.");
+                        }
 
-                    //Send email thay doi
-                    var smtpClient = new SmtpClient(cauhinh.EmailHost)
-                    {
-                        Port = Convert.ToInt32(cauhinh.EmailPort),
-                        Credentials = new NetworkCredential(cauhinh.EmailAddress, cauhinh.EmailPassword),
-                        EnableSsl = true,
-                    };
-                    var mailMessage = new MailMessage
-                    {
-                        From = new MailAddress(cauhinh.EmailAddress),
-                        Subject = "Thông báo có sự thay đổi nội dung tin tức",
-                        Body = @"Bài viết  có sự thay đổi <br /> 
-                            Để xem trước nội dung: <a href='https://frontend.molisa.gov.vn/baiviet/" + model.ID + "'>" + model.TieuDe + @"</a><br />
-                            Để xét duyệt nội dung: <a href='https://backend.molisa.gov.vn/News/TinTuc/ChangeStatus?action=approve&ID=" + model.ID + @"'>Xét duyệt</a><br />              
-                        ",
-                        IsBodyHtml = true,
-                    };
-                    //string[] arrEmails = _context2.User_Account
-                    //    .Where(x => !string.IsNullOrEmpty(x.EmailAddress))
-                    //    .Select(x => x.EmailAddress).ToArray();
-                    //string[] arrEmails = new string[] { "nguyenminhtan0612@gmail.com"};
+                        // Lien ket lay tu appSettings (frontendSiteUrl, adminSiteUrl); bo qua neu de trong.
+                        var frontendUrl = (ConfigurationManager.AppSettings["frontendSiteUrl"] ?? "").Trim().TrimEnd('/');
+                        var adminUrl = (ConfigurationManager.AppSettings["adminSiteUrl"] ?? "").Trim().TrimEnd('/');
+                        var bodyHtml = new StringBuilder();
+                        bodyHtml.Append("Bài viết <b>").Append(System.Net.WebUtility.HtmlEncode(model.TieuDe ?? "")).Append("</b> có sự thay đổi <br />");
+                        if (frontendUrl != "")
+                            bodyHtml.Append("Cổng thông tin: <a href='").Append(System.Net.WebUtility.HtmlEncode(frontendUrl)).Append("'>").Append(System.Net.WebUtility.HtmlEncode(frontendUrl)).Append("</a><br />");
+                        if (adminUrl != "")
+                            bodyHtml.Append("Để xét duyệt nội dung: <a href='").Append(System.Net.WebUtility.HtmlEncode(adminUrl + "/News/TinTuc/ownerApproving")).Append("'>Danh sách tin chờ kiểm duyệt</a><br />");
 
                     var sql = String.Format(@"
                     with name_tree as 
@@ -542,25 +631,46 @@ namespace API.Controllers
                     .Where(x => !string.IsNullOrEmpty(x.EmailAddress))
                     .Select(x => x.EmailAddress).ToArray();
 
+                    if (arrEmails.Length == 0) return;
 
-                    foreach (string i in arrEmails)
+                    //Send email thay doi
+                    using (var smtpClient = new SmtpClient(cauhinh.EmailHost)
                     {
-                        mailMessage.To.Add(i);
+                        Port = Convert.ToInt32(cauhinh.EmailPort),
+                        Credentials = new NetworkCredential(cauhinh.EmailAddress, cauhinh.EmailPassword),
+                        EnableSsl = true,
+                    })
+                    using (var mailMessage = new MailMessage
+                    {
+                        From = new MailAddress(cauhinh.EmailAddress),
+                        Subject = "Thông báo có sự thay đổi nội dung tin tức",
+                        Body = bodyHtml.ToString(),
+                        IsBodyHtml = true,
+                    })
+                    {
+                        foreach (string i in arrEmails)
+                        {
+                            mailMessage.To.Add(i);
+                        }
+                        smtpClient.Send(mailMessage);
                     }
-
-                    smtpClient.Send(mailMessage);
+                    }
                 }
-                catch
-                {
-
-                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError("TinTucs.SendEmail failed: " + ex);
             }
         }
 
+        [PermissionAuthorize("manage-tintuc")]
         [HttpDelete]
         public async Task Delete(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
             var model = await _context.TinTucs.FirstOrDefaultAsync(item => item.ID == key);
+            if (model == null) throw new HttpResponseException(HttpStatusCode.NotFound);
+            if (!HasNewsRight(model, Convert.ToInt32(User.Identity.GetUserId()), "CanEdit"))
+                throw new HttpResponseException(HttpStatusCode.Forbidden);
 
             _context.TinTucs.Remove(model);
             await _context.SaveChangesAsync();
@@ -577,15 +687,14 @@ namespace API.Controllers
             });
         }
 
+        // Khong nhan tu client: ID, TrangThai (doi qua Action), PageCount, NguoiTao/TenNguoiTao (server gan o Post).
         private void PopulateModel(TinTuc model, IDictionary values) {
-            string ID = nameof(TinTuc.ID);
             string TIEU_DE = nameof(TinTuc.TieuDe);
             string NGON_NGU = nameof(TinTuc.NgonNgu);
             string MO_TA = nameof(TinTuc.MoTa);
             string NOI_DUNG = nameof(TinTuc.NoiDung);
             string TAC_GIA = nameof(TinTuc.TacGia);
             string NGAY_TAO = nameof(TinTuc.NgayTao);
-            string TRANG_THAI = nameof(TinTuc.TrangThai);
             string IDCHUYEN_MUC = nameof(TinTuc.IDChuyenMuc);
             string CHO_PHEP_GUI_PHAN_HOI = nameof(TinTuc.ChoPhepGuiPhanHoi);
             string CAC_TIN_LIEN_QUAN = nameof(TinTuc.CacTinLienQuan);
@@ -596,13 +705,10 @@ namespace API.Controllers
             string FILES_DINH_KEM = nameof(TinTuc.FilesDinhKem);
             string NGUON_TIN = nameof(TinTuc.NguonTin);
             string PHU_DE = nameof(TinTuc.PhuDe);
-            string NGUOI_TAO = nameof(TinTuc.NguoiTao);
             string NGUOI_TRA_VE = nameof(TinTuc.NguoiTraVe);
             string NGAY_TRA_VE = nameof(TinTuc.NgayTraVe);
-            string TEN_NGUOI_TAO = nameof(TinTuc.TenNguoiTao);
             string TEN_NGUOI_TRA_VE = nameof(TinTuc.TenNguoiTraVe);
             string TU_KHOA = nameof(TinTuc.TuKhoa);
-            string PAGE_COUNT = nameof(TinTuc.PageCount);
             string DANH_GIA = nameof(TinTuc.DanhGia);
             string THOI_GIAN_UU_TIEN = nameof(TinTuc.ThoiGianUuTien);
             string LOG_CHUYEN_MUC_THAY_DOI = nameof(TinTuc.LogChuyenMucThayDoi);
@@ -613,10 +719,6 @@ namespace API.Controllers
             string INFOGRAPHICH = nameof(TinTuc.Infographich);
             string TYPE = nameof(TinTuc.Type);
             string NOIBAT = nameof(TinTuc.NoiBat);
-
-            if (values.Contains(ID)) {
-                model.ID = Convert.ToInt32(values[ID]);
-            }
 
             if(values.Contains(TIEU_DE)) {
                 model.TieuDe = Convert.ToString(values[TIEU_DE]);
@@ -640,10 +742,6 @@ namespace API.Controllers
 
             if(values.Contains(NGAY_TAO)) {
                 model.NgayTao = values[NGAY_TAO] != null ? Convert.ToDateTime(values[NGAY_TAO]) : (DateTime?)null;
-            }
-
-            if(values.Contains(TRANG_THAI)) {
-                model.TrangThai = Convert.ToString(values[TRANG_THAI]);
             }
 
             if(values.Contains(IDCHUYEN_MUC)) {
@@ -686,10 +784,6 @@ namespace API.Controllers
                 model.PhuDe = Convert.ToString(values[PHU_DE]);
             }
 
-            if(values.Contains(NGUOI_TAO)) {
-                model.NguoiTao = Convert.ToString(values[NGUOI_TAO]);
-            }
-
             if(values.Contains(NGUOI_TRA_VE)) {
                 model.NguoiTraVe = Convert.ToString(values[NGUOI_TRA_VE]);
             }
@@ -698,20 +792,12 @@ namespace API.Controllers
                 model.NgayTraVe = Convert.ToString(values[NGAY_TRA_VE]);
             }
 
-            if(values.Contains(TEN_NGUOI_TAO)) {
-                model.TenNguoiTao = Convert.ToString(values[TEN_NGUOI_TAO]);
-            }
-
             if(values.Contains(TEN_NGUOI_TRA_VE)) {
                 model.TenNguoiTraVe = Convert.ToString(values[TEN_NGUOI_TRA_VE]);
             }
 
             if(values.Contains(TU_KHOA)) {
                 model.TuKhoa = Convert.ToString(values[TU_KHOA]);
-            }
-
-            if(values.Contains(PAGE_COUNT)) {
-                model.PageCount = values[PAGE_COUNT] != null ? Convert.ToInt32(values[PAGE_COUNT]) : (int?)null;
             }
 
             if(values.Contains(DANH_GIA)) {

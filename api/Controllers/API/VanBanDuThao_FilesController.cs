@@ -12,6 +12,7 @@ using System.Net.Http.Formatting;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.ModelBinding;
+using API.OAuth.Providers;
 using API.Models;
 
 namespace API.Controllers
@@ -40,6 +41,7 @@ namespace API.Controllers
             return Request.CreateResponse(await DataSourceLoader.LoadAsync(VanBanDuThao_files, loadOptions));
         }
 
+        [PermissionAuthorize("manage-vanban")]
         [HttpPost]
         public async Task<HttpResponseMessage> Post(FormDataCollection form)
         {
@@ -97,6 +99,7 @@ namespace API.Controllers
             return Request.CreateErrorResponse(HttpStatusCode.BadRequest, GetFullErrorMessage(ModelState));
         }
 
+        [PermissionAuthorize("manage-vanban")]
         [HttpPut]
         public async Task<HttpResponseMessage> Put(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
@@ -116,10 +119,12 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
+        [PermissionAuthorize("manage-vanban")]
         [HttpDelete]
         public async Task Delete(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
             var model = await _context.VanBanDuThao_Files.FirstOrDefaultAsync(item => item.ID == key);
+            if (model == null) throw new HttpResponseException(HttpStatusCode.NotFound);
 
             _context.VanBanDuThao_Files.Remove(model);
             await _context.SaveChangesAsync();

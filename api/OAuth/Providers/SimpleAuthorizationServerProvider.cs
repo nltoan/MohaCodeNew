@@ -41,7 +41,10 @@ namespace API.OAuth.Providers
                 return;
             }
 
-            var attemptKey = "login-attempt:" + context.UserName.ToLowerInvariant();
+            // Gioi han theo (ten dang nhap + IP) de ke tan cong khong khoa duoc tai khoan quan tri tu IP khac;
+            // Khong dem rieng theo IP: sau reverse proxy moi nguoi dung chung mot IP.
+            var clientIp = context.Request.RemoteIpAddress ?? "";
+            var attemptKey = "login-attempt:" + context.UserName.ToLowerInvariant() + "|" + clientIp;
             lock (AttemptLock) {
                 var count = (int?)HttpRuntime.Cache[attemptKey] ?? 0;
                 if (count >= 10) { context.SetError("invalid_grant", "Vui lòng thử lại sau một phút."); return; }

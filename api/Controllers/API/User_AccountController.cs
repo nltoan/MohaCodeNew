@@ -151,6 +151,7 @@ namespace API.Controllers
         {
             var key = Convert.ToInt32(form.Get("key"));
             var model = await _context.User_Account.FirstOrDefaultAsync(item => item.UserID == key);
+            if (model == null) throw new HttpResponseException(HttpStatusCode.NotFound);
             model.TrangThai = "deleted";
             await _context.SaveChangesAsync();
         }

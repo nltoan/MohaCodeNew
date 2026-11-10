@@ -1,4 +1,5 @@
 ﻿using API.Models;
+using API.OAuth.Providers;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
 using Newtonsoft.Json;
@@ -20,7 +21,7 @@ using System.Xml.Linq;
 
 namespace API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [Route("api/VanBans/{action}", Name = "VanBansApi")]
     public class VanBansController : ApiController
     {
@@ -85,6 +86,7 @@ namespace API.Controllers
             return Request.CreateResponse(await DataSourceLoader.LoadAsync(vanbans, loadOptions));
         }
 
+        [PermissionAuthorize("manage-vanban")]
         [HttpPost]
         public async Task<HttpResponseMessage> Post(FormDataCollection form) {
             var model = new VanBan();
@@ -141,6 +143,7 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.Created, new { result.ID });
         }
 
+        [PermissionAuthorize("manage-vanban")]
         [HttpPut]
         public async Task<HttpResponseMessage> Put(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
@@ -205,10 +208,12 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
+        [PermissionAuthorize("manage-vanban")]
         [HttpDelete]
         public async Task Delete(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
             var model = await _context.VanBans.FirstOrDefaultAsync(item => item.ID == key);
+            if (model == null) throw new HttpResponseException(HttpStatusCode.NotFound);
 
             _context.VanBans.Remove(model);
             await _context.SaveChangesAsync();

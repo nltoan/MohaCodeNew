@@ -13,10 +13,12 @@ using System.Net.Http.Formatting;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.ModelBinding;
+using API.OAuth.Providers;
 using API.Models;
 
 namespace API.Controllers
 {
+    [Authorize]
     [Route("api/Crawler_Nguon/{action}", Name = "Crawler_NguonApi")]
     public class Crawler_NguonController : ApiController
     {
@@ -45,6 +47,7 @@ namespace API.Controllers
             return Request.CreateResponse(await DataSourceLoader.LoadAsync(crawler_nguon, loadOptions));
         }
 
+        [PermissionAuthorize("manage-setting")]
         [HttpPost]
         public async Task<HttpResponseMessage> Post(FormDataCollection form) {
             var model = new Crawler_Nguon();
@@ -61,6 +64,7 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.Created, new { result.ID });
         }
 
+        [PermissionAuthorize("manage-setting")]
         [HttpPut]
         public async Task<HttpResponseMessage> Put(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
@@ -80,10 +84,12 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
+        [PermissionAuthorize("manage-setting")]
         [HttpDelete]
         public async Task Delete(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
             var model = await _context.Crawler_Nguon.FirstOrDefaultAsync(item => item.ID == key);
+            if (model == null) throw new HttpResponseException(HttpStatusCode.NotFound);
 
             _context.Crawler_Nguon.Remove(model);
             await _context.SaveChangesAsync();

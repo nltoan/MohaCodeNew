@@ -24,107 +24,103 @@ using System.Web;
 
 namespace API.Controllers
 {
-    //[PermissionAuthorize("manage-backup")]
     [PermissionAuthorize("manage-backup")]
     [Route("api/BackUps/{action}", Name = "BackUpsApi")]
     public class BackUpsController : ApiController
     {
         private CongTTDT_MOHAEntities _context = new CongTTDT_MOHAEntities();
 
+        private static string BackupRoot()
+        {
+            return Path.GetFullPath(HttpContext.Current.Server.MapPath("~/Upload/BackUp"));
+        }
+
+        // Chi nhan TEN file (khong co thu muc), duoi .bak, va duong dan day du phai nam trong thu muc sao luu.
+        private static string ResolveBackupFile(string name)
+        {
+            if (string.IsNullOrEmpty(name) || name.Length > 255) return null;
+            if (!string.Equals(Path.GetFileName(name), name, StringComparison.Ordinal)) return null;
+            if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return null;
+            if (!string.Equals(Path.GetExtension(name), ".bak", StringComparison.OrdinalIgnoreCase)) return null;
+            var root = BackupRoot() + Path.DirectorySeparatorChar;
+            var fullPath = Path.GetFullPath(Path.Combine(root, name));
+            if (!fullPath.StartsWith(root, StringComparison.OrdinalIgnoreCase)) return null;
+            return fullPath;
+        }
+
         [HttpGet]
         public HttpResponseMessage Download(string path)
         {
             if (string.IsNullOrEmpty(path)) return Request.CreateResponse(HttpStatusCode.BadRequest);
-            var root = Path.GetFullPath(HttpContext.Current.Server.MapPath("~/Upload/BackUp")) + Path.DirectorySeparatorChar;
-            var fullPath = Path.GetFullPath(path);
-            if (!fullPath.StartsWith(root, StringComparison.OrdinalIgnoreCase) || !string.Equals(Path.GetExtension(fullPath), ".bak", StringComparison.OrdinalIgnoreCase))
-                return Request.CreateResponse(HttpStatusCode.Forbidden);
+            var fullPath = ResolveBackupFile(path);
+            if (fullPath == null) return Request.CreateResponse(HttpStatusCode.Forbidden);
             if (!System.IO.File.Exists(fullPath)) return Request.CreateResponse(HttpStatusCode.NotFound);
-            byte[] fileBytes = System.IO.File.ReadAllBytes(fullPath);
 
-            var stream = new MemoryStream();
-            // processing the stream.
-
+            var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
             var result = new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new ByteArrayContent(fileBytes)
+                Content = new StreamContent(stream)
             };
-            result.Content.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment"){
-                FileName = "Backup.bak"
+            result.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+            {
+                FileName = Path.GetFileName(fullPath)
             };
             result.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-
+            result.Content.Headers.ContentLength = stream.Length;
             return result;
         }
 
         [HttpGet]
-        public async Task<HttpResponseMessage> Get(DataSourceLoadOptions loadOptions) {
-            var filePath = Path.Combine(HttpContext.Current.Server.MapPath("~/Upload"),"BackUp");
-            string[] fileArray = Directory.GetFiles(filePath);
-
-            return Request.CreateResponse(DataSourceLoader.Load(fileArray.Select(x => new { path = x}), loadOptions));
-        }
-
-        [HttpGet]
-        public async Task<HttpResponseMessage> Post() {
-            var databaseName = "CongTTDT_MOHA_new";
-            var formatMediaName = $"DatabaseToolkitBackup_{databaseName}";
-            var formatName = $"Full Backup of {databaseName}";
-            var localTime = DateTime.Now.ToString("dd-MM-yyyy-hh-mm-tt");
-            var localDatabasePath = Path.Combine("ll", $"{databaseName}-{localTime}.bak");
-
-            using (var cmd = _context.Database.Connection.CreateCommand())
+        public HttpResponseMessage Get(DataSourceLoadOptions loadOptions) {
+            var root = BackupRoot();
+            var list = new List<object>();
+            if (Directory.Exists(root))
             {
-
-                var sql = @"BACKUP DATABASE @databaseName
-                    TO DISK = @localDatabasePath
-                    WITH FORMAT,
-                      MEDIANAME = @formatMediaName,
-                        NAME = @formatName";
-                cmd.CommandText = sql;
-                bool wasOpen = cmd.Connection.State == ConnectionState.Open;
-                if (!wasOpen) cmd.Connection.Open();
-                try
+                foreach (var fi in new DirectoryInfo(root).GetFiles("*.bak").OrderByDescending(f => f.CreationTimeUtc))
                 {
-
-                    cmd.CommandType = CommandType.Text;
-                    cmd.CommandTimeout = 7200;
-
-                    DbParameter dbParameter = cmd.CreateParameter();
-                    dbParameter.ParameterName = "@databaseName";
-                    dbParameter.Value = databaseName;
-                    cmd.Parameters.Add(dbParameter);
-
-                    dbParameter = cmd.CreateParameter();
-                    dbParameter.ParameterName = "@localDatabasePath";
-                    dbParameter.Value = localDatabasePath;
-                    cmd.Parameters.Add(dbParameter);
-
-                    dbParameter = cmd.CreateParameter();
-                    dbParameter.ParameterName = "@formatMediaName";
-                    dbParameter.Value = formatMediaName;
-                    cmd.Parameters.Add(dbParameter);
-
-                    dbParameter = cmd.CreateParameter();
-                    dbParameter.ParameterName = "@formatName";
-                    dbParameter.Value = formatName;
-                    cmd.Parameters.Add(dbParameter);
-
-                    cmd.ExecuteNonQuery();
-                }
-                finally
-                {
-                    if (!wasOpen) cmd.Connection.Close();
+                    // path = ten file (khoa cua grid, tuong thich nguoc); khong bao gio tra ve duong dan tuyet doi.
+                    list.Add(new { name = fi.Name, size = fi.Length, created = fi.CreationTime, path = fi.Name });
                 }
             }
+            return Request.CreateResponse(DataSourceLoader.Load(list, loadOptions));
+        }
 
-            return Request.CreateResponse(HttpStatusCode.Created, new { localDatabasePath });
+        [HttpPost]
+        public HttpResponseMessage Post() {
+            var databaseName = _context.Database.Connection.Database;
+            if (string.IsNullOrEmpty(databaseName) || !System.Text.RegularExpressions.Regex.IsMatch(databaseName, "^[A-Za-z0-9_]+$"))
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Tên cơ sở dữ liệu không hợp lệ để sao lưu.");
+
+            var root = BackupRoot();
+            Directory.CreateDirectory(root);
+            var fileName = databaseName + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture) + ".bak";
+            var fullPath = ResolveBackupFile(fileName);
+            if (fullPath == null) return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Tên file sao lưu không hợp lệ.");
+
+            try
+            {
+                _context.Database.CommandTimeout = 7200;
+                // Ten CSDL da duoc kiem tra ky tu an toan, boc trong [] (QUOTENAME).
+                _context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction,
+                    "BACKUP DATABASE [" + databaseName + "] TO DISK = @path WITH INIT",
+                    new SqlParameter("@path", fullPath));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError("Backup failed: " + ex);
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Sao lưu thất bại. Kiểm tra quyền ghi của dịch vụ SQL Server vào thư mục Upload/BackUp.");
+            }
+            return Request.CreateResponse(HttpStatusCode.Created, new { name = fileName, path = fileName });
         }
 
         [HttpDelete]
-        public HttpResponseMessage Delete() {
-            // Ban sao chep truoc day xoa nham ban ghi Role theo ID. Xoa file backup chua duoc ho tro.
-            return Request.CreateErrorResponse(HttpStatusCode.MethodNotAllowed, "Deleting backups is not supported.");
+        public HttpResponseMessage Delete(FormDataCollection form) {
+            var key = form == null ? null : form.Get("key");
+            var fullPath = ResolveBackupFile(key);
+            if (fullPath == null) return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Tên file sao lưu không hợp lệ.");
+            if (!System.IO.File.Exists(fullPath)) return Request.CreateResponse(HttpStatusCode.NotFound);
+            System.IO.File.Delete(fullPath);
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         protected override void Dispose(bool disposing) {

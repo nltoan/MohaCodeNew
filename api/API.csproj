@@ -1287,12 +1287,10 @@
       <DependentUpon>MohaModel.tt</DependentUpon>
     </Compile>
     <Compile Include="OAuth\Providers\PermissionAuthorizeAttribute.cs" />
-    <Compile Include="OAuth\Providers\RoleAuthorizeAttribute.cs" />
     <Compile Include="OAuth\Providers\SimpleAuthorizationServerProvider.cs" />
     <Compile Include="OAuth\Startup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ReCaptchaValidator.cs" />
-    <Compile Include="Services\ThumbnailGeneratorService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

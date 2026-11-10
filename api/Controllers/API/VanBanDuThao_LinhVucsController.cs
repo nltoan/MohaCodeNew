@@ -12,6 +12,7 @@ using System.Net.Http.Formatting;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.ModelBinding;
+using API.OAuth.Providers;
 using API.Models;
 
 namespace API.Controllers
@@ -40,6 +41,7 @@ namespace API.Controllers
             return Request.CreateResponse(await DataSourceLoader.LoadAsync(VanBanDuThao_LinhVucs, loadOptions));
         }
 
+        [PermissionAuthorize("manage-vanban")]
         [HttpPost]
         public async Task<HttpResponseMessage> Post(FormDataCollection form) {
             var model = new VanBanDuThao_LinhVucs();
@@ -56,6 +58,7 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.Created, new { result.ID });
         }
 
+        [PermissionAuthorize("manage-vanban")]
         [HttpPut]
         public async Task<HttpResponseMessage> Put(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
@@ -75,10 +78,12 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
+        [PermissionAuthorize("manage-vanban")]
         [HttpDelete]
         public async Task Delete(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
             var model = await _context.VanBanDuThao_LinhVucs.FirstOrDefaultAsync(item => item.ID == key);
+            if (model == null) throw new HttpResponseException(HttpStatusCode.NotFound);
 
             _context.VanBanDuThao_LinhVucs.Remove(model);
             await _context.SaveChangesAsync();

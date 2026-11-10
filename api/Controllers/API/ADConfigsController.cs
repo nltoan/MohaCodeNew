@@ -79,6 +79,7 @@ namespace API.Controllers
         public async Task Delete(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
             var model = await _context.ADConfigs.FirstOrDefaultAsync(item => item.ID == key);
+            if (model == null) throw new HttpResponseException(HttpStatusCode.NotFound);
 
             _context.ADConfigs.Remove(model);
             await _context.SaveChangesAsync();

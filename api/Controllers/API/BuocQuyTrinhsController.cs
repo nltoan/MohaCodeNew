@@ -13,11 +13,13 @@ using System.Net.Http.Formatting;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.ModelBinding;
+using API.OAuth.Providers;
 using API.Models;
 using Newtonsoft.Json.Linq;
 
 namespace API.Controllers
 {
+    [Authorize]
     [Route("api/BuocQuyTrinhs/{action}", Name = "BuocQuyTrinhsApi")]
     public class BuocQuyTrinhsController : ApiController
     {
@@ -42,6 +44,7 @@ namespace API.Controllers
             return Request.CreateResponse(await DataSourceLoader.LoadAsync(buocquytrinhs, loadOptions));
         }
 
+        [PermissionAuthorize("manage-quytrinh")]
         [HttpPost]
         public async Task<HttpResponseMessage> Post(FormDataCollection form) {
             var model = new BuocQuyTrinh();
@@ -73,6 +76,7 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.Created, new { result.ID });
         }
 
+        [PermissionAuthorize("manage-quytrinh")]
         [HttpPut]
         public async Task<HttpResponseMessage> Put(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
@@ -107,10 +111,12 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
+        [PermissionAuthorize("manage-quytrinh")]
         [HttpDelete]
         public async Task Delete(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
             var model = await _context.BuocQuyTrinhs.FirstOrDefaultAsync(item => item.ID == key);
+            if (model == null) throw new HttpResponseException(HttpStatusCode.NotFound);
             _context.BuocQuyTrinhs.Remove(model);
             await _context.SaveChangesAsync();
         }

@@ -43,6 +43,14 @@ namespace API.Services
 
         public async Task<ReCaptchaResponse> VerifyTokenAsync(string token)
         {
+            // Fail closed: thieu khoa bi mat (appSettings.local.config) hoac khong co token -> tu choi, khong goi Google.
+            if (string.IsNullOrWhiteSpace(_secretKey))
+            {
+                System.Diagnostics.Trace.TraceError("ReCaptcha: appSetting 'recaptcha' (secret key) chua duoc cau hinh - tu choi xac thuc. Dat khoa trong api/appSettings.local.config.");
+                return new ReCaptchaResponse { Success = false, ErrorCodes = new List<string> { "missing-input-secret" } };
+            }
+            if (string.IsNullOrWhiteSpace(token))
+                return new ReCaptchaResponse { Success = false, ErrorCodes = new List<string> { "missing-input-response" } };
             using (var client = new HttpClient())
             {
                 // Prepare the form data

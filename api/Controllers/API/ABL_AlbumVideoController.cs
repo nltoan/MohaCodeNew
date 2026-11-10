@@ -13,6 +13,7 @@ using System.Net.Http.Formatting;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.ModelBinding;
+using API.OAuth.Providers;
 using API.Models;
 
 namespace API.Controllers
@@ -49,6 +50,7 @@ namespace API.Controllers
             return Request.CreateResponse(await DataSourceLoader.LoadAsync(abl_albumvideo, loadOptions));
         }
 
+        [PermissionAuthorize("manage-tintuc")]
         [HttpPost]
         public async Task<HttpResponseMessage> Post(FormDataCollection form) {
             var model = new ABL_AlbumVideo();
@@ -65,6 +67,7 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.Created, new { result.ID });
         }
 
+        [PermissionAuthorize("manage-tintuc")]
         [HttpPut]
         public async Task<HttpResponseMessage> Put(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
@@ -84,10 +87,12 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
+        [PermissionAuthorize("manage-tintuc")]
         [HttpDelete]
         public async Task Delete(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
             var model = await _context.ABL_AlbumVideo.FirstOrDefaultAsync(item => item.ID == key);
+            if (model == null) throw new HttpResponseException(HttpStatusCode.NotFound);
 
             _context.ABL_AlbumVideo.Remove(model);
             await _context.SaveChangesAsync();

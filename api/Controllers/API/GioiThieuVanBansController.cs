@@ -1,4 +1,5 @@
 ﻿using API.Models;
+using API.OAuth.Providers;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
 using Newtonsoft.Json;
@@ -32,6 +33,7 @@ namespace API.Controllers
             return Request.CreateResponse(await DataSourceLoader.LoadAsync(source, loadOptions));
         }
 
+        [PermissionAuthorize("manage-vanban")]
         [HttpPost]
         public async Task<HttpResponseMessage> Post(FormDataCollection form)
         {
@@ -49,6 +51,7 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.Created, new { model.ID });
         }
 
+        [PermissionAuthorize("manage-vanban")]
         [HttpPut]
         public async Task<HttpResponseMessage> Put(FormDataCollection form)
         {
@@ -68,11 +71,13 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
+        [PermissionAuthorize("manage-vanban")]
         [HttpDelete]
         public async Task Delete(FormDataCollection form)
         {
             var key = Convert.ToInt32(form.Get("key"));
             var model = await _context.GioiThieuVanBans.FirstOrDefaultAsync(item => item.ID == key);
+            if (model == null) throw new HttpResponseException(HttpStatusCode.NotFound);
 
             if (model != null)
             {
