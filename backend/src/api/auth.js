@@ -6,8 +6,10 @@ import { request } from "../utils/api";
 export async function signIn(email, password, code, type) {
   try {
     //
-    if (type == "ldap") {
-      email = `${email}@molisa.gov.vn`;
+    if (type === "ldap") {
+      email = email.trim();
+      const domain = (window.env.REACT_APP_LDAP_DOMAIN || 'molisa.gov.vn').replace(/^@/, '');
+      if (!email.includes('@')) email = `${email}@${domain}`;
     }
     // Send request
     const response = await fetch(
@@ -23,9 +25,16 @@ export async function signIn(email, password, code, type) {
     var data = await response.json();
     // console.log(data);
     if (!response.ok || !data.access_token) {
+      const visibleErrors = new Set([
+        'LDAP chưa được cấu hình xác thực an toàn.',
+        'Không thể xác thực tài khoản AD.',
+        'Tài khoản chưa được cấp quyền sử dụng hệ thống.',
+        'Mã xác nhận không đúng!',
+        'Vui lòng thử lại sau một phút.',
+      ]);
       Notify(
         {
-          message: `Đăng nhập không thành công!`,
+          message: visibleErrors.has(data.error_description) ? data.error_description : 'Đăng nhập không thành công!',
           height: 45,
           width: 150,
           minWidth: 150,

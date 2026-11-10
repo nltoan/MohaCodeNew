@@ -19,27 +19,40 @@ if (!/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(base)) throw new Error('O
       if (url.pathname.endsWith('/NghienCuuKhoaHocDetail')) {
         return route.fulfill({ json: { data: { TenDeTai: 'Đề tài thử', MoTa: 'Mô tả đề tài', DonViChuTri: 'Đơn vị chủ trì', NgayTao: '2024-02-29T09:00:00' } } });
       }
+      if (url.pathname.endsWith('/VanBanDetail')) {
+        return route.fulfill({ json: { data: { SoKyHieu: 'VB-1', TrichYeu: 'Văn bản thử', NgayBanHanh: null, NgayXuatBan: '2025-04-03T08:00:00' } } });
+      }
       return route.fulfill({ json: { data: [], totalCount: 0, childs: [] } });
     });
     const read = () => page.evaluate(() => Object.fromEntries([...document.querySelectorAll('meta[name^="DC."]')].map(node => [node.name, node.content])));
     await page.goto(`${base}/`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.querySelector('meta[data-rh="true"][name="DC.Title"]'));
     let tags = await read();
-    for (const name of ['DC.Title', 'DC.Creator', 'DC.Publisher', 'DC.Description', 'DC.Identifier', 'DC.Date.Issued']) assert.ok(tags[name], name);
+    for (const name of ['DC.Title', 'DC.Creator', 'DC.Publisher', 'DC.Description', 'DC.Identifier']) assert.ok(tags[name], name);
+    assert.equal(tags['DC.Date'], '2025-07-14');
+    assert.equal(tags['DC.Date.Source'], 'owner-assigned');
     await page.goto(`${base}/tin-tuc/bai---id1`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.querySelector('meta[name="DC.Title"]')?.content === 'Bài 1');
     tags = await read();
     assert.equal(tags['DC.Date.Issued'], '2026-10-12');
+    assert.equal(tags['DC.Date'], '2026-10-12');
+    assert.equal(tags['DC.Date.Source'], undefined);
     assert.equal(tags['DC.Description'], 'Mô tả & dữ liệu');
     await page.evaluate(() => { history.pushState({}, '', '/tin-tuc/bai---id2'); window.dispatchEvent(new PopStateEvent('popstate')); });
     await page.waitForFunction(() => document.querySelector('meta[name="DC.Title"]')?.content === 'Bài 2');
     tags = await read();
     assert.equal(tags['DC.Date.Issued'], undefined);
+    assert.equal(tags['DC.Date'], undefined);
     assert.equal(tags['DC.Identifier'], 'https://moha.gov.vn/tin-tuc/bai---id2');
+    await page.goto(`${base}/van-ban/van-ban-thu---id1`, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => document.querySelector('meta[name="DC.Title"]')?.content === 'VB-1');
+    tags = await read();
+    assert.equal(tags['DC.Date'], '2025-04-03');
     await page.goto(`${base}/nghien-cuu-khoa-hoc/de-tai---id3`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.querySelector('meta[name="DC.Title"]')?.content === 'Đề tài thử');
     tags = await read();
     assert.equal(tags['DC.Date.Created'], '2024-02-29');
+    assert.equal(tags['DC.Date'], '2024-02-29');
     assert.equal(tags['DC.Date.Issued'], undefined);
     console.log('Dublin Core: homepage, article navigation and research date passed');
   } finally { await browser.close(); }

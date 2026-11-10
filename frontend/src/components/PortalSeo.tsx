@@ -1,6 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { assignedMetadataDate } from '@/utils/assignedMetadataDate';
 
 export function portalCanonical(pathname: string) {
   return new URL(pathname || '/', 'https://moha.gov.vn').href;
@@ -46,6 +47,7 @@ export function PortalSeo() {
     <meta name="DC.Identifier" content={canonical} />
     <meta name="DC.Language" content={i18n.resolvedLanguage?.startsWith('en') ? 'eng' : 'vie'} />
     <meta name="DC.Subject" content="Bộ Nội vụ; Nội vụ; Chính phủ; Việt Nam" />
-    {(pathname === '/' || pathname === '/trang-chu') && <meta name="DC.Date.Issued" content="2025-12-17" />}
+    {(pathname === '/' || pathname === '/trang-chu') && <meta name="DC.Date" content={assignedMetadataDate(pathname)} />}
+    {(pathname === '/' || pathname === '/trang-chu') && <meta name="DC.Date.Source" content="owner-assigned" />}
   </Helmet>;
 }

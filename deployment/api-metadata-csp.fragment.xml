@@ -1,0 +1,7 @@
+<!-- Candidate: merge directly under configuration in the API Web.config; keep this policy aligned with the portal. -->
+<location path="api/Public/MetadataPage">
+  <system.webServer><httpProtocol><customHeaders>
+    <remove name="Content-Security-Policy" />
+    <add name="Content-Security-Policy" value="default-src &apos;self&apos; https://icdn.dantri.com.vn https://www.google.com/ https://api.qrserver.com data:; font-src &apos;self&apos; https://cdnweb.dantri.com.vn https://cdnjs.cloudflare.com https://fonts.gstatic.com https://cdn.jsdelivr.net data:; script-src &apos;self&apos; &apos;sha256-DiQd23+1uz39NQcBD6S6RyAvYN7XwMQskQP/qbIx8CE=&apos; &apos;sha256-j8jC+SJt0IZyYguYw6TjOGUoS5bvyKi5RcjW08r/lm8=&apos; https://f-emc.ngsp.gov.vn https://www.google.com https://www.gstatic.com https://www.googletagmanager.com; style-src &apos;self&apos; &apos;unsafe-inline&apos; https://cdnweb.dantri.com.vn https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com; frame-ancestors &apos;self&apos;; form-action &apos;self&apos;;connect-src &apos;self&apos; https://fonts.gstatic.com https://cdn.jsdelivr.net https://api-portal.moha.gov.vn https://www.google.com https://f-emc.ngsp.gov.vn https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com;" />
+  </customHeaders></httpProtocol></system.webServer>
+</location>

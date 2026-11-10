@@ -64,7 +64,7 @@ export const AudioAlbumDetailPage = () => {
 
   return (
     <div className="mh-gallery">
-      <DublinCore title={album?.TieuDe} description={album?.MoTa} date={album?.ThoiGianXuatBan} />
+      <DublinCore title={album?.TieuDe} description={album?.MoTa} creator={album?.TacGia} date={album?.ThoiGianXuatBan || album?.ThoiGianTao} dateKind={album?.ThoiGianXuatBan ? 'Issued' : 'Created'} />
       <Helmet>
         <meta charSet="utf-8" />
         <title>{album?.TieuDe || t('seo.audioLibrary')}</title>

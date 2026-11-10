@@ -1,4 +1,4 @@
-﻿using API.Models;
+using API.Models;
 using API.Services;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
@@ -19,6 +19,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
+using System.Net.Http.Headers;
 using System.Net.Mail;
 using System.Security;
 using System.Text;
@@ -43,6 +44,224 @@ namespace API.Controllers
         static readonly string RelativePath = System.IO.Path.Combine("~/Upload");
         private readonly string QueryByChuyenMucHienThiThem = "EXISTS (SELECT 1 FROM {0} nt WHERE (',' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ChuyenMucHienThiThem, '[', ''), ']', ''),' ',''),CHAR(13),''),CHAR(9),''),CHAR(10),'') + ',') LIKE '%,' + CAST(nt.ID AS NVARCHAR(max)) + ',%')";
         private CongTTDT_MOHAEntities _context = new CongTTDT_MOHAEntities();
+
+        private const int SitemapPageSize = 10000;
+        private const string SitemapOrigin = "https://moha.gov.vn";
+        private static readonly XNamespace SitemapNamespace = "http://www.sitemaps.org/schemas/sitemap/0.9";
+
+        private static string SitemapSlug(string text)
+        {
+            var normalized = (text ?? "").ToLowerInvariant().Normalize(NormalizationForm.FormD);
+            normalized = Regex.Replace(normalized, @"[\u0300-\u036f]", "").Replace('đ', 'd');
+            normalized = Regex.Replace(normalized, @"[^0-9a-z\-\s]", "");
+            return Regex.Replace(Regex.Replace(normalized, @"\s+", "-"), "-+", "-").Trim('-');
+        }
+
+        private static HttpResponseMessage SitemapXml(XDocument document)
+        {
+            var response = new HttpResponseMessage(HttpStatusCode.OK);
+            response.Content = new StringContent(document.ToString(SaveOptions.DisableFormatting), Encoding.UTF8, "application/xml");
+            response.Headers.CacheControl = new CacheControlHeaderValue { Public = true, MaxAge = TimeSpan.FromMinutes(5) };
+            return response;
+        }
+
+        private List<SitemapRecord> PublicNewsCategories()
+        {
+            // The main news site uses category tree 10; other roots belong to
+            // special sites and need their own canonical routes.
+            var all = _context.ChuyenMucs.Where(x => x.IsVisible == true && x.TrangThai == "HoatDong" && x.TenChuyenMuc != null && x.TenChuyenMuc != "")
+                .Select(x => new SitemapCategory { Id = x.ID, Title = x.TenChuyenMuc, Parent = x.ChuyenMucCha }).ToList();
+            var included = new HashSet<int> { 10 };
+            var changed = true;
+            while (changed) {
+                changed = false;
+                foreach (var item in all) {
+                    int parent;
+                    if (!included.Contains(item.Id) && int.TryParse(item.Parent, out parent) && included.Contains(parent)) {
+                        included.Add(item.Id);
+                        changed = true;
+                    }
+                }
+            }
+            return all.Where(x => included.Contains(x.Id)).OrderBy(x => x.Id).Select(x => new SitemapRecord { Id = x.Id, Title = x.Title }).ToList();
+        }
+
+        [HttpGet]
+        public HttpResponseMessage SitemapIndex()
+        {
+            var now = DateTime.Now;
+            var counts = new Dictionary<string, int> {
+                { "news", _context.TinTucs.Count(x => x.TrangThai == "public" && x.NgonNgu == "vi" && x.NgayXuatBan != null && x.NgayXuatBan <= now && x.TieuDe != null && x.TieuDe != "") },
+                { "documents", _context.VanBans.Count(x => x.TrangThai == 1 && x.Lang == 1066 && x.SoKyHieu != null && x.SoKyHieu != "") },
+                { "drafts", _context.VanBanDuThaos.Count(x => x.TrangThai == 1 && x.Lang == 1066 && x.TieuDe != null && x.TieuDe != "") },
+                { "categories", PublicNewsCategories().Count },
+                { "photo", _context.ABL_AlbumAnh.Count(x => x.TrangThai == "1" && x.TieuDe != null && x.TieuDe != "" && (x.ThoiGianXuatBan == null || x.ThoiGianXuatBan <= now)) },
+                { "video", _context.ABL_AlbumVideo.Count(x => x.TrangThai == "1" && x.TieuDe != null && x.TieuDe != "" && (x.ThoiGianXuatBan == null || x.ThoiGianXuatBan <= now)) },
+                { "audio", _context.ABL_AlbumAudio.Count(x => x.TrangThai == "1" && x.TieuDe != null && x.TieuDe != "" && (x.ThoiGianXuatBan == null || x.ThoiGianXuatBan <= now)) }
+            };
+            // These URLs require an updated portal IIS rule. Keep them out of the
+            // index until that rule has been deployed and explicitly enabled.
+            if (string.Equals(ConfigurationManager.AppSettings["SitemapAdditionalSources"], "true", StringComparison.OrdinalIgnoreCase)) {
+                counts.Add("notices", _context.ThongBaos.Count(x => x.NgayDang != null && x.NgayDang.Value.Year >= 2021 && x.NgayDang <= now && x.TieuDe != null && x.TieuDe != ""));
+                counts.Add("research", _context.NghienCuuKhoaHocs.Count(x => x.NgayTao != null && x.NgayTao.Value.Year >= 2021 && x.NgayTao <= now && x.TenDeTai != null && x.TenDeTai != ""));
+            }
+            var index = new XElement(SitemapNamespace + "sitemapindex",
+                new XElement(SitemapNamespace + "sitemap", new XElement(SitemapNamespace + "loc", SitemapOrigin + "/sitemap-pages-1.xml")));
+            foreach (var entry in counts)
+                for (var page = 1; page <= (entry.Value + SitemapPageSize - 1) / SitemapPageSize; page++)
+                    index.Add(new XElement(SitemapNamespace + "sitemap", new XElement(SitemapNamespace + "loc", SitemapOrigin + "/sitemap-" + entry.Key + "-" + page + ".xml")));
+            return SitemapXml(new XDocument(new XDeclaration("1.0", "utf-8", null), index));
+        }
+
+        [HttpGet]
+        public HttpResponseMessage Sitemap(string kind, int page = 1)
+        {
+            if (page < 1 || page > 100000) return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid sitemap page.");
+            var skip = (page - 1) * SitemapPageSize;
+            var now = DateTime.Now;
+            var urls = new List<string>();
+            if (kind == "pages" && page == 1) {
+                urls.AddRange(new[] { "/", "/tin-tuc", "/van-ban/du-thao-van-ban", "/nghien-cuu-khoa-hoc", "/tra-cuu-hoi-quy", "/multimedia", "/multimedia/video", "/multimedia/audio", "/bo-truong", "/nghi-quyet-tw4" }.Select(x => SitemapOrigin + x));
+            } else {
+                var records = new List<SitemapRecord>();
+                switch (kind) {
+                    case "news": records = _context.TinTucs.Where(x => x.TrangThai == "public" && x.NgonNgu == "vi" && x.NgayXuatBan != null && x.NgayXuatBan <= now && x.TieuDe != null && x.TieuDe != "").OrderBy(x => x.ID).Skip(skip).Take(SitemapPageSize).Select(x => new SitemapRecord { Id = x.ID, Title = x.TieuDe }).ToList(); break;
+                    case "documents": records = _context.VanBans.Where(x => x.TrangThai == 1 && x.Lang == 1066 && x.SoKyHieu != null && x.SoKyHieu != "").OrderBy(x => x.ID).Skip(skip).Take(SitemapPageSize).Select(x => new SitemapRecord { Id = x.ID, Title = x.SoKyHieu }).ToList(); break;
+                    case "drafts": records = _context.VanBanDuThaos.Where(x => x.TrangThai == 1 && x.Lang == 1066 && x.TieuDe != null && x.TieuDe != "").OrderBy(x => x.ID).Skip(skip).Take(SitemapPageSize).Select(x => new SitemapRecord { Id = x.ID, Title = x.TieuDe }).ToList(); break;
+                    case "categories": records = PublicNewsCategories().Skip(skip).Take(SitemapPageSize).ToList(); break;
+                    case "notices": records = _context.ThongBaos.Where(x => x.NgayDang != null && x.NgayDang.Value.Year >= 2021 && x.NgayDang <= now && x.TieuDe != null && x.TieuDe != "").OrderBy(x => x.ID).Skip(skip).Take(SitemapPageSize).Select(x => new SitemapRecord { Id = x.ID, Title = x.TieuDe }).ToList(); break;
+                    case "research": records = _context.NghienCuuKhoaHocs.Where(x => x.NgayTao != null && x.NgayTao.Value.Year >= 2021 && x.NgayTao <= now && x.TenDeTai != null && x.TenDeTai != "").OrderBy(x => x.ID).Skip(skip).Take(SitemapPageSize).Select(x => new SitemapRecord { Id = x.ID, Title = x.TenDeTai }).ToList(); break;
+                    case "photo": records = _context.ABL_AlbumAnh.Where(x => x.TrangThai == "1" && x.TieuDe != null && x.TieuDe != "" && (x.ThoiGianXuatBan == null || x.ThoiGianXuatBan <= now)).OrderBy(x => x.ID).Skip(skip).Take(SitemapPageSize).Select(x => new SitemapRecord { Id = x.ID, Title = x.TieuDe }).ToList(); break;
+                    case "video": records = _context.ABL_AlbumVideo.Where(x => x.TrangThai == "1" && x.TieuDe != null && x.TieuDe != "" && (x.ThoiGianXuatBan == null || x.ThoiGianXuatBan <= now)).OrderBy(x => x.ID).Skip(skip).Take(SitemapPageSize).Select(x => new SitemapRecord { Id = x.ID, Title = x.TieuDe }).ToList(); break;
+                    case "audio": records = _context.ABL_AlbumAudio.Where(x => x.TrangThai == "1" && x.TieuDe != null && x.TieuDe != "" && (x.ThoiGianXuatBan == null || x.ThoiGianXuatBan <= now)).OrderBy(x => x.ID).Skip(skip).Take(SitemapPageSize).Select(x => new SitemapRecord { Id = x.ID, Title = x.TieuDe }).ToList(); break;
+                    default: return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Unknown sitemap.");
+                }
+                var prefix = kind == "news" ? "tin-tuc" : kind == "documents" ? "van-ban" : kind == "drafts" ? "van-ban/du-thao" : kind == "categories" ? "chuyen-muc" : kind == "notices" ? "thong-bao" : kind == "research" ? "nghien-cuu-khoa-hoc" : kind;
+                urls.AddRange(records.Select(x => SitemapOrigin + "/" + prefix + "/" + SitemapSlug(x.Title) + "---id" + x.Id));
+            }
+            if (urls.Count == 0) return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Empty sitemap page.");
+            return SitemapXml(new XDocument(new XDeclaration("1.0", "utf-8", null),
+                new XElement(SitemapNamespace + "urlset", urls.Select(url => new XElement(SitemapNamespace + "url", new XElement(SitemapNamespace + "loc", url))))));
+        }
+
+        private sealed class SitemapRecord { public int Id { get; set; } public string Title { get; set; } }
+        private sealed class SitemapCategory { public int Id { get; set; } public string Title { get; set; } public string Parent { get; set; } }
+
+        private sealed class PublicHeadRecord { public string Title { get; set; } public string Description { get; set; } public string Creator { get; set; } public string Publisher { get; set; } public DateTime? Date { get; set; } public bool AllowAssignedDate { get; set; } }
+
+        private static DateTime AssignedMetadataDate(string path)
+        {
+            uint hash = 2166136261;
+            foreach (char character in path) hash = unchecked((hash ^ character) * 16777619);
+            return new DateTime(2025, 1, 1).AddDays(hash % 396);
+        }
+
+        private static string HeadText(string html)
+        {
+            if (string.IsNullOrWhiteSpace(html)) return "";
+            if (html.Length > 100000) html = html.Substring(0, 100000);
+            var document = new HtmlDocument();
+            document.LoadHtml(html);
+            var text = Regex.Replace(HttpUtility.HtmlDecode(document.DocumentNode.InnerText), @"\s+", " ").Trim();
+            return text.Length > 500 ? text.Substring(0, 500) : text;
+        }
+
+        // Returns the normal SPA shell with record-specific head metadata.
+        // The template is deployed separately and must match the portal bundle.
+        [HttpGet]
+        public HttpResponseMessage MetadataPage(string path)
+        {
+            var pages = new Dictionary<string, PublicHeadRecord>(StringComparer.Ordinal) {
+                { "/", new PublicHeadRecord { Title = "Cổng thông tin điện tử Bộ Nội vụ", Description = "Tin tức, hoạt động, văn bản và thông tin phục vụ người dân, doanh nghiệp của Bộ Nội vụ.", AllowAssignedDate = true } },
+                { "/tin-tuc", new PublicHeadRecord { Title = "Tin Nội vụ", Description = "Tin tức và hoạt động của Bộ Nội vụ, thông tin về chính sách và các lĩnh vực quản lý nhà nước của Bộ.", AllowAssignedDate = true } },
+                { "/tra-cuu-hoi-quy", new PublicHeadRecord { Title = "Tra cứu Hội và Quỹ Trung ương", Description = "Tra cứu thông tin Hội và Quỹ Trung ương theo tên tổ chức: địa chỉ, người đại diện và thông tin liên hệ." } },
+                { "/multimedia", new PublicHeadRecord { Title = "Thư viện ảnh", Description = "Thư viện ảnh về hoạt động và các lĩnh vực quản lý nhà nước của Bộ Nội vụ." } },
+                { "/multimedia/video", new PublicHeadRecord { Title = "Thư viện video", Description = "Thư viện video về hoạt động và các lĩnh vực quản lý nhà nước của Bộ Nội vụ." } },
+                { "/multimedia/audio", new PublicHeadRecord { Title = "Thư viện audio", Description = "Thư viện audio về hoạt động và các lĩnh vực quản lý nhà nước của Bộ Nội vụ." } },
+                { "/nghien-cuu-khoa-hoc", new PublicHeadRecord { Title = "Nghiên cứu khoa học", Description = "Thông tin đề tài và hoạt động nghiên cứu khoa học thuộc các lĩnh vực quản lý nhà nước của Bộ Nội vụ." } },
+                { "/van-ban/du-thao-van-ban", new PublicHeadRecord { Title = "Danh sách văn bản dự thảo", Description = "Danh sách dự thảo văn bản được công bố để lấy ý kiến trên Cổng thông tin điện tử Bộ Nội vụ." } },
+                { "/bo-truong", new PublicHeadRecord { Title = "Thông tin Bộ trưởng", Description = "Tin tức và hoạt động của Bộ trưởng Bộ Nội vụ." } },
+                { "/nghi-quyet-tw4", new PublicHeadRecord { Title = "Đảng bộ Bộ Nội vụ", Description = "Thông tin về Đảng bộ Bộ Nội vụ và các hoạt động liên quan." } }
+            };
+            PublicHeadRecord staticPage;
+            if (path != null && pages.TryGetValue(path, out staticPage)) {
+                if (path == "/tin-tuc") staticPage.Date = _context.ChuyenMucs.Where(x => x.ID == 12).Select(x => x.NgayTao).FirstOrDefault();
+                return RenderMetadataPage(path, staticPage);
+            }
+            var match = Regex.Match(path ?? "", @"^/(tin-tuc|chuyen-muc|van-ban/du-thao|van-ban|photo|video|audio|thong-bao|nghien-cuu-khoa-hoc)/[a-z0-9-]*---(id|oid|qpid|cdid|tbid)([0-9]+)$", RegexOptions.CultureInvariant);
+            int id;
+            if (!match.Success || !int.TryParse(match.Groups[3].Value, out id) || id <= 0)
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid metadata path.");
+            var kind = match.Groups[1].Value;
+            var idKind = match.Groups[2].Value;
+            if (idKind != "id") {
+                var oldId = id;
+                if (kind == "tin-tuc" && idKind == "oid") {
+                    var suffix = "/knd/tt|##|Tin tức|##|" + oldId;
+                    id = _context.TinTucs.Where(x => x.Migrate_Source != null && x.Migrate_Source.EndsWith(suffix)).Select(x => x.ID).FirstOrDefault();
+                } else if (kind == "chuyen-muc" && idKind == "oid") {
+                    var suffix = "|##|Danh mục tin tức|##|" + oldId;
+                    id = _context.ChuyenMucs.Where(x => x.Migrate_Source != null && x.Migrate_Source.EndsWith(suffix)).Select(x => x.ID).FirstOrDefault();
+                } else if (kind == "van-ban" && (idKind == "qpid" || idKind == "cdid" || idKind == "tbid")) {
+                    var type = idKind == "qpid" ? "Văn bản quy phạm pháp luật" : idKind == "cdid" ? "Văn bản chỉ đạo điều hành" : "Thông báo";
+                    var suffix = "|##|" + type + "|##|" + oldId;
+                    id = _context.VanBans.Where(x => x.Migrate_Source != null && x.Migrate_Source.EndsWith(suffix)).Select(x => x.ID).FirstOrDefault();
+                } else if (kind == "van-ban/du-thao" && idKind == "oid") {
+                    var suffix = "|##|" + oldId;
+                    id = _context.VanBanDuThaos.Where(x => x.Migrate_Source != null && x.Migrate_Source.EndsWith(suffix)).Select(x => x.ID).FirstOrDefault();
+                } else if (kind == "nghien-cuu-khoa-hoc" && idKind == "oid") {
+                    var suffix = "|##|" + oldId;
+                    id = _context.NghienCuuKhoaHocs.Where(x => x.Migrate_Source != null && x.Migrate_Source.EndsWith(suffix)).Select(x => x.ID).FirstOrDefault();
+                } else return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Unsupported legacy path.");
+                if (id <= 0) return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Public content not found.");
+            }
+            PublicHeadRecord data = null;
+            switch (kind) {
+                case "tin-tuc": data = _context.TinTucs.Where(x => x.ID == id && x.TrangThai == "public" && x.NgonNgu == "vi").Select(x => new PublicHeadRecord { Title = x.TieuDe, Description = x.MoTa == null || x.MoTa == "" ? x.NoiDung : x.MoTa, Creator = x.TacGia, Date = x.NgayXuatBan }).FirstOrDefault(); break;
+                case "chuyen-muc": data = _context.ChuyenMucs.Where(x => x.ID == id && x.IsVisible == true && x.TrangThai == "HoatDong").Select(x => new PublicHeadRecord { Title = x.TenChuyenMuc, Description = x.MoTa, Date = x.NgayTao }).FirstOrDefault(); if (data != null) data.AllowAssignedDate = true; break;
+                case "van-ban": data = _context.VanBans.Where(x => x.ID == id && x.TrangThai == 1 && x.Lang == 1066).Select(x => new PublicHeadRecord { Title = x.SoKyHieu ?? x.TrichYeu, Description = x.TrichYeu, Creator = x.VanBan_CoQuanBanHanh.OrderBy(y => y.ID).Select(y => y.CoQuanBanHanh.TenCoQuanBanHanh).FirstOrDefault(), Date = x.NgayBanHanh ?? x.NgayXuatBan }).FirstOrDefault(); if (data != null) data.Publisher = data.Creator; break;
+                case "van-ban/du-thao": data = _context.VanBanDuThaos.Where(x => x.ID == id && x.TrangThai == 1 && x.Lang == 1066).Select(x => new PublicHeadRecord { Title = x.TieuDe, Description = x.TrichYeu, Creator = x.VanBanDuThao_CoQuanBanHanhs.OrderBy(y => y.ID).Select(y => y.CoQuanBanHanh.TenCoQuanBanHanh).FirstOrDefault() }).FirstOrDefault(); if (data != null) data.Publisher = data.Creator; break;
+                case "photo": data = _context.ABL_AlbumAnh.Where(x => x.ID == id && x.TrangThai == "1").Select(x => new PublicHeadRecord { Title = x.TieuDe, Description = x.MoTa, Creator = x.TacGia, Date = x.ThoiGianXuatBan ?? x.ThoiGianTao }).FirstOrDefault(); break;
+                case "video": data = _context.ABL_AlbumVideo.Where(x => x.ID == id && x.TrangThai == "1").Select(x => new PublicHeadRecord { Title = x.TieuDe, Description = x.MoTa, Creator = x.TacGia, Date = x.ThoiGianXuatBan ?? x.ThoiGianTao }).FirstOrDefault(); break;
+                case "audio": data = _context.ABL_AlbumAudio.Where(x => x.ID == id && x.TrangThai == "1").Select(x => new PublicHeadRecord { Title = x.TieuDe, Description = x.MoTa, Creator = x.TacGia, Date = x.ThoiGianXuatBan ?? x.ThoiGianTao }).FirstOrDefault(); break;
+                case "thong-bao": data = _context.ThongBaos.Where(x => x.ID == id).Select(x => new PublicHeadRecord { Title = x.TieuDe, Description = x.NoiDung, Creator = x.DonViBanHanh, Publisher = x.DonViBanHanh, Date = x.NgayDang }).FirstOrDefault(); break;
+                case "nghien-cuu-khoa-hoc": data = _context.NghienCuuKhoaHocs.Where(x => x.ID == id).Select(x => new PublicHeadRecord { Title = x.TenDeTai, Description = x.MoTa, Creator = x.DonViChuTri, Date = x.NgayTao }).FirstOrDefault(); break;
+            }
+            if (data == null || string.IsNullOrWhiteSpace(data.Title)) return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Public content not found.");
+            return RenderMetadataPage(path, data);
+        }
+
+        private HttpResponseMessage RenderMetadataPage(string path, PublicHeadRecord data)
+        {
+            var templatePath = HostingEnvironment.MapPath("~/App_Data/portal-index.html");
+            if (string.IsNullOrEmpty(templatePath) || !System.IO.File.Exists(templatePath)) return Request.CreateErrorResponse(HttpStatusCode.ServiceUnavailable, "Portal template unavailable.");
+            var template = System.IO.File.ReadAllText(templatePath, Encoding.UTF8);
+            if (!template.Contains("data-portal-dc") || !template.Contains("</head>")) return Request.CreateErrorResponse(HttpStatusCode.ServiceUnavailable, "Invalid portal template.");
+            template = Regex.Replace(template, @"(?m)^\s*<meta\s+data-portal-dc\b[^>]*\/?>\s*$", "");
+            var title = HeadText(data.Title);
+            var description = HeadText(data.Description);
+            if (string.IsNullOrEmpty(description) || description == title) description = "Thông tin " + title + " trên Cổng thông tin điện tử Bộ Nội vụ.";
+            var creator = HeadText(data.Creator);
+            if (string.IsNullOrEmpty(creator)) creator = "Bộ Nội vụ";
+            var publisher = HeadText(data.Publisher);
+            if (string.IsNullOrEmpty(publisher)) publisher = "Bộ Nội vụ";
+            var identifier = SitemapOrigin + path;
+            Func<string, string> encode = HttpUtility.HtmlAttributeEncode;
+            var markup = new StringBuilder();
+            markup.Append("<title data-portal-dc>").Append(HttpUtility.HtmlEncode(title)).Append("</title>\n");
+            foreach (var item in new[] { new { Name = "DC.Title", Value = title }, new { Name = "DC.Creator", Value = creator }, new { Name = "DC.Publisher", Value = publisher }, new { Name = "DC.Description", Value = description }, new { Name = "DC.Identifier", Value = identifier }, new { Name = "description", Value = description } })
+                markup.Append("<meta data-portal-dc name=\"").Append(item.Name).Append("\" content=\"").Append(encode(item.Value)).Append("\" />\n");
+            if (data.Date.HasValue || data.AllowAssignedDate) {
+                var date = data.Date ?? AssignedMetadataDate(path);
+                markup.Append("<meta data-portal-dc name=\"DC.Date\" content=\"").Append(date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).Append("\" />\n");
+                if (!data.Date.HasValue) markup.Append("<meta data-portal-dc name=\"DC.Date.Source\" content=\"owner-assigned\" />\n");
+            }
+            markup.Append("<link data-portal-dc rel=\"canonical\" href=\"").Append(encode(identifier)).Append("\" />\n");
+            var response = new HttpResponseMessage(HttpStatusCode.OK);
+            response.Content = new StringContent(template.Replace("</head>", markup + "</head>"), Encoding.UTF8, "text/html");
+            response.Headers.CacheControl = new CacheControlHeaderValue { NoCache = true };
+            return response;
+        }
 
         private static bool IsEnglishLanguage(string lang)
         {

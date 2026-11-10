@@ -66,7 +66,7 @@ export const DocumentDetailPage = () => {
           documentNumber: data.SoKyHieu || '',
           summary: data.TrichYeu || '',
           issueDate: data.NgayBanHanh ? vnFormatter(data.NgayBanHanh) ?? '' : '',
-          issueDateRaw: data.NgayBanHanh || '',
+          issueDateRaw: data.NgayBanHanh || data.NgayXuatBan || '',
           documentType: data.HinhThucVanBan?.TenHinhThucVanBan || '',
           field: data.VanBan_LinhVuc?.[0]?.LinhVuc?.TenLinhVuc || '',
           issuingAuthority: data.VanBan_CoQuanBanHanh?.[0]?.CoQuanBanHanh?.TenCoQuanBanHanh || '',

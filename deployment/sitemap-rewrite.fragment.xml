@@ -1,0 +1,10 @@
+<!-- Merge BEFORE the React Routes rule and any generic redirects. IIS URL Rewrite
+     and ARR proxy must be configured as for the existing external bot rules. -->
+<rule name="Dynamic Sitemap Index" stopProcessing="true">
+  <match url="^sitemap(?:_index)?\.xml$" />
+  <action type="Rewrite" url="https://api-portal.moha.gov.vn/api/Public/SitemapIndex" />
+</rule>
+<rule name="Dynamic Sitemap Page" stopProcessing="true">
+  <match url="^sitemap-(pages|news|documents|drafts|categories|photo|video|audio|notices|research)-([0-9]+)\.xml$" />
+  <action type="Rewrite" url="https://api-portal.moha.gov.vn/api/Public/Sitemap?kind={R:1}&amp;page={R:2}" />
+</rule>

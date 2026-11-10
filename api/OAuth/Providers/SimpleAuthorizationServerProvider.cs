@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Security.Claims;
 using API.Models;
 using System.Data.Entity;
-using Novell.Directory.Ldap;
 using System;
 using System.Web.Configuration;
 using System.Linq;
@@ -48,7 +47,7 @@ namespace API.OAuth.Providers
                 if (type == "password")
                 {
                     var model = await _context.User_Account.FirstOrDefaultAsync(item => item.TenTruyCap == context.UserName);
-                    if (model == null || model.TrangThai != "active" || !PasswordSecurity.Verify(context.Password, model.MatKhau)) { context.SetError("invalid_grant", "Username hay mật khẩu không đúng!"); return; }
+                    if (model == null || !ActiveUserStatus.IsActive(model.TrangThai) || !PasswordSecurity.Verify(context.Password, model.MatKhau)) { context.SetError("invalid_grant", "Username hay mật khẩu không đúng!"); return; }
                     var role = await _context.Roles.FirstOrDefaultAsync(item => item.ID == model.RoleId);
                     if(model == null || role == null)
                     {
@@ -83,7 +82,7 @@ namespace API.OAuth.Providers
                 }
                 if (type == "ldap")
                 {
-                    // LDAP binding was disabled in the legacy implementation. Fail closed until a verified LDAP provider is configured.
+                    // Remains disabled until verified LDAPS configuration is available.
                     context.SetError("invalid_grant", "LDAP chưa được cấu hình xác thực an toàn.");
                     return;
                 }

@@ -35,30 +35,40 @@ const escapeAttr = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;')
       try {
         const response = await page.goto(base + route, { waitUntil: 'domcontentloaded', timeout: 30000 });
         if (!response || !response.ok()) throw Error('Navigation failed');
-        await page.waitForTimeout(3000);
-        const data = await page.evaluate(() => ({ pathname: location.pathname, title: document.title, tags: [...document.querySelectorAll('meta[name^="DC."]')].map(n => [n.getAttribute('name'), n.content]), text: document.querySelector('main')?.innerText || '' }));
+        await page.waitForFunction(expected => {
+          const element = document.querySelector('meta[name="DC.Title"]');
+          const title = element?.content;
+          const id = document.querySelector('meta[name="DC.Identifier"]')?.content;
+          const needsRecord = /(?:---(?:id|oid|btid|nqid|qpid|tbid|gtbtid)\d+)$/.test(expected);
+          return location.pathname === expected && title && title !== 'Cổng thông tin điện tử Bộ Nội vụ' && id === `https://moha.gov.vn${expected}` && (!needsRecord || element?.getAttribute('data-dc-source') === 'record');
+        }, route, { timeout: 20000 });
+        await page.waitForFunction(() => document.querySelector('main h1')?.textContent?.trim(), null, { timeout: 20000 });
+        const data = await page.evaluate(() => ({ pathname: location.pathname, title: document.title, description: document.querySelector('meta[name="description"]')?.content, canonical: document.querySelector('link[rel="canonical"]')?.href, tags: [...document.querySelectorAll('meta[name^="DC."]')].map(n => [n.getAttribute('name'), n.content]), text: document.querySelector('main')?.innerText || '' }));
         if (data.pathname !== route) throw Error('Route redirected');
-        if (!data.text.trim() || /Không tìm thấy trang|Không tải được nội dung|Đang tải nội dung/.test(data.text)) throw Error('Content unavailable');
+        if (!data.text.trim() || /Không tìm thấy trang|Không tải được nội dung/.test(data.text)) throw Error('Content unavailable');
         const tags = Object.fromEntries(data.tags);
         if (!tags['DC.Title'] || !tags['DC.Description'] || tags['DC.Identifier'] !== `https://moha.gov.vn${route}`) throw Error('Metadata incomplete or identifier mismatch');
+        if (!tags['DC.Creator'] || !tags['DC.Publisher'] || !tags['DC.Date']) throw Error('Required DC metadata missing, including DC.Date');
+        if (!data.title || !data.description || data.canonical !== tags['DC.Identifier']) throw Error('SEO metadata incomplete or canonical mismatch');
         if (tags['DC.Title'] === 'Cổng thông tin điện tử Bộ Nội vụ') throw Error('Only generic fallback metadata available');
         if (data.tags.length !== Object.keys(tags).length) throw Error('Duplicate metadata');
         const markup = data.tags.map(([name, value]) => `    <meta data-portal-dc name="${escapeAttr(name)}" content="${escapeAttr(value)}" />`).join('\n');
-        const html = cleanTemplate.replace('</head>', `${markup}\n  </head>`);
+        const seo = `    <title data-portal-dc>${escapeAttr(data.title)}</title>\n    <meta data-portal-dc name="description" content="${escapeAttr(data.description)}" />\n    <link data-portal-dc rel="canonical" href="${escapeAttr(data.canonical)}" />`;
+        const html = cleanTemplate.replace('</head>', `${markup}\n${seo}\n  </head>`);
         const directory = path.join(target, '__dc', ...route.slice(1).split('/'));
         await fs.mkdir(directory, { recursive: true });
         await fs.writeFile(path.join(directory, 'index.html'), html, 'utf8');
-        results.push({ route, ok: true, hasDate: !!(tags['DC.Date.Issued'] || tags['DC.Date.Created']) });
+        results.push({ route, ok: true, hasDate: !!tags['DC.Date'] });
       } catch (error) { results.push({ route, ok: false, error: error.message }); }
       finally { await page.close(); }
     };
-    for (let i = 0; i < routes.length; i += 3) {
-      await Promise.all(routes.slice(i, i + 3).map(generate));
-      console.log(`Processed ${Math.min(i + 3, routes.length)}/${routes.length}`);
+    for (let i = 0; i < routes.length; i++) {
+      await generate(routes[i]);
+      console.log(`Processed ${i + 1}/${routes.length}`);
     }
     await context.close();
   } finally { await browser.close(); }
   await fs.writeFile(path.join(target, 'manifest.json'), JSON.stringify({ generatedAt: new Date().toISOString(), source: base, results }, null, 2));
-  console.log(JSON.stringify({ generated: results.filter(x => x.ok).length, failed: results.filter(x => !x.ok).length, missingDate: results.filter(x => x.ok && !x.hasDate).length }));
+  console.log(JSON.stringify({ generated: results.filter(x => x.ok).length, failed: results.filter(x => !x.ok).length, missingRequiredMetadata: results.filter(x => !x.ok && x.error.includes('Required DC metadata missing')).length }));
   if (results.some(x => !x.ok)) process.exitCode = 2;
 })().catch(error => { console.error(error); process.exitCode = 1; });

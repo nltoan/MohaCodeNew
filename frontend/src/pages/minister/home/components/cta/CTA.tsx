@@ -12,7 +12,7 @@ export const MinisterCTASection = ({ main, items }: MinisterCTASectionProps) => 
       <Container>
         <Row>
           <Col lg={8}>
-            <Link to={main?.url || '/'} className="mh-minister-cta-banner" style={{ backgroundImage: `url(${main?.image})`, cursor: "pointer" }}>
+            <Link to={main?.url || '/'} className="mh-minister-cta-banner" aria-label={main?.title1 || 'Thông tin nổi bật'} style={{ backgroundImage: `url(${main?.image})`, cursor: "pointer" }}>
             </Link>
           </Col>
           <Col lg={4}>

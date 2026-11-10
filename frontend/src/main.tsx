@@ -9,7 +9,7 @@ initializeGoogleAnalytics();
 
 // The static tags describe the homepage before React loads. Once the SPA starts,
 // Helmet owns the tags and replaces them with metadata for the current route.
-document.querySelectorAll('meta[data-portal-dc]').forEach((element) => element.remove());
+document.querySelectorAll('[data-portal-dc]').forEach((element) => element.remove());
 
 // The development database does not include the historic media archive. Keep
 // locally uploaded files first, and fall back to the public archive for images.

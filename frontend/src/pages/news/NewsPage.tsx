@@ -115,7 +115,7 @@ export const NewsPage = () => {
 
   return (
     <div className="mh-news">
-      <DublinCore title={titlePage} description={categoryMetadata?.MoTa} date={categoryMetadata?.NgayTao} dateKind="Created" />
+      <DublinCore title={titlePage} description={categoryMetadata?.MoTa} date={categoryMetadata?.NgayTao} dateKind="Created" allowAssignedDate />
       <Helmet>
         <title>{`${t('seo.moha')} - ${titlePage ?? t('seo.home')}`}</title>
         <meta name="description" content={`${titlePage || 'Tin tức Bộ Nội vụ'}: cập nhật tin tức, hoạt động và thông tin chính sách trên Cổng thông tin điện tử Bộ Nội vụ.`} />

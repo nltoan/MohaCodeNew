@@ -1,0 +1,13 @@
+# Sitemap động
+
+API tạo sitemap từ CSDL khi được truy cập; không cần xuất JSON hoặc chạy tác vụ định kỳ. Index liệt kê từng nhóm, mỗi trang tối đa 10.000 URL. HTTP cache là 5 phút; xóa cache CDN khi cần thấy thay đổi ngay. Nguồn hiện gồm tin Việt công khai đã đến ngày, văn bản và dự thảo tiếng Việt trạng thái 1, chuyên mục hoạt động thuộc cây tin tức 10, album trạng thái 1, thông báo có ngày đăng từ 2021, nghiên cứu có ngày tạo từ 2021 và một số trang chính. Hai nhóm thông báo/nghiên cứu theo điều kiện các API danh sách hiện tại, cần kiểm tra lại nghiệp vụ công khai; chuyên trang khác chưa bao phủ.
+
+## Triển khai
+
+1. Kiểm tra API đang chạy và CSDL production: API mới trong repo bao gồm cả thay đổi ngôn ngữ tin tức, không chỉ sitemap. Xác nhận migration `20261109-TinTuc-NgonNgu.sql` đã chạy đầy đủ, dữ liệu ngôn ngữ, API/admin và các ứng dụng dùng chung tương thích. Test trên staging và backup API, portal, cấu hình IIS và CSDL trước khi cập nhật.
+2. Build API Release, đối chiếu các DLL/dependency với API production, triển khai theo quy trình API, giữ Web.config, secrets và Upload hiện tại. Không ghi đè DB. Kiểm tra trực tiếp `https://api-portal.moha.gov.vn/api/Public/SitemapIndex` và `.../Sitemap?kind=news&page=1` trả XML trước khi đổi IIS.
+3. Sao lưu Web.config portal; gộp hai rule trong `sitemap-rewrite.fragment.xml` vào **đầu** `<system.webServer><rewrite><rules>` trước mọi rule tổng quát, không thay Web.config production. Nếu rule sitemap cũ đã tồn tại, sửa rule đó để nhận thêm `notices|research`, không thêm trùng tên. Các rule dùng reverse proxy HTTP(S) như các bot rule hiện hữu, yêu cầu IIS URL Rewrite/ARR proxy và kết nối tới API. Xác minh ARR, CSP/WAF, TLS và host bindings trên staging; không giả định API và portal cùng máy. Rule phải có hiệu lực trước cả file sitemap tĩnh cũ.
+4. Gộp `Sitemap: https://moha.gov.vn/sitemap_index.xml` vào robots.txt hiện có; giữ các chỉ thị khác. Xóa cache CDN/proxy cho robots, sitemap index và các sitemap con; kiểm tra `/robots.txt`, `/sitemap_index.xml`, `/sitemap.xml` và mọi URL sitemap con: đúng XML/text, HTTP 200, không trả HTML của React, dữ liệu/canonical/trạng thái đúng.
+5. Trên staging thử xuất bản, sửa tiêu đề rồi ẩn một bản ghi kiểm thử; sau tối đa 5 phút hoặc purge, kiểm tra sitemap phản ánh thay đổi, không có bản nháp/nội dung ẩn. Kiểm tra phân trang, URL ký tự đặc biệt, không trùng, nhánh 404 và API lỗi. Không chạy test ghi thử trên production.
+
+Nếu có lỗi, khôi phục API và Web.config từ backup và cache; chỉ khôi phục file sitemap cũ nếu đã kiểm tra tính cập nhật. Không xóa dữ liệu CSDL hay xóa cột ngôn ngữ khi rollback. Sitemap không giải quyết SSR/metadata HTML thô hoặc ngày nguồn bị thiếu.

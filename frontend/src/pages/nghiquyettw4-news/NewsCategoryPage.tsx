@@ -164,7 +164,7 @@ export const NewsCategoryPage = () => {
 
   return (
     <div className="mh-news">
-      <DublinCore title={titlePage} description={categoryMetadata?.MoTa} date={categoryMetadata?.NgayTao} dateKind="Created" />
+      <DublinCore title={titlePage} description={categoryMetadata?.MoTa} date={categoryMetadata?.NgayTao} dateKind="Created" allowAssignedDate />
       <Container>
         <Row>
           <Col xl={8}>

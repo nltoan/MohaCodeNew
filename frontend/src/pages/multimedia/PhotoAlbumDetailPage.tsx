@@ -73,7 +73,7 @@ export const PhotoAlbumDetailPage = () => {
 
   return (
     <div className="mh-gallery">
-      <DublinCore title={album?.TieuDe} description={album?.MoTa} date={album?.ThoiGianXuatBan} />
+      <DublinCore title={album?.TieuDe} description={album?.MoTa} creator={album?.TacGia} date={album?.ThoiGianXuatBan || album?.ThoiGianTao} dateKind={album?.ThoiGianXuatBan ? 'Issued' : 'Created'} />
       <Helmet><title>{album?.TieuDe || 'Thư viện đa phương tiện - Bộ Nội vụ'}</title></Helmet>
       <Container>
         <div className="mh-gallery-content">

@@ -110,7 +110,7 @@ export const NewsDetailPage = () => {
   if (getLang() === 'en' && !loadingDetail && !detail) return <ArticleLanguageUnavailable />;
   return (
     <>
-      <DublinCore title={detail?.TieuDe} description={detail?.MoTa} creator={detail?.TacGia} date={detail?.NgayXuatBan} subject={detail?.TuKhoa} />
+      <DublinCore title={detail?.TieuDe} description={detail?.MoTa || detail?.NoiDung} creator={detail?.TacGia} date={detail?.NgayXuatBan} subject={detail?.TuKhoa} />
       <Helmet>
         <meta charSet="utf-8" />
         <title>{`${t('seo.moha')} - ${detail?.TieuDe ?? t('seo.home')}`}</title>

@@ -1,0 +1,13 @@
+<!-- Candidate: add AFTER existing bot rules, BEFORE other redirect/fallback rules.
+     Deploy matching portal index as API/App_Data/portal-index.html first.
+     Merge into IIS only after staging/ARR checks and confirmation of media
+     publishing states. Media rules are intentionally omitted until the meaning
+     of legacy album statuses is verified; special sub-sites need separate handling. -->
+<rule name="Public page metadata" stopProcessing="true">
+  <match url="^$|^(tin-tuc|tra-cuu-hoi-quy|multimedia|multimedia/video|multimedia/audio|nghien-cuu-khoa-hoc|van-ban/du-thao-van-ban|bo-truong|nghi-quyet-tw4)$" />
+  <action type="Rewrite" url="https://api-portal.moha.gov.vn/api/Public/MetadataPage?path=/{R:0}" appendQueryString="false" />
+</rule>
+<rule name="Public record metadata" stopProcessing="true">
+  <match url="^(tin-tuc|chuyen-muc|van-ban/du-thao|van-ban|thong-bao|nghien-cuu-khoa-hoc)/[a-z0-9-]*---(id|oid|qpid|cdid|tbid)[0-9]+$" />
+  <action type="Rewrite" url="https://api-portal.moha.gov.vn/api/Public/MetadataPage?path=/{R:0}" appendQueryString="false" />
+</rule>
