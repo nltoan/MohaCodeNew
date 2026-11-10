@@ -370,3 +370,18 @@ FodyWeavers.xsd
 
 # macOS
 .DS_Store
+
+# Ban sao luu DB va tai lieu nhi phan: luu ngoai git (xem DEV-SETUP.md)
+/db/*.zip
+/db/*.7z
+/db/*.bak
+/output/
+/docs/GPKT_*.docx
+/*.docx
+
+# Bao cao ra soat noi bo (mo ta lo hong), khong commit
+/RA-SOAT-DU-AN-*.html
+
+# Cau hinh bi mat cuc bo
+/api/appSettings.local.config
+/api/connectionStrings.local.config
