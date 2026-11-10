@@ -1,4 +1,4 @@
-param([string]$ConfigPath='', [switch]$UseExistingUiBuilds)
+param([string]$ConfigPath='', [switch]$UseExistingUiBuilds, [switch]$IncludeImportData)
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot -Parent
 if(!$ConfigPath){$ConfigPath=Join-Path $root 'deployment\production.json'}
@@ -45,6 +45,7 @@ Copy-Item (Join-Path $root 'backend\build') (Join-Path $release 'admin-candidate
 Get-ChildItem (Join-Path $release 'admin-candidate') -Filter '*.map' -Recurse | Remove-Item
 Copy-Item (Join-Path $root 'deployment') (Join-Path $release 'deployment') -Recurse
 Copy-Item (Join-Path $root 'db\migrations\20261001-HoiQuy.sql') (Join-Path $release 'deployment')
+foreach($migration in @('20261109-TinTuc-NgonNgu.sql','20261110-MatKhauMacDinh.sql')){Copy-Item (Join-Path $root ('db\migrations\'+$migration)) (Join-Path $release 'deployment')}
 # IIS configurations are merge samples; never replace a production Web.config.
 foreach($app in @('portal','admin-candidate')){
  $webConfig=Join-Path $release ($app+'\web.config')
@@ -68,10 +69,13 @@ foreach($index in @($portalIndex,$adminIndex)){
  $content=[IO.File]::ReadAllText($index)
  if($content -match 'tefli\.vn|localhost:517|localhost:55104'){throw "Non-production URL in $index"}
 }
-$dataDir=Join-Path $release 'import-data';New-Item -ItemType Directory $dataDir | Out-Null
-$excel=Join-Path $env:USERPROFILE 'Desktop\DanhSach_HoiQuy_TrungUong_20260930_142742.xlsx'
-if(!(Test-Path $excel)){throw 'Customer workbook missing'}
-Copy-Item -LiteralPath $excel -Destination $dataDir
+# Du lieu import Hoi va Quy chi dong goi khi co co -IncludeImportData (mac dinh KHONG dong goi).
+if($IncludeImportData){
+ $dataDir=Join-Path $release 'import-data';New-Item -ItemType Directory $dataDir | Out-Null
+ $excel=Join-Path $env:USERPROFILE 'Desktop\DanhSach_HoiQuy_TrungUong_20260930_142742.xlsx'
+ if(!(Test-Path $excel)){throw 'Customer workbook missing'}
+ Copy-Item -LiteralPath $excel -Destination $dataDir
+}
 $manifest=[ordered]@{CreatedAt=(Get-Date).ToString('o');Commit=(& git -C $root rev-parse HEAD);WorkingTreeHasChanges=([bool](& git -C $root status --porcelain));PortalUrl=$config.PortalUrl;ApiUrl=$config.ApiUrl;AdminUrl=$config.AdminUrl;AdminReady=$adminReady;ApiWebConfigIncluded=$false;Note='Candidate package. Validate staging and production baseline before deployment.';Files=@()}
 $manifest.Files=@(Get-ChildItem $release -Recurse -File | ForEach-Object {[ordered]@{Path=$_.FullName.Substring($release.Length+1);Sha256=(Get-FileHash $_.FullName -Algorithm SHA256).Hash;Bytes=$_.Length}})
 $manifest | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $release 'manifest.json') -Encoding utf8
