@@ -1,4 +1,5 @@
 import { useEffect,useState } from "react";
+import { pathFile } from "../utils/api";
 
 // kind: "image" | "video" | "audio"
 const MediaLookup = (props) => {
@@ -25,9 +26,7 @@ const MediaLookup = (props) => {
 
   if (!imageUrl) return null;
 
-  const fullUrl = imageUrl.startsWith("http")
-    ? imageUrl
-    : `${window.env.REACT_APP_UPLOAD_URL}/${imageUrl}`;
+  const fullUrl = pathFile(imageUrl);
 
   const style = {
     width: "200px",

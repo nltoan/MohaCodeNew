@@ -24,7 +24,7 @@ export function pathFile(path) {
   if (path.startsWith("http")) {
     return path;
   }
-  return `${window.env.REACT_APP_UPLOAD_URL}/${path}`;
+  return `${window.env.REACT_APP_UPLOAD_URL}/${path.replace(/^\/+/, "")}`;
 }
 
 export function pathImg(path) {
@@ -34,7 +34,7 @@ export function pathImg(path) {
   if (path.startsWith("http")) {
     return path;
   }
-  return `${window.env.REACT_APP_UPLOAD_URL}/${path}`;
+  return `${window.env.REACT_APP_UPLOAD_URL}/${path.replace(/^\/+/, "")}`;
 }
 
 function onInserted(key, values) {
