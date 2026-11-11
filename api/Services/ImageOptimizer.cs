@@ -25,11 +25,12 @@ namespace API.Services
     // Moi loi/anh qua lon => chuyen huong ve anh goc, trang khong bi mat anh.
     internal static class ImageOptimizer
     {
-        private static readonly int[] AllowedWidths = { 160, 240, 320, 480, 640, 800, 1024, 1280, 1600 };
+        private static readonly int[] AllowedWidths = { 160, 240, 320, 480, 640, 800, 1024, 1280, 1600, 1920 };
         private static readonly Regex SrcPattern = new Regex(@"^(Upload|Media_Share)/[^\\:*?""<>|\x00-\x1f]+\.(jpe?g|png)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         private const long MaxSourceBytes = 40L * 1024 * 1024;
-        private const long MaxSourcePixels = 80L * 1000 * 1000;
-        private const int JpegQuality = 78;
+                private const int JpegQuality = 88;
+        // Anh goc chi lon hon be rong yeu cau duoi ~11% thi giu nguyen: thu nho nhe + ma hoa lai chi lam mo chu ma khong tiet kiem duoc bao nhieu.
+        private const double MinScaleToResize = 0.9;
         private static readonly SemaphoreSlim ResizeGate = new SemaphoreSlim(3);
         private static readonly HttpClient Remote = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(20), MaxResponseContentBufferSize = MaxSourceBytes };
 
@@ -42,7 +43,7 @@ namespace API.Services
             bool png = path.EndsWith(".png", StringComparison.OrdinalIgnoreCase);
 
             string cacheDir = HostingEnvironment.MapPath("~/App_Data/img-cache");
-            string name = Hex(path.ToLowerInvariant()) + "_" + width + (png ? ".png" : ".jpg");
+            string name = "v3_" + Hex(path.ToLowerInvariant()) + "_" + width + (png ? ".png" : ".jpg");
             string cacheFile = Path.Combine(cacheDir, name);
             string etag = "\"" + name + "\"";
 
@@ -57,7 +58,7 @@ namespace API.Services
                 source = ReadLocal(path) ?? await ReadRemote(path);
                 if (source == null) return Original(Request, path);
 
-                byte[] output = Resize(source, width, png) ?? source;
+                byte[] output = ImageProcessing.ResizeToFit(source, width, int.MaxValue, png, JpegQuality, false, MinScaleToResize) ?? source;
                 if (output.Length >= source.Length) output = source;
 
                 Directory.CreateDirectory(cacheDir);
@@ -154,71 +155,6 @@ namespace API.Services
             response.Headers.CacheControl = new CacheControlHeaderValue { Public = true, MaxAge = TimeSpan.FromDays(30) };
             response.Headers.Add("X-Content-Type-Options", "nosniff");
             return response;
-        }
-
-        // Tra ve null neu khong can/khong the thu nho (anh da nho hon be rong yeu cau, anh qua lon, tep khong doc duoc).
-        private static byte[] Resize(byte[] source, int width, bool png)
-        {
-            using (var input = new MemoryStream(source))
-            using (var image = System.Drawing.Image.FromStream(input, false, false))
-            {
-                if ((long)image.Width * image.Height > MaxSourcePixels) return null;
-                ApplyExifOrientation(image);
-                if (image.Width <= width) return null;
-                int w = Math.Min(width, image.Width);
-                int h = Math.Max(1, (int)Math.Round((double)image.Height * w / image.Width));
-                using (var bitmap = new Bitmap(w, h, png ? PixelFormat.Format32bppArgb : PixelFormat.Format24bppRgb))
-                {
-                    bitmap.SetResolution(96, 96);
-                    using (var g = Graphics.FromImage(bitmap))
-                    using (var attributes = new ImageAttributes())
-                    {
-                        attributes.SetWrapMode(WrapMode.TileFlipXY);
-                        g.Clear(png ? Color.Transparent : Color.White);
-                        g.CompositingQuality = CompositingQuality.HighQuality;
-                        g.SmoothingMode = SmoothingMode.HighQuality;
-                        g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                        g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                        g.DrawImage(image, new Rectangle(0, 0, w, h), 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attributes);
-                    }
-                    using (var output = new MemoryStream())
-                    {
-                        if (png)
-                        {
-                            bitmap.Save(output, ImageFormat.Png);
-                        }
-                        else
-                        {
-                            ImageCodecInfo codec = ImageCodecInfo.GetImageEncoders().First(c => c.FormatID == ImageFormat.Jpeg.Guid);
-                            using (var parameters = new EncoderParameters(1))
-                            {
-                                parameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, (long)JpegQuality);
-                                bitmap.Save(output, codec, parameters);
-                            }
-                        }
-                        return output.ToArray();
-                    }
-                }
-            }
-        }
-
-        // Anh chup tu dien thoai luu huong xoay trong EXIF; trinh duyet tu xoay anh goc nen anh thu nho phai xoay theo.
-        private static void ApplyExifOrientation(System.Drawing.Image image)
-        {
-            const int OrientationId = 0x0112;
-            if (!image.PropertyIdList.Contains(OrientationId)) return;
-            var item = image.GetPropertyItem(OrientationId);
-            if (item == null || item.Value == null || item.Value.Length < 2) return;
-            switch (BitConverter.ToUInt16(item.Value, 0))
-            {
-                case 2: image.RotateFlip(RotateFlipType.RotateNoneFlipX); break;
-                case 3: image.RotateFlip(RotateFlipType.Rotate180FlipNone); break;
-                case 4: image.RotateFlip(RotateFlipType.Rotate180FlipX); break;
-                case 5: image.RotateFlip(RotateFlipType.Rotate90FlipX); break;
-                case 6: image.RotateFlip(RotateFlipType.Rotate90FlipNone); break;
-                case 7: image.RotateFlip(RotateFlipType.Rotate270FlipX); break;
-                case 8: image.RotateFlip(RotateFlipType.Rotate270FlipNone); break;
-            }
         }
 
         private static string Hex(string value)

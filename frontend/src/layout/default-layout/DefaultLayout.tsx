@@ -33,7 +33,7 @@ export const DefaultLayout = () => {
         );
         if (response.status === HttpStatusCode.Ok) {
           if(response.data.data != null && response.data.data.length > 0){
-            const urlImage = getUrlImage(response.data.data[0]?.AnhBannerUrl || '', 1600);
+            const urlImage = getUrlImage(response.data.data[0]?.AnhBannerUrl || '', 1920);
             setHeaderBanner({ src: urlImage, link: response.data.data[0]?.URL || '' });
           } else {
             setHeaderBanner({ src: '', link: '' });

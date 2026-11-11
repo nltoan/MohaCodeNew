@@ -1,7 +1,7 @@
 // Ảnh Upload/Media_Share (jpg/png) được API thu nhỏ theo bề rộng (api/Public/Img) và cache lâu dài,
-// thay vì tải ảnh gốc nhiều MB. Chỉ nhận các bề rộng này; API tự làm tròn lên mốc gần nhất.
+// thay vì tải ảnh gốc nhiều MB. API làm tròn lên mốc gần nhất (160…1920).
 const OPTIMIZABLE_PATH = /^(Upload|Media_Share)\/.+\.(jpe?g|png)$/i;
-const DEFAULT_IMAGE_WIDTH = 640;
+const DEFAULT_IMAGE_WIDTH = 800;
 
 const mediaBase = () => {
   const env = window.env;

@@ -1,4 +1,5 @@
-using API.OAuth.Providers;
+﻿using API.OAuth.Providers;
+using API.Services;
 using System.Web.Http.Filters;
 using System.Web.Http.Controllers;
 using System.Security.Claims;
@@ -97,7 +98,7 @@ namespace API.Controllers
                     thumbGraph.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                     thumbGraph.DrawImage(image, new Rectangle(0, 0, width, height));
                 }
-                thumbBitmap.Save(targetPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                System.IO.File.WriteAllBytes(targetPath, ImageProcessing.Encode(thumbBitmap, false, UploadImageOptimizer.JpegQuality));
             }
         }
 
@@ -116,6 +117,8 @@ namespace API.Controllers
                         var newName = System.Guid.NewGuid();
                         var filePath = Path.Combine(HttpContext.Current.Server.MapPath(RelativePath), newName + postedFile.FileName);
                         postedFile.SaveAs(filePath);
+
+                        UploadImageOptimizer.OptimizeInPlace(filePath);
 
                         if (Width != null && Height != null)
                         {
@@ -204,6 +207,8 @@ namespace API.Controllers
                     var newName = System.Guid.NewGuid();
                     var filePath = Path.Combine(HttpContext.Current.Server.MapPath(RelativePath), newName + postedFile.FileName);
                     postedFile.SaveAs(filePath);
+
+                    UploadImageOptimizer.OptimizeInPlace(filePath);
 
                     if (Width != null && Height != null)
                     {
@@ -297,6 +302,7 @@ namespace API.Controllers
                     {
                         string newFileName = Guid.NewGuid().ToString() + metaDataObject.FileName;
                         System.IO.File.Copy(tempFilePath, Path.Combine(targetLocation, newFileName));
+                        UploadImageOptimizer.OptimizeInPlace(Path.Combine(targetLocation, newFileName));
                         System.IO.File.Delete(tempFilePath);
                         Models.File tmpFile = _context.Files.Add(new Models.File
                         {
@@ -342,6 +348,7 @@ namespace API.Controllers
                     string fileGuid = Guid.NewGuid().ToString();
                     var newFileName = fileGuid + file.FileName;
                     file.SaveAs(Path.Combine(targetLocation, newFileName));
+                    UploadImageOptimizer.OptimizeInPlace(Path.Combine(targetLocation, newFileName));
                     string fileUrlInFrontEnd = RelativePath.Replace("~", "") + "/" + newFileName;
                     jsonResponse = "{\"fileName\": \"" + newFileName +"\",\"uploaded\": 1,\"url\": \"" + fileUrlInFrontEnd + "\"}";
                 }

@@ -132,7 +132,7 @@ export const HomeBanner = () => {
                     to={getNewURL('tin-tuc', banner?.TieuDe || '', banner?.ID || '')}
                     className="mh-home-banner-card-image"
                   >
-                    <Image src={getUrlImage(banner?.AnhDaiDienUrl, 1600)} alt={banner?.TieuDe} loading={index === 0 ? "eager" : "lazy"} fetchPriority={index === 0 ? "high" : "auto"} decoding="async" />
+                    <Image src={getUrlImage(banner?.AnhDaiDienUrl, 1920)} alt={banner?.TieuDe} loading={index === 0 ? "eager" : "lazy"} fetchPriority={index === 0 ? "high" : "auto"} decoding="async" />
                   </Link>
                   <div className="mh-home-banner-card-info">
                     <Link
