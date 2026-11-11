@@ -422,10 +422,13 @@ namespace API.Controllers
 
             if (action == "sendapprove")
             {
-                model.TrangThai = "waitapprove";
                 //set buoc quy trinh gan nhat
                 var firstStep = GetBuocQuyTrinh(model.IDChuyenMuc.Value, model.BuocQuyTrinhID, null);
-                model.BuocQuyTrinhID = firstStep?.ID;
+                // Khong co buoc duyet nao thi khong chuyen sang cho duyet: tin se ket o waitapprove, khong ai duyet duoc.
+                if (firstStep == null)
+                    return Request.CreateErrorResponse(HttpStatusCode.Conflict, "Chuyên mục của tin chưa có quy trình duyệt đang hoạt động hoặc quy trình chưa có bước duyệt nên không thể gửi duyệt.");
+                model.TrangThai = "waitapprove";
+                model.BuocQuyTrinhID = firstStep.ID;
             }
             else if (action == "approve")
             {

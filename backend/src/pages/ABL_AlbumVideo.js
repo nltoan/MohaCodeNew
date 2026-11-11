@@ -169,6 +169,7 @@ export default function ABL_AlbumVideo() {
                     </Column>
                     <Column
                       dataField="FileID"
+                      name="FileIDPreview"
                       caption="Video"
                       width={300}
                       allowEditing={false}

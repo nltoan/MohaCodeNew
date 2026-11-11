@@ -81,15 +81,13 @@ export default function Home() {
                   <ul>
                     {statistic.topPost &&
                       statistic.topPost.map((item, index) => (
-                        <>
-                          <li>
-                            <a
-                              href={`${getFrontEndURL("tin-tuc", item.TieuDe, item.ID)}`}
-                            >
-                              {item.TieuDe} ({item.PageCount})
-                            </a>
-                          </li>
-                        </>
+                        <li key={item.ID ?? index}>
+                          <a
+                            href={`${getFrontEndURL("tin-tuc", item.TieuDe, item.ID)}`}
+                          >
+                            {item.TieuDe} ({item.PageCount})
+                          </a>
+                        </li>
                       ))}
                   </ul>
                 </div>
@@ -105,11 +103,9 @@ export default function Home() {
                   <ul>
                     {statistic.totalPostInMonthByPeople &&
                       statistic.totalPostInMonthByPeople.map((item, index) => (
-                        <>
-                          <li>
-                            {item.TenTruyCap} ({item.total})
-                          </li>
-                        </>
+                        <li key={item.TenTruyCap ?? index}>
+                          {item.TenTruyCap} ({item.total})
+                        </li>
                       ))}
                   </ul>
                 </div>

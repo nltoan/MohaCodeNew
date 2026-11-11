@@ -110,11 +110,17 @@ export const DocumentListPage = ({ seoTitleKey, headingKey }: DocumentListPagePr
     totalCount: 0,
   });
 
-  const [filters, setFilter] = useState<DocumentFilterParams>({} as DocumentFilterParams);
+  const [searchFilters, setFilter] = useState<DocumentFilterParams>({} as DocumentFilterParams);
 
   const { slug } = useParams<{ slug: string }>();
 
   const ID = getIdFromSlug(slug || '');
+
+  // LopVanBanID lấy trực tiếp từ slug, các bộ lọc người dùng chọn nằm trong searchFilters.
+  const filters = useMemo<DocumentFilterParams>(
+    () => (ID ? { ...searchFilters, LopVanBanID: ID } : searchFilters),
+    [searchFilters, ID],
+  );
 
   const [legalDocumentForms, setLegalDocumentForms] = useState<any>([]);
   const [legalIssuingAuthorities, setLegalIssuingAuthorities] = useState<any>([]);
@@ -162,45 +168,44 @@ export const DocumentListPage = ({ seoTitleKey, headingKey }: DocumentListPagePr
     [documentSignerTitles],
   );
 
-  const loadData = async () => {
-    setIsLoading(true);
-        setLoadError(false);
-    try {
-      const [documentAreas, documentSigners, documentSignerTitles, legalDocumentForms, legalIssuingAuthorities] = await Promise.all([
-        getDocumentArea(),
-        getDocumentSigner(),
-        getDocumentSignerTitle(),
-        getLegalDocumentForms(),
-        getLegalIssuingAuthorities(),
-      ]);
-
-      if (Array.isArray(documentAreas)) {
-        setDocumentAreas(documentAreas);
-      }
-
-      if (Array.isArray(documentSigners)) {
-        setDocumentSigners(documentSigners);
-      }
-
-      if (Array.isArray(documentSignerTitles)) {
-        setDocumentSignerTitles(documentSignerTitles);
-      }
-
-      if (Array.isArray(legalDocumentForms)) {
-        setLegalDocumentForms(legalDocumentForms);
-      }
-
-      if (Array.isArray(legalIssuingAuthorities)) {
-        setLegalIssuingAuthorities(legalIssuingAuthorities);
-      }
-    } catch (err) {
-      console.error('Error fetching data:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Chỉ chạy khi mount: isLoading khởi tạo true và loadError khởi tạo false nên không cần đặt lại ở đây.
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [documentAreas, documentSigners, documentSignerTitles, legalDocumentForms, legalIssuingAuthorities] = await Promise.all([
+          getDocumentArea(),
+          getDocumentSigner(),
+          getDocumentSignerTitle(),
+          getLegalDocumentForms(),
+          getLegalIssuingAuthorities(),
+        ]);
+
+        if (Array.isArray(documentAreas)) {
+          setDocumentAreas(documentAreas);
+        }
+
+        if (Array.isArray(documentSigners)) {
+          setDocumentSigners(documentSigners);
+        }
+
+        if (Array.isArray(documentSignerTitles)) {
+          setDocumentSignerTitles(documentSignerTitles);
+        }
+
+        if (Array.isArray(legalDocumentForms)) {
+          setLegalDocumentForms(legalDocumentForms);
+        }
+
+        if (Array.isArray(legalIssuingAuthorities)) {
+          setLegalIssuingAuthorities(legalIssuingAuthorities);
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     loadData();
   }, []);
 
@@ -240,15 +245,6 @@ export const DocumentListPage = ({ seoTitleKey, headingKey }: DocumentListPagePr
       active = false;
     };
   }, [filters, pagination.activePage, pagination.pageSize, attempt]);
-
-  useEffect(() => {
-    if (!ID) return;
-
-    setFilter((prev) => ({
-      ...prev,
-      LopVanBanID: ID,
-    }));
-  }, [ID]);
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, activePage: 1 }));

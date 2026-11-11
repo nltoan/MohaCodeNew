@@ -165,6 +165,7 @@ export default function ABL_AlbumAudio() {
                     </Column>
                     <Column
                       dataField="FileID"
+                      name="FileIDPreview"
                       caption="Audio"
                       width={300}
                       allowEditing={false}
