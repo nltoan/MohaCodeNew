@@ -16,7 +16,7 @@ import {
 } from 'devextreme-react/form';
 import config from '../config';
 import { createCustomStore, createLookupStore } from '../utils/api';
-import MyImageUploader from '../components/MyImageUploader';
+import MyImageFileUploader from '../components/MyImageFileUploader';
 import MyFileFileUploader from '../components/MyFileFileUploader';
 import { Popup } from 'devextreme-react';
 
@@ -265,7 +265,7 @@ export default function GioiThieuVanBan() {
             visible={false}
             cellRender={config.defaultImageCellRender}
             editCellRender={(cellInfo) => (
-              <MyImageUploader cellInfo={cellInfo} />
+              <MyImageFileUploader cellInfo={cellInfo} />
             )}
           />
           <Column
