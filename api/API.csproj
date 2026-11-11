@@ -272,10 +272,6 @@
     <Compile Include="Services\HoiQuy\HoiQuyStore.cs" />
     <Compile Include="Services\HoiQuy\HoiQuyExcel.cs" />
     <Compile Include="Services\HoiQuy\HoiQuyAuthorizeAttribute.cs" />
-    <Compile Include="App_Start\BundleConfig.cs" />
-    <Compile Include="App_Start\DevExtremeBundleConfig.cs" />
-    <Compile Include="App_Start\FilterConfig.cs" />
-    <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\API\ABL_AlbumAnhController.cs" />
     <Compile Include="Controllers\API\ABL_AlbumAudioController.cs" />
