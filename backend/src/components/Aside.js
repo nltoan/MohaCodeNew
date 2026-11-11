@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/auth";
+import { request } from "../utils/api";
 
 const MenuItem = ({
   path,
   icon = "fas fa-angle-right nav-icon",
   linkClass = `nav-link`,
   permission,
+  hidden = false,
   title,
   children,
 }) => {
@@ -37,7 +39,7 @@ const MenuItem = ({
 
   return (
     <>
-      {((permission != undefined && isHavePermission(permission)) ||
+      {!hidden && ((permission != undefined && isHavePermission(permission)) ||
         permission == undefined) && (
         <li className={`nav-item ${isOpen ? "menu-open" : ""}`}>
           <Link
@@ -66,6 +68,22 @@ const MenuItem = ({
 export default function Aside() {
   const location = useLocation();
   const auth = useAuth();
+  // Muc "Tin tuc" (tin chung) chi hien cho admin hoac nguoi phe duyet; mac dinh an cho den khi API xac nhan.
+  const [canViewAllNews, setCanViewAllNews] = useState(false);
+  useEffect(() => {
+    if (!auth.user) return;
+    let cancelled = false;
+    request("/TinTucs/CanViewAll")
+      .then((res) => {
+        if (!cancelled) setCanViewAllNews(!!res?.canViewAll);
+      })
+      .catch(() => {
+        if (!cancelled) setCanViewAllNews(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [auth.user]);
   useEffect(() => {
     window.$('[data-widget="treeview"]').each(function () {
       if (window.$(this).data("treeview-init") === undefined) {
@@ -131,6 +149,7 @@ export default function Aside() {
             >
               <MenuItem
                 linkClass="nav-link pl-2"
+                hidden={!canViewAllNews}
                 title={"Tin tức"}
                 path={"/News/TinTucAll"}
               />

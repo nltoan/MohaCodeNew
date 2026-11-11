@@ -81,6 +81,15 @@ namespace API.Controllers
             {
                 condition = String.Format("and t.Type = {0}", 3);
             }
+            // Tin tuc chung (khong co type) va cac danh sach toan bo tin (dang kiem duyet, xuat ban/huy xuat ban):
+            // chi admin hoac nguoi phe duyet moi thay tin cua nguoi khac. Nguoi khac chi thay tin do chinh minh tao (tin noi bo la rieng tu).
+            // Khong tra 403 vi ApprovePopup/SendApprovePopup goi Get khong type de nap tung tin theo ID.
+            bool isGeneralList = string.IsNullOrEmpty(type) || type == "undefined" || condition == "" ||
+                                 type == "approving" || type == "publishUnPublish";
+            if (isGeneralList && !CanViewAllNews(userId))
+            {
+                condition += " and t.NguoiTaoID = @userId";
+            }
             var tmpQuery = @"
                 select t.*, 
 	            CASE WHEN t.TrangThai = 'cancelpublic' and tmp.total > 0 THEN 1 ELSE 0 END AS CanPublish, 
@@ -164,6 +173,21 @@ namespace API.Controllers
             //};
             return Request.CreateResponse(ret);
         }
+        // Admin (quyen manage-user) hoac nguoi phe duyet (thuoc it nhat mot buoc quy trinh kiem duyet) moi duoc xem tin chung cua moi nguoi.
+        private bool CanViewAllNews(int userId)
+        {
+            if (_context.UserBuocQuyTrinhs.Any(u => u.UserID == userId)) return true;
+            return _context.User_Account.Any(u => u.UserID == userId && u.Role.RolePermissions.Any(p => p.Permission.Name == "manage-user"));
+        }
+
+        // Frontend goi de quyet dinh co hien muc "Tin tuc" (tin chung) tren menu hay khong.
+        [HttpGet]
+        public HttpResponseMessage CanViewAll()
+        {
+            var userId = Convert.ToInt32(User.Identity.GetUserId());
+            return Request.CreateResponse(HttpStatusCode.OK, new { canViewAll = CanViewAllNews(userId) });
+        }
+
         // Xem truoc noi dung tin (ke ca tin nhap/chua cong khai) ngay trong CMS.
         // Chi nguoi tao tin, nguoi phe duyet thuoc cung quy trinh duyet cua tin do va nhom quan tri duoc xem;
         // nguoi khac nhan 403. KHONG mo ra cong khai.
