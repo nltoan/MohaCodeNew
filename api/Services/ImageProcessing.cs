@@ -107,6 +107,21 @@ namespace API.Services
             return ext.Equals(".jpg", StringComparison.OrdinalIgnoreCase) || ext.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) || ext.Equals(".png", StringComparison.OrdinalIgnoreCase);
         }
 
+        // Quy tac ep nho (dung chung cho luc tai len va script xu ly hang loat scripts/Optimize-UploadImages.ps1, goi bang reflection):
+        // tra ve noi dung anh moi neu ep duoc va nho hon ban goc, nguoc lai null. Khong ghi file.
+        public static byte[] Compute(byte[] source, bool png)
+        {
+            byte[] result = ImageProcessing.ResizeToFit(source, MaxSide, MaxSide, png, JpegQuality);
+            if (result == null && !png && source.Length > RecompressAboveBytes)
+            {
+                // Anh da vua khung nhung nang (vd. JPEG chat luong 100): ma hoa lai, chi nhan neu tiet kiem du nhieu.
+                byte[] again = ImageProcessing.ResizeToFit(source, MaxSide, MaxSide, false, JpegQuality - 2, true);
+                if (again != null && again.Length <= source.Length * (1 - RecompressMinSaving)) result = again;
+            }
+            if (result == null || result.Length >= source.Length) return null;
+            return result;
+        }
+
         public static bool OptimizeInPlace(string path)
         {
             try
@@ -116,15 +131,8 @@ namespace API.Services
                 if (info.Length > MaxFileBytes) return false;
                 bool png = path.EndsWith(".png", StringComparison.OrdinalIgnoreCase);
                 byte[] source = File.ReadAllBytes(path);
-
-                byte[] result = ImageProcessing.ResizeToFit(source, MaxSide, MaxSide, png, JpegQuality);
-                if (result == null && !png && source.Length > RecompressAboveBytes)
-                {
-                    // Anh da vua khung nhung nang (vd. JPEG chat luong 100): ma hoa lai, chi nhan neu tiet kiem du nhieu.
-                    byte[] again = ImageProcessing.ResizeToFit(source, MaxSide, MaxSide, false, JpegQuality - 2, true);
-                    if (again != null && again.Length <= source.Length * (1 - RecompressMinSaving)) result = again;
-                }
-                if (result == null || result.Length >= source.Length) return false;
+                byte[] result = Compute(source, png);
+                if (result == null) return false;
 
                 string tmp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
                 File.WriteAllBytes(tmp, result);

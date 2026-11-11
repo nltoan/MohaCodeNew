@@ -2,6 +2,10 @@
 
 Ghi chú theo từng đợt, chuyển từ DEV-SETUP.md. Hướng dẫn cài đặt và chạy nằm ở DEV-SETUP.md.
 
+## Sửa danh sách Phản ánh kiến nghị trống ở trang chủ
+
+Hai danh sách "Trả lời phản ánh kiến nghị" và "Trả lời kiến nghị của cử tri" trống trên production: `api/Public/getPAKN` và `getKNCT` gọi `phananh.moha.gov.vn` với timeout 4 giây (đặt trong đợt tối ưu hiệu năng), trong khi từ máy chủ production hệ thống này mất khoảng 5 giây; mọi lần đều quá hạn và trả 503 sau đúng ~4 giây, chưa có bản cache nào để phục vụ. Nay timeout 15 giây (dưới timeout 20 giây của portal), nhiều yêu cầu cùng lúc dùng chung một lần gọi, API tự nạp trước hai danh sách khi khởi động, và portal tải song song hai danh sách và thử lại một lần. Bản cache cũ (tối đa 24 giờ) vẫn được phục vụ khi hệ thống ngoài lỗi. Sau khi triển khai, kiểm tra `https://api-portal.moha.gov.vn/api/Public/getPAKN` trả 200.
+
 ## Tối ưu ảnh portal (thu nhỏ theo bề rộng)
 
 Ảnh trong `Upload/` và `Media_Share/` (jpg/png) không còn tải bản gốc nhiều MB. Portal gọi `GET api/Public/Img?src=/Upload/abc.jpg&w=640`; API thu nhỏ theo bề rộng (chỉ các mốc 160/240/320/480/640/800/1024/1280/1600, làm tròn lên), giữ PNG trong suốt, xoay theo EXIF, lưu cache ở `App_Data/img-cache` và trả `Cache-Control` 30 ngày kèm ETag/304. Ví dụ ảnh thật 148 KB còn 33 KB ở 480px. `getUrlImage(url, width)` mặc định 640px; banner dùng 1600, ảnh chính tin 1024, `width = 0` lấy ảnh gốc (og:image). Ảnh trong nội dung bài viết thu nhỏ 1280px và tải lười.
@@ -9,6 +13,8 @@ Ghi chú theo từng đợt, chuyển từ DEV-SETUP.md. Hướng dẫn cài đ�
 Chất lượng: JPEG 88, mặc định 800px (banner 1920, ảnh chính tin 1280). Nếu ảnh gốc chỉ lớn hơn bề rộng yêu cầu dưới ~11% thì giữ nguyên ảnh gốc, không thu nhỏ lại để khỏi làm mờ chữ trong ảnh thông báo/infographic. Cache có tiền tố phiên bản (`v3_`); đổi chất lượng thì tăng phiên bản để cache cũ không còn dùng.
 
 Ép nhỏ khi admin tải lên (`FileImageUpload`, `ImageUpload`, `FileUpload`, `CKEditorImageUpload`): jpg/png có cạnh dài trên 2560px được thu về 2560px (JPEG chất lượng 90, PNG giữ nền trong suốt); JPEG đã vừa khung nhưng nặng trên 1 MB được mã hóa lại và chỉ nhận nếu nhẹ hơn ít nhất 20%. Ghi đè tại chỗ, tên và đuôi file không đổi nên liên kết trong CSDL không đổi; chỉ ghi khi kết quả nhỏ hơn bản gốc, lỗi thì giữ file gốc. Ảnh chụp từ điện thoại được xoay đúng theo EXIF và bị bỏ EXIF (gồm vị trí GPS). Ảnh nhỏ, gif, webp không bị đụng tới. Ảnh đã có trong kho không bị xử lý lại; phần hiển thị trên portal vẫn được thu nhỏ qua `api/Public/Img`. `FileImageUpload`/`ImageUpload` với `Width`+`Height` vẫn thu nhỏ đúng kích thước yêu cầu, nay mã hóa JPEG chất lượng 90 thay vì mặc định 75.
+
+Xử lý hàng loạt ảnh cũ: `scripts/Optimize-UploadImages.ps1 -UploadPath <thư mục Upload>`. Mặc định chỉ chạy thử (đọc ảnh, báo dung lượng tiết kiệm, ghi CSV, không ghi gì). Với `-Apply -BackupPath <thư mục ngoài web root>` thì sao lưu bản gốc (giữ cấu trúc thư mục, kiểm tra dung lượng bản sao) rồi ghi đè qua file tạm + `File.Replace`, giữ nguyên ngày sửa. Dùng đúng quy tắc của lúc tải lên (gọi `UploadImageOptimizer.Compute` trong `API.dll`, nạp từ bytes nên không khóa DLL đang chạy; truyền `-ApiDll` trỏ tới `api-update\bin\API.dll` trên server). Chỉ xử lý jpg/png từ 300 KB (`-MinFileKB`) và chỉ ghi khi tiết kiệm ít nhất 50 KB (`-MinSavingKB`); bỏ qua `Thumb/`, `BackUp/` và ảnh sửa trong 10 phút gần đây; `-Limit` để làm từng đợt; chạy lại không xử lý lại ảnh đã ép. `-BackupPath` nằm trong kho Upload bị từ chối. Ảnh hiển thị trên portal vẫn qua `api/Public/Img` nên không cần xóa cache sau khi chạy.
 
 Điểm cần biết khi triển khai:
 - API đọc file trong thư mục của nó nếu có; nếu không thì tải từ `ImageSourceBaseUrl` (appSetting, mặc định lấy `frontendSiteUrl`). Production nên đặt `ImageSourceBaseUrl` = https://moha.gov.vn nếu kho Upload nằm ở host portal, không phải host API. Chỉ thêm khóa này vào `appSettings.local.config` hoặc gộp tay, không ghi đè Web.config production.
