@@ -165,6 +165,7 @@ export default function ABL_AlbumAnh() {
                     </Column>
                     <Column
                       dataField="FileID"
+                      name="FileIDPreview"
                       caption="Hình ảnh"
                       width={300}
                       allowEditing={false}
