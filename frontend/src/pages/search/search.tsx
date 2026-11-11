@@ -3,7 +3,7 @@ import { Container, FormControl, Image } from 'react-bootstrap';
 import { CardSection, Loading, Pagination } from '@/components';
 import { IconPdfFile } from '@/components/icons';
 import './search.scss';
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import type { PaginationState } from '@/types/common';
@@ -29,7 +29,9 @@ export const SearchPage = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState('');
   const [searchVersion, setSearchVersion] = useState(0);
-  const previousSlug = useRef(slug);
+  // Trang đang xem gắn với slug của nó; slug khác (tìm từ khóa mới) thì mặc định về trang 1 mà không cần đặt lại state trong effect.
+  const [pageSel, setPageSel] = useState<{ slug: string | undefined; page: number }>({ slug, page: 1 });
+  const activePage = pageSel.slug === slug ? pageSel.page : 1;
   const [pagination, setPagination] = useState<PaginationState<SearchResult>>({
     data: [] as SearchResult[],
     activePage: 1,
@@ -39,20 +41,13 @@ export const SearchPage = () => {
 
   const onSearchKeyword = async () => {
     const value = keyword.trim();
-    setPagination(prev => ({ ...prev, activePage: 1 }));
+    setPageSel({ slug: value || undefined, page: 1 });
     setSearchVersion(prev => prev + 1);
     navigate(value ? '/tim-kiem/' + encodeURIComponent(value) : '/tim-kiem');
   };
 
   useEffect(() => {
     let active = true;
-    if (previousSlug.current !== slug) {
-      previousSlug.current = slug;
-      if (pagination.activePage !== 1) {
-        setPagination(prev => ({ ...prev, activePage: 1 }));
-        return;
-      }
-    }
     const fetchData = async () => {
       setKeyword(slug ?? '');
       setError('');
@@ -66,7 +61,7 @@ export const SearchPage = () => {
       try {
         const res: { data: SearchResult[]; totalCount: number } = await searchInformation(
           slug ?? '',
-          pagination.activePage,
+          activePage,
           pagination.pageSize,
         );
         if (!active) return;
@@ -80,7 +75,7 @@ export const SearchPage = () => {
 
     fetchData();
     return () => { active = false; };
-  }, [pagination.activePage, pagination.pageSize, slug, searchVersion]);
+  }, [activePage, pagination.pageSize, slug, searchVersion]);
 
   return (
     <Container className="py-4">
@@ -185,17 +180,14 @@ export const SearchPage = () => {
             style={{ marginTop: 10 }}
             showPageSizeSelector
             totalPages={pagination.totalPages}
-            activePage={pagination.activePage}
+            activePage={activePage}
             pageSize={pagination.pageSize}
             onPageChange={(page) => {
-              setPagination((prev) => ({ ...prev, activePage: page }));
+              setPageSel({ slug, page });
             }}
             onPageSizeChange={(size) => {
-              setPagination((prev) => ({
-                ...prev,
-                pageSize: size,
-                activePage: 1,
-              }));
+              setPagination((prev) => ({ ...prev, pageSize: size }));
+              setPageSel({ slug, page: 1 });
             }}
             maxVisiblePages={3}
             wrapStyle={{ marginBottom: 48 }}
