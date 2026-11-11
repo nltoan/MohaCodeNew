@@ -325,7 +325,18 @@ namespace API.Controllers
         // Goi he thong Phan anh kien nghi: co timeout, cache 5 phut va phuc vu ban cu (toi da 24h) khi he thong ngoai cham/loi,
         // tranh viec trang chu phai cho dong bo (truoc day 5 giay moi lan, khong co timeout).
         // Timeout 15s (< timeout 20s cua axios o portal): he thong ngoai tu may chu production mat khoang 5s; 4s truoc day khien moi lan deu loi 503 va danh sach trong.
-        private static readonly HttpClient ExternalJsonClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+        private static readonly HttpClient ExternalJsonClient = CreateExternalJsonClient();
+        // Ly do loi gan nhat cua moi nguon ngoai (loai ngoai le + thong diep ngan): tra trong header X-Upstream-Error khi 503 de chan doan tu may chu.
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> ExternalLastError = new System.Collections.Concurrent.ConcurrentDictionary<string, string>();
+
+        private static HttpClient CreateExternalJsonClient()
+        {
+            try { System.Net.ServicePointManager.SecurityProtocol |= System.Net.SecurityProtocolType.Tls12; } catch { }
+            var client = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("MohaPortalApi/1.0");
+            client.DefaultRequestHeaders.Accept.ParseAdd("application/json, text/plain, */*");
+            return client;
+        }
         private static readonly Dictionary<string, Task<string>> ExternalInFlight = new Dictionary<string, Task<string>>();
         private static readonly object ExternalRefreshLock = new object();
         private static readonly HashSet<string> ExternalRefreshing = new HashSet<string>();
@@ -358,7 +369,16 @@ namespace API.Controllers
 
         private static async Task<string> FetchExternalJson(string url, string cacheKey)
         {
-            var bytes = await ExternalJsonClient.GetByteArrayAsync(url).ConfigureAwait(false);
+            byte[] bytes;
+            try { bytes = await ExternalJsonClient.GetByteArrayAsync(url).ConfigureAwait(false); }
+            catch (Exception ex)
+            {
+                var inner = ex; while (inner.InnerException != null) inner = inner.InnerException;
+                var text = (ex is TaskCanceledException ? "Timeout 15s" : ex.GetType().Name + ": " + inner.Message).Replace("\r", " ").Replace("\n", " ");
+                ExternalLastError[cacheKey] = text.Length > 200 ? text.Substring(0, 200) : text;
+                throw;
+            }
+            ExternalLastError.TryRemove(cacheKey, out _);
             var json = Encoding.UTF8.GetString(bytes);
             var cache = HttpRuntime.Cache;
             cache.Insert(cacheKey, json, null, DateTime.UtcNow.AddMinutes(5), System.Web.Caching.Cache.NoSlidingExpiration);
@@ -392,7 +412,13 @@ namespace API.Controllers
                 else
                 {
                     try { json = await RefreshExternalJson(url, cacheKey); }
-                    catch { return Request.CreateResponse(HttpStatusCode.ServiceUnavailable); }
+                    catch
+                    {
+                        var failed = Request.CreateResponse(HttpStatusCode.ServiceUnavailable);
+                        string reason;
+                        if (ExternalLastError.TryGetValue(cacheKey, out reason)) failed.Headers.TryAddWithoutValidation("X-Upstream-Error", reason);
+                        return failed;
+                    }
                 }
             }
             var response = Request.CreateResponse(HttpStatusCode.OK);

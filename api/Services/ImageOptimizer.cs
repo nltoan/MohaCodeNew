@@ -56,7 +56,7 @@ namespace API.Services
             {
                 if (File.Exists(cacheFile)) return Serve(Request, File.ReadAllBytes(cacheFile), png, etag);
                 source = ReadLocal(path) ?? await ReadRemote(path);
-                if (source == null) return Original(Request, path);
+                if (source == null) return Original(Request, path, "source-unavailable");
 
                 byte[] output = ImageProcessing.ResizeToFit(source, width, int.MaxValue, png, JpegQuality, false, MinScaleToResize) ?? source;
                 if (output.Length >= source.Length) output = source;
@@ -67,9 +67,9 @@ namespace API.Services
                 try { File.Move(tmp, cacheFile); } catch (IOException) { File.Delete(tmp); }
                 return Serve(Request, output, png, etag);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return Original(Request, path);
+                return Original(Request, path, ex.GetType().Name + ": " + ex.Message);
             }
             finally
             {
@@ -117,23 +117,28 @@ namespace API.Services
         private static async Task<byte[]> ReadRemote(string path)
         {
             Uri uri = RemoteUri(path);
-            if (uri == null) return null;
-            using (var response = await Remote.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead))
+            if (uri == null) throw new InvalidOperationException("No local file and ImageSourceBaseUrl/frontendSiteUrl is not a valid http(s) URL");
+            using (var request = new HttpRequestMessage(HttpMethod.Get, uri))
             {
-                if (!response.IsSuccessStatusCode) return null;
+                request.Headers.UserAgent.ParseAdd("MohaPortalApi/1.0");
+                using (var response = await Remote.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
+                {
+                if (!response.IsSuccessStatusCode) throw new InvalidOperationException("Source " + uri.Host + " returned HTTP " + (int)response.StatusCode);
                 string type = response.Content.Headers.ContentType?.MediaType;
-                if (type == null || !type.StartsWith("image/", StringComparison.OrdinalIgnoreCase)) return null;
-                if (response.Content.Headers.ContentLength > MaxSourceBytes) return null;
+                if (type == null || !type.StartsWith("image/", StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Source " + uri.Host + " returned content-type " + type);
+                if (response.Content.Headers.ContentLength > MaxSourceBytes) throw new InvalidOperationException("Source image too large");
                 return await response.Content.ReadAsByteArrayAsync();
+                }
             }
         }
 
-        private static HttpResponseMessage Original(HttpRequestMessage Request, string path)
+        private static HttpResponseMessage Original(HttpRequestMessage Request, string path, string reason = null)
         {
             Uri uri = RemoteUri(path);
             if (uri == null) return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Image not found.");
             var response = Request.CreateResponse(HttpStatusCode.Redirect);
             response.Headers.Location = uri;
+            if (!string.IsNullOrEmpty(reason)) response.Headers.TryAddWithoutValidation("X-Image-Fallback", reason.Replace("\r", " ").Replace("\n", " ").Substring(0, Math.Min(200, reason.Length)));
             response.Headers.CacheControl = new CacheControlHeaderValue { Public = true, MaxAge = TimeSpan.FromMinutes(5) };
             return response;
         }
