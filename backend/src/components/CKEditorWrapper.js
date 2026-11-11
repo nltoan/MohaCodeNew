@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { encodeBase64Url } from '../utils/helpers';
 import { CKEditor } from 'ckeditor4-react';
 import { LoadPanel } from 'devextreme-react/load-panel';
@@ -11,6 +11,8 @@ const CKEditor4Wrapper = ({
     instanceName = "editor1", 
 }) => {
     const [isLoading, setIsLoading] = useState(false);
+    const onValueChangedRef = useRef(onValueChanged);
+    onValueChangedRef.current = onValueChanged;
     const [originalPosition, setOriginalPosition] = useState('');
     const [originalWidth, setOriginalWidth] = useState('');
     const [originalHeight, setOriginalHeight] = useState('');
@@ -48,6 +50,10 @@ const CKEditor4Wrapper = ({
                 }}
 
                 onInstanceReady={({ editor }) => {
+                    // Dong bo gia tri khi mat focus: bam Luu/Xem truoc ngay sau khi go van khong mat noi dung.
+                    editor.on('blur', () => {
+                        if (onValueChangedRef.current) onValueChangedRef.current(editor.getData());
+                    });
                     editor.on('key', (evt) => {
                         const path = document.querySelector('.cke_path');
                         if(path) path.classList.add('hidden');
