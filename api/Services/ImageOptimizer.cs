@@ -86,16 +86,24 @@ namespace API.Services
             return path;
         }
 
+        // Doc truc tiep tu o dia: thu muc cua API, roi thu muc goc cua site portal (appSetting ImageSourceRoot, vd. C:\inetpub\moha,
+        // noi co Upload\ va Media_Share\) - cach nay khong can may chu API goi HTTP ra chinh trang cong khai (thuong bi chan/hairpin).
         private static byte[] ReadLocal(string path)
         {
-            string root = HostingEnvironment.MapPath("~/" + path.Substring(0, path.IndexOf('/')));
-            string full = HostingEnvironment.MapPath("~/" + path);
-            if (root == null || full == null) return null;
-            string rootFull = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-            full = Path.GetFullPath(full);
-            if (!full.StartsWith(rootFull, StringComparison.OrdinalIgnoreCase) || !File.Exists(full)) return null;
-            if (new FileInfo(full).Length > MaxSourceBytes) return null;
-            return File.ReadAllBytes(full);
+            string top = path.Substring(0, path.IndexOf('/'));
+            var siteRoots = new System.Collections.Generic.List<string> { HostingEnvironment.MapPath("~/") };
+            string configured = ConfigurationManager.AppSettings["ImageSourceRoot"];
+            if (!string.IsNullOrWhiteSpace(configured)) siteRoots.Add(configured.Trim());
+            foreach (string siteRoot in siteRoots)
+            {
+                if (string.IsNullOrEmpty(siteRoot)) continue;
+                string root = Path.GetFullPath(Path.Combine(siteRoot, top)).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                string full = Path.GetFullPath(Path.Combine(siteRoot, path.Replace('/', Path.DirectorySeparatorChar)));
+                if (!full.StartsWith(root, StringComparison.OrdinalIgnoreCase) || !File.Exists(full)) continue;
+                if (new FileInfo(full).Length > MaxSourceBytes) return null;
+                return File.ReadAllBytes(full);
+            }
+            return null;
         }
 
         private static Uri SourceBase()

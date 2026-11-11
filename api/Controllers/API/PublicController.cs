@@ -362,9 +362,55 @@ namespace API.Controllers
         {
             Task.Run(async () =>
             {
-                try { await RefreshExternalJson("https://phananh.moha.gov.vn/Integrated/getList", "ext:getPAKN").ConfigureAwait(false); } catch { }
-                try { await RefreshExternalJson("https://phananh.moha.gov.vn/Integrated/getListKNCT", "ext:getKNCT").ConfigureAwait(false); } catch { }
+                try { await RefreshExternalJson("https://phananh.moha.gov.vn/Integrated/getList", "ext:getPAKN").ConfigureAwait(false); } catch { UseSnapshot("ext:getPAKN"); }
+                try { await RefreshExternalJson("https://phananh.moha.gov.vn/Integrated/getListKNCT", "ext:getKNCT").ConfigureAwait(false); } catch { UseSnapshot("ext:getKNCT"); }
             });
+        }
+
+        // Ban chup (snapshot) tren dia: App_Data/external/<ten>.json. Ghi moi khi goi he thong ngoai thanh cong de ban cuoi con sau khi
+        // app pool khoi dong lai; neu may chu API khong goi ra ngoai duoc thi doc ban nay (co the do scripts/Sync-PhanAnhKienNghi.ps1
+        // chay o may goi duoc he thong ngoai roi chep vao day).
+        private static string SnapshotPath(string cacheKey)
+        {
+            var dir = HostingEnvironment.MapPath("~/App_Data/external");
+            return dir == null ? null : Path.Combine(dir, cacheKey.Replace("ext:", "") + ".json");
+        }
+
+        private static bool IsJsonArray(string json)
+        {
+            try { return !string.IsNullOrWhiteSpace(json) && Newtonsoft.Json.Linq.JToken.Parse(json) is Newtonsoft.Json.Linq.JArray; }
+            catch { return false; }
+        }
+
+        private static void WriteSnapshot(string cacheKey, string json)
+        {
+            try
+            {
+                var path = SnapshotPath(cacheKey);
+                if (path == null) return;
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                var tmp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+                System.IO.File.WriteAllText(tmp, json, new UTF8Encoding(false));
+                if (System.IO.File.Exists(path)) System.IO.File.Replace(tmp, path, null); else System.IO.File.Move(tmp, path);
+            }
+            catch { }
+        }
+
+        // Doc ban chup va dua vao cache (cu 24h, moi 1 phut de lan sau thu goi lai he thong ngoai). Tra null neu khong co/khong hop le.
+        private static string UseSnapshot(string cacheKey)
+        {
+            try
+            {
+                var path = SnapshotPath(cacheKey);
+                if (path == null || !System.IO.File.Exists(path)) return null;
+                var json = System.IO.File.ReadAllText(path, Encoding.UTF8);
+                if (!IsJsonArray(json)) return null;
+                var cache = HttpRuntime.Cache;
+                cache.Insert(cacheKey, json, null, DateTime.UtcNow.AddMinutes(1), System.Web.Caching.Cache.NoSlidingExpiration);
+                cache.Insert(cacheKey + ":stale", json, null, DateTime.UtcNow.AddHours(24), System.Web.Caching.Cache.NoSlidingExpiration);
+                return json;
+            }
+            catch { return null; }
         }
 
         private static async Task<string> FetchExternalJson(string url, string cacheKey)
@@ -380,6 +426,13 @@ namespace API.Controllers
             }
             ExternalLastError.TryRemove(cacheKey, out _);
             var json = Encoding.UTF8.GetString(bytes);
+            // Chi nhan mang JSON; trang loi HTML/chuoi la tu proxy hay WAF khong duoc cache nhu du lieu.
+            if (!IsJsonArray(json))
+            {
+                ExternalLastError[cacheKey] = "Upstream did not return a JSON array";
+                throw new InvalidOperationException("Upstream did not return a JSON array");
+            }
+            WriteSnapshot(cacheKey, json);
             var cache = HttpRuntime.Cache;
             cache.Insert(cacheKey, json, null, DateTime.UtcNow.AddMinutes(5), System.Web.Caching.Cache.NoSlidingExpiration);
             cache.Insert(cacheKey + ":stale", json, null, DateTime.UtcNow.AddHours(24), System.Web.Caching.Cache.NoSlidingExpiration);
@@ -390,6 +443,7 @@ namespace API.Controllers
         {
             var cache = HttpRuntime.Cache;
             var json = cache[cacheKey] as string;
+            bool fromSnapshot = false;
             if (json == null)
             {
                 var stale = cache[cacheKey + ":stale"] as string;
@@ -403,7 +457,7 @@ namespace API.Controllers
                         var ignored = Task.Run(async () =>
                         {
                             try { await RefreshExternalJson(url, cacheKey).ConfigureAwait(false); }
-                            catch { cache.Insert(cacheKey, stale, null, DateTime.UtcNow.AddMinutes(1), System.Web.Caching.Cache.NoSlidingExpiration); }
+                            catch { if (UseSnapshot(cacheKey) == null) cache.Insert(cacheKey, stale, null, DateTime.UtcNow.AddMinutes(1), System.Web.Caching.Cache.NoSlidingExpiration); }
                             finally { lock (ExternalRefreshLock) ExternalRefreshing.Remove(cacheKey); }
                         });
                     }
@@ -414,15 +468,21 @@ namespace API.Controllers
                     try { json = await RefreshExternalJson(url, cacheKey); }
                     catch
                     {
-                        var failed = Request.CreateResponse(HttpStatusCode.ServiceUnavailable);
-                        string reason;
-                        if (ExternalLastError.TryGetValue(cacheKey, out reason)) failed.Headers.TryAddWithoutValidation("X-Upstream-Error", reason);
-                        return failed;
+                        json = UseSnapshot(cacheKey);
+                        if (json == null)
+                        {
+                            var failed = Request.CreateResponse(HttpStatusCode.ServiceUnavailable);
+                            string reason;
+                            if (ExternalLastError.TryGetValue(cacheKey, out reason)) failed.Headers.TryAddWithoutValidation("X-Upstream-Error", reason);
+                            return failed;
+                        }
+                        fromSnapshot = true;
                     }
                 }
             }
             var response = Request.CreateResponse(HttpStatusCode.OK);
             response.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            if (fromSnapshot) response.Headers.TryAddWithoutValidation("X-Upstream-Source", "snapshot");
             return response;
         }
 

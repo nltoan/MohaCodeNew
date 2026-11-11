@@ -131,6 +131,7 @@ Mọi script nằm trong `scripts/`, chạy từ thư mục gốc repo trên Win
 | `Install-DevAutoStart.ps1` | Đăng ký tác vụ `MohaDev-Local` chạy `AutoStart-Dev.ps1` khi đăng nhập | Một lần trên máy mới |
 | `Serve-PortalPreview.mjs` | Phục vụ `frontend/dist` tại cổng 5175 (API trỏ localhost, GA tắt) | Sau khi build portal; `Dev.ps1 Start` tự gọi |
 | `Prepare-ProductionRelease.ps1` | Build và đóng gói bản phát hành vào `.dev/releases` từ `deployment/production.json` | Khi chuẩn bị triển khai (xem `deployment/DEPLOY-MOHA.md`) |
+| `Sync-PhanAnhKienNghi.ps1` | Tải danh sách Phản ánh kiến nghị / Kiến nghị cử tri từ phananh.moha.gov.vn thành bản chụp JSON cho API (`App_Data\external`) | Khi máy chủ API không gọi ra được hệ thống ngoài; chạy định kỳ bằng Task Scheduler ở máy gọi được |
 | `Optimize-UploadImages.ps1` | Ép nhỏ hàng loạt ảnh jpg/png cũ trong kho Upload theo đúng quy tắc lúc admin tải lên; mặc định chạy thử, `-Apply` mới ghi và sao lưu bản gốc ra `-BackupPath` | Một lần sau khi triển khai bản có ép nhỏ ảnh; chạy thử trước, xử lý từng đợt bằng `-Limit` |
 | `Smoke-Test.mjs` | Kiểm tra portal tải API local, màn hình login admin, từ chối tài khoản sai | Sau `Dev.ps1 Start` |
 | `Audit-PortalAll.cjs` | Quét mọi route portal trên preview 5175 (lỗi JS, request lỗi); `PORTAL_AUDIT_ROUTES`, `PORTAL_AUDIT_OUTPUT` | Sau khi build portal |

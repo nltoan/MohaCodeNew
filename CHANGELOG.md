@@ -2,6 +2,12 @@
 
 Ghi chú theo từng đợt, chuyển từ DEV-SETUP.md. Hướng dẫn cài đặt và chạy nằm ở DEV-SETUP.md.
 
+## Máy chủ API production không gọi ra ngoài được (nguyên nhân thật của danh sách trống và ảnh không thu nhỏ)
+
+Chẩn đoán trên máy chủ production: `Invoke-WebRequest https://phananh.moha.gov.vn/Integrated/getList` báo "Unable to connect to the remote server", và `curl` tới chính `api-portal.moha.gov.vn` báo `CRYPT_E_REVOCATION_OFFLINE` (không tới được máy chủ thu hồi chứng chỉ). Tức là máy chủ không có đường ra internet/mạng ngoài; tăng timeout hay thử lại đều vô ích. Đã xử lý ở phía mã, không cần mở mạng:
+- Ảnh: `ImageSourceRoot` (appSetting, đường dẫn thư mục gốc site portal chứa `Upload\` và `Media_Share\`, ví dụ `C:\inetpub\moha`) cho API đọc ảnh trực tiếp từ ổ đĩa rồi thu nhỏ, không gọi HTTP. Nếu không đặt hoặc không có file thì mới thử `ImageSourceBaseUrl`. Đường dẫn vẫn bị khóa trong `Upload\` và `Media_Share\` của thư mục đó.
+- Phản ánh kiến nghị: API lưu bản chụp `App_Data/external/getPAKN.json` và `getKNCT.json` (ghi mỗi khi gọi được, chỉ nhận mảng JSON hợp lệ) và đọc lại khi không gọi được hệ thống ngoài, trả header `X-Upstream-Source: snapshot`. Khi máy chủ API không gọi ra được hẳn, chạy `scripts/Sync-PhanAnhKienNghi.ps1 -TargetDir <...\App_Data\external>` định kỳ (Task Scheduler, 5-10 phút) từ một máy gọi được hệ thống ngoài; API tự dùng file mới trong vòng khoảng một phút. Không có bản chụp và không gọi được thì trả 503 kèm header `X-Upstream-Error` nêu lý do.
+
 ## Sửa danh sách Phản ánh kiến nghị trống ở trang chủ
 
 Hai danh sách "Trả lời phản ánh kiến nghị" và "Trả lời kiến nghị của cử tri" trống trên production: `api/Public/getPAKN` và `getKNCT` gọi `phananh.moha.gov.vn` với timeout 4 giây (đặt trong đợt tối ưu hiệu năng), trong khi từ máy chủ production hệ thống này mất khoảng 5 giây; mọi lần đều quá hạn và trả 503 sau đúng ~4 giây, chưa có bản cache nào để phục vụ. Nay timeout 15 giây (dưới timeout 20 giây của portal), nhiều yêu cầu cùng lúc dùng chung một lần gọi, API tự nạp trước hai danh sách khi khởi động, và portal tải song song hai danh sách và thử lại một lần. Bản cache cũ (tối đa 24 giờ) vẫn được phục vụ khi hệ thống ngoài lỗi. Sau khi triển khai, kiểm tra `https://api-portal.moha.gov.vn/api/Public/getPAKN` trả 200.
