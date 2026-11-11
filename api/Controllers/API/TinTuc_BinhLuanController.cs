@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.ModelBinding;
 using API.OAuth.Providers;
+using Microsoft.AspNet.Identity;
 using API.Models;
 
 namespace API.Controllers
@@ -26,7 +27,9 @@ namespace API.Controllers
 
         [HttpGet]
         public async Task<HttpResponseMessage> Get(DataSourceLoadOptions loadOptions) {
-            var tintuc_binhluan = _context.TinTuc_BinhLuan.Select(i => new {
+            var __uid = Convert.ToInt32(User.Identity.GetUserId());
+            bool __all = NewsAccess.CanViewAll(_context, __uid);
+            var tintuc_binhluan = _context.TinTuc_BinhLuan.Where(i => __all || i.TinTuc.NguoiTaoID == __uid).Select(i => new {
                 i.ID,
                 i.Comment,
                 i.NguoiTao,

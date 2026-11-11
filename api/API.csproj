@@ -242,6 +242,7 @@
     <Compile Include="Services\DefaultPasswordPolicy.cs" />
     <Compile Include="Services\PasswordSecurity.cs" />
     <Compile Include="Services\HoiQuy\HoiQuyModels.cs" />
+    <Compile Include="Services\NewsAccess.cs" />
     <Compile Include="Services\HoiQuy\HoiQuyStore.cs" />
     <Compile Include="Services\HoiQuy\HoiQuyExcel.cs" />
     <Compile Include="Services\HoiQuy\HoiQuyAuthorizeAttribute.cs" />

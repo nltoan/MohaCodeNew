@@ -176,8 +176,7 @@ namespace API.Controllers
         // Admin (quyen manage-user) hoac nguoi phe duyet (thuoc it nhat mot buoc quy trinh kiem duyet) moi duoc xem tin chung cua moi nguoi.
         private bool CanViewAllNews(int userId)
         {
-            if (_context.UserBuocQuyTrinhs.Any(u => u.UserID == userId)) return true;
-            return _context.User_Account.Any(u => u.UserID == userId && u.Role.RolePermissions.Any(p => p.Permission.Name == "manage-user"));
+            return NewsAccess.CanViewAll(_context, userId);
         }
 
         // Frontend goi de quyet dinh co hien muc "Tin tuc" (tin chung) tren menu hay khong.

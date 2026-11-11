@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.ModelBinding;
 using API.OAuth.Providers;
+using Microsoft.AspNet.Identity;
 using API.Models;
 
 namespace API.Controllers
@@ -32,6 +33,10 @@ namespace API.Controllers
             {
                 return Request.CreateErrorResponse(HttpStatusCode.NotFound, "History not found.");
             }
+            if (!NewsAccess.CanView(_context, Convert.ToInt32(User.Identity.GetUserId()), left.TinTucID))
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "History not found.");
+            }
             var right = _context.TinTuc_History.Where(x => x.ID < ID). Where(x=>x.TinTucID == left.TinTucID).OrderByDescending(x => x.ID).FirstOrDefault();
 
             return Request.CreateResponse(HttpStatusCode.OK, new { left, right });
@@ -39,7 +44,9 @@ namespace API.Controllers
 
         [HttpGet]
         public async Task<HttpResponseMessage> Get(DataSourceLoadOptions loadOptions) {
-            var tintuc_history = _context.TinTuc_History.Select(i => new {
+            var __uid = Convert.ToInt32(User.Identity.GetUserId());
+            bool __all = NewsAccess.CanViewAll(_context, __uid);
+            var tintuc_history = _context.TinTuc_History.Where(i => __all || i.TinTuc.NguoiTaoID == __uid).Select(i => new {
                 i.ID,
                 i.TieuDe,
                 i.MoTa,
