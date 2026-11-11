@@ -227,6 +227,30 @@ export async function requestXFormRaw(path, options = { method: "GET" }) {
   }
 }
 
+// Goi API va tra ve thong diep loi cua server (Message cua Web API) de popup hien ly do that thay vi bao loi chung.
+export async function requestAction(path, options = { method: "POST" }) {
+  try {
+    const response = await fetch(`${window.env.REACT_APP_API_URL}/${String(path).replace(/^\/+/, "")}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+    if (response.status === 401) {
+      handleUnauthorized();
+      return { ok: false, message: "Phiên đăng nhập đã hết hạn." };
+    }
+    const data = await readJson(response);
+    if (!response.ok || data?.isOk === false) {
+      return { ok: false, message: data?.Message || data?.message || `Thao tác thất bại (HTTP ${response.status}).` };
+    }
+    return { ok: true, message: "" };
+  } catch {
+    return { ok: false, message: "Không kết nối được máy chủ." };
+  }
+}
+
 export async function request(path, options = { method: "GET" }) {
   const response = await fetch(`${window.env.REACT_APP_API_URL}/${String(path).replace(/^\/+/, "")}`, {
     ...options,

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Button from 'devextreme-react/button';
-import { notify, request } from '../utils/api';
+import { notify, request, requestAction } from '../utils/api';
 import { Popup, TextArea } from 'devextreme-react';
 import parse from '../utils/safe-html';;
 
@@ -52,10 +52,10 @@ export default function SendApprovePopup({ ID, action, onHidden }) {
                 <Button
                   type="success"
                   onClick={async (e) => {
-                    const item = await request(
+                    const result = await requestAction(
                       `/TinTucs/Action?ID=${ID}&action=${action}&comment=${encodeURIComponent(comment ?? "")}`, { method: "POST" });
-                    if (!item || item.isOk === false) {
-                      notify("Thao tác thất bại!", "error");
+                    if (!result.ok) {
+                      notify(result.message, "error");
                       return;
                     }
                     notify("Thao tác thành công!");

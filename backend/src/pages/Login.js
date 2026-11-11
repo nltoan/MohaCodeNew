@@ -9,6 +9,7 @@ export default function Login() {
   const [code, setCode] = useState("");
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const auth = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -65,16 +66,24 @@ export default function Login() {
             </div>
             <div className="input-group mb-3">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 className="form-control"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
               <div className="input-group-append">
-                <div className="input-group-text">
-                  <span className="fas fa-lock" />
-                </div>
+                <button
+                  type="button"
+                  className="input-group-text"
+                  style={{ cursor: "pointer" }}
+                  title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  aria-pressed={showPassword}
+                  onClick={() => setShowPassword((v) => !v)}
+                >
+                  <span className={showPassword ? "fas fa-eye-slash" : "fas fa-eye"} />
+                </button>
               </div>
             </div>
             <div className="input-group mb-3">
@@ -109,14 +118,6 @@ export default function Login() {
                   className="btn btn-primary btn-block"
                 >
                   Sign In
-                </button>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => signInProcess(email, password, code, "ldap")}
-                  className="btn btn-primary btn-block"
-                >
-                  Sign In sử dụng AD
                 </button>
               </div>
             </div>
