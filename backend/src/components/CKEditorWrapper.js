@@ -44,6 +44,8 @@ const CKEditor4Wrapper = ({
                     filebrowserLinkBrowseUrl: urlCkfiderVideo,
                     removePlugins: 'elementspath,scayt,wsc',
                     allowedContent: true,
+                    // Giu nguyen chu co dau (UTF-8) thay vi doi thanh &aacute;...: HTML nho hon, tim kiem SQL/LIKE khop duoc.
+                    entities: false,
                     fileTools_requestHeaders:{
                         Authorization: `Bearer ${access_token}`
                     }
