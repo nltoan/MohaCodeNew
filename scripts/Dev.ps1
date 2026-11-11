@@ -94,6 +94,14 @@ $localDb = 'C:\Program Files\Microsoft SQL Server\160\Tools\Binn\SqlLocalDB.exe'
 & $localDb start MohaDev
 if ($LASTEXITCODE -ne 0) { throw 'Initialize the dev database first.' }
 $apiRoot = Join-Path $runtime 'api'
+$portalTemplate = Join-Path $root 'frontend\dist\index.html'
+if (Test-Path -LiteralPath $portalTemplate) {
+    $appData = Join-Path $apiRoot 'App_Data'
+    New-Item -ItemType Directory -Path $appData -Force | Out-Null
+    Copy-Item -LiteralPath $portalTemplate -Destination (Join-Path $appData 'portal-index.html') -Force
+} else {
+    Write-Warning 'MetadataPage template missing: build the portal and restart the dev environment.'
+}
 if (!($processes | Where-Object Name -eq 'api')) {
 # Apply every idempotent migration in name order so new files are never missed locally.
 $migrationConnection = New-Object System.Data.SqlClient.SqlConnection 'Data Source=(localdb)\MohaDev;Initial Catalog=CongTTDT_MOHA_Dev;Integrated Security=True;Connect Timeout=10'
