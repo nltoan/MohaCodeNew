@@ -102,7 +102,7 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public async Task<HttpResponseMessage> FileImageUpload(int? Width, int? Height)
+        public async Task<HttpResponseMessage> FileImageUpload(int? Width = null, int? Height = null)
         {
             try
             {
@@ -192,7 +192,7 @@ namespace API.Controllers
             return Request.CreateResponse(HttpStatusCode.Created, new { });
         }
         [HttpPost]
-        public async Task<HttpResponseMessage> ImageUpload(int? Width, int? Height)
+        public async Task<HttpResponseMessage> ImageUpload(int? Width = null, int? Height = null)
         {
             var httpRequest = HttpContext.Current.Request;
             if (httpRequest.Files.Count > 0)
