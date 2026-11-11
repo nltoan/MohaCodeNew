@@ -153,7 +153,7 @@ export const MinisterialLeadershipPage = () => {
             <>
               {/* Optional chaining (?.) used for safety */}
               <div className="mh-org-modal-image">
-                <Image src={getUrlImage(detail?.AnhDaiDien)} alt={detail?.HoTenLanhDao} />
+                <Image src={getUrlImage(detail?.AnhDaiDien, 800)} alt={detail?.HoTenLanhDao} />
               </div>
               <div className="mh-org-modal-info">
                 <Table className="table" bordered={false}>

@@ -86,7 +86,7 @@ export const PhotoAlbumDetailPage = () => {
                 <div className="mh-gallery-slide-card">
                   {p.File?.LinkLuuTru &&
                     <div className="mh-gallery-slide-card-image">
-                      <Image src={getUrlImage(p.File?.LinkLuuTru)} alt={p.File?.Ten} />
+                      <Image src={getUrlImage(p.File?.LinkLuuTru, 1280)} alt={p.File?.Ten} />
                     </div>
                    }
                 </div>

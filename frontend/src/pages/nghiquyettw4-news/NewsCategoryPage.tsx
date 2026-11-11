@@ -185,7 +185,7 @@ export const NewsCategoryPage = () => {
                             to={getNewURL('nghi-quyet-tw4/tin-tuc', topPost?.main?.TieuDe, topPost?.main?.ID)}
                             className="mh-news-banner-main-image"
                           >
-                            <Image src={getUrlImage(topPost?.main?.AnhDaiDienUrl)} alt={topPost?.main?.TieuDe} />
+                            <Image src={getUrlImage(topPost?.main?.AnhDaiDienUrl, 1024)} alt={topPost?.main?.TieuDe} />
                           </Link>
 
                           <div className="mh-news-banner-main-info">

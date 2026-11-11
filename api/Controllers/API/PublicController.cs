@@ -160,6 +160,13 @@ namespace API.Controllers
             return text.Length > 500 ? text.Substring(0, 500) : text;
         }
 
+        // Anh thu nho cho portal: /api/Public/Img?src=/Upload/abc.jpg&w=640 (xem Services/ImageOptimizer.cs).
+        [HttpGet]
+        public Task<HttpResponseMessage> Img(string src = null, int w = 640)
+        {
+            return ImageOptimizer.Handle(Request, src, w);
+        }
+
         // Returns the normal SPA shell with record-specific head metadata.
         // The template is deployed separately and must match the portal bundle.
         [HttpGet]

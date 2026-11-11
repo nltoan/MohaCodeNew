@@ -2,6 +2,15 @@
 
 Ghi chú theo từng đợt, chuyển từ DEV-SETUP.md. Hướng dẫn cài đặt và chạy nằm ở DEV-SETUP.md.
 
+## Tối ưu ảnh portal (thu nhỏ theo bề rộng)
+
+Ảnh trong `Upload/` và `Media_Share/` (jpg/png) không còn tải bản gốc nhiều MB. Portal gọi `GET api/Public/Img?src=/Upload/abc.jpg&w=640`; API thu nhỏ theo bề rộng (chỉ các mốc 160/240/320/480/640/800/1024/1280/1600, làm tròn lên), giữ PNG trong suốt, xoay theo EXIF, lưu cache ở `App_Data/img-cache` và trả `Cache-Control` 30 ngày kèm ETag/304. Ví dụ ảnh thật 148 KB còn 33 KB ở 480px. `getUrlImage(url, width)` mặc định 640px; banner dùng 1600, ảnh chính tin 1024, `width = 0` lấy ảnh gốc (og:image). Ảnh trong nội dung bài viết thu nhỏ 1280px và tải lười.
+
+Điểm cần biết khi triển khai:
+- API đọc file trong thư mục của nó nếu có; nếu không thì tải từ `ImageSourceBaseUrl` (appSetting, mặc định lấy `frontendSiteUrl`). Production nên đặt `ImageSourceBaseUrl` = https://moha.gov.vn nếu kho Upload nằm ở host portal, không phải host API. Chỉ thêm khóa này vào `appSettings.local.config` hoặc gộp tay, không ghi đè Web.config production.
+- Tài khoản chạy app pool cần quyền ghi `App_Data/img-cache`. Có thể xóa thư mục này bất cứ lúc nào; ảnh sẽ được tạo lại khi có yêu cầu.
+- Chỉ nhận đường dẫn tương đối trong `Upload/` hoặc `Media_Share/` đuôi jpg/jpeg/png; đường dẫn khác trả 400. Lỗi hoặc ảnh quá lớn thì chuyển hướng về ảnh gốc, trang không mất ảnh.
+
 ## Mở rộng ổ C trên máy dev ban đầu
 
 Ổ C đã được mở rộng lên khoảng 146,9 GiB; Recovery 1 GiB được tạo lại ở cuối ổ và Windows RE đã bật lại. Bản sao Recovery và nhật ký thao tác nằm trong `%LOCALAPPDATA%\MohaDev`.

@@ -104,7 +104,7 @@ export const NewsDetailPage = () => {
     return detail?.TinTuc_Files;
   }, [detail?.TinTuc_Files]);
   const plainDescription = (detail?.MoTa || detail?.TieuDe || 'Tin tức, hoạt động và thông tin chính sách của Bộ Nội vụ.').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().slice(0, 200);
-  const imageUrl = detail?.AnhDaiDienUrl ? getUrlImage(detail.AnhDaiDienUrl) : 'https://moha.gov.vn/images/Quoc_Huy_Viet_Nam.png';
+  const imageUrl = detail?.AnhDaiDienUrl ? getUrlImage(detail.AnhDaiDienUrl, 0) : 'https://moha.gov.vn/images/Quoc_Huy_Viet_Nam.png';
   if (getLang() === 'en' && !loadingDetail && !detail) return <ArticleLanguageUnavailable />;
   return (
     <>
