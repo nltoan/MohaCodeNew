@@ -4,8 +4,10 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { HelmetProvider } from 'react-helmet-async';
 import { initializeGoogleAnalytics } from './services/analytics';
+import { installImageFallback } from './utils/image';
 
 initializeGoogleAnalytics();
+installImageFallback();
 
 // The static tags describe the homepage before React loads. Once the SPA starts,
 // Helmet owns the tags and replaces them with metadata for the current route.

@@ -5,3 +5,6 @@ connect-src: giữ toàn bộ nguồn API/EMC hiện có; thêm https://*.google
 img-src: CHỈ khi header hiện hữu đã có chỉ thị img-src thì thêm https://*.google-analytics.com vào đó. Nếu chưa có img-src (ảnh đang dùng default-src) thì thêm nguồn này vào default-src; không tạo img-src mới chỉ chứa GA vì sẽ chặn toàn bộ ảnh khác.
 
 window.env đã chuyển vào /runtime-config.js, tải đồng bộ trước bundle. Không cần unsafe-inline. Khi deploy chép file này trước index.html và purge cache cả hai. Header CSP đang do server/proxy cấp nên cập nhật code không tự sửa được header đó. Không thay default-src hoặc bỏ nguồn API hiện có chỉ để thêm GA.
+
+
+Ảnh thu nhỏ (api/Public/Img): portal tải ảnh từ https://api-portal.moha.gov.vn/api/Public/Img?... nên origin API phải được phép tải ảnh. Nếu header CSP của portal chưa có img-src thì thêm https://api-portal.moha.gov.vn vào default-src (như api-metadata-csp.fragment.xml); nếu đã có img-src thì thêm vào img-src. Thiếu bước này thì trình duyệt báo "Loading the image ... violates the following Content Security Policy directive". Portal tự lùi về ảnh gốc khi ảnh bị chặn/không tải được (và tắt tối ưu trong phiên), hoặc tắt hẳn bằng cách thêm "VITE_IMAGE_OPTIMIZE": 'false' vào runtime-config.js trên server (xóa cache file này); khi CSP đã đúng thì bỏ dòng đó.

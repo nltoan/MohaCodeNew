@@ -27,10 +27,20 @@ const optimizedPath = (url: string): string | null => {
   return OPTIMIZABLE_PATH.test(path) ? path : null;
 };
 
+// Tắt tối ưu ảnh: đặt "VITE_IMAGE_OPTIMIZE": 'false' trong runtime-config.js (không cần build lại), hoặc tự động khi trình duyệt
+// chặn/không tải được ảnh từ API (ví dụ CSP của trang chưa cho phép origin của API trong img-src/default-src) - xem installImageFallback.
+const FALLBACK_FLAG = 'mh-image-optimize-off';
+let optimizationDisabled = false;
+const isOptimizationDisabled = () => {
+  if (optimizationDisabled) return true;
+  if (window.env?.VITE_IMAGE_OPTIMIZE === 'false') return true;
+  try { return sessionStorage.getItem(FALLBACK_FLAG) === '1'; } catch { return false; }
+};
+
 const getOptimizedUrl = (url: string, width: number): string | null => {
   const apiBase = window.env?.VITE_API_URL;
   const path = optimizedPath(url);
-  if (!apiBase || !path) return null;
+  if (!apiBase || !path || isOptimizationDisabled()) return null;
   return `${apiBase.replace(/\/+$/, '')}/Img?src=${encodeURIComponent(path)}&w=${width}`;
 };
 
@@ -91,4 +101,51 @@ export const resolveContentMedia = (html?: string): string => {
     }
   });
   return body.body.innerHTML;
+};
+
+// Lưới an toàn cho ảnh đã thu nhỏ qua api/Public/Img: nếu ảnh không tải được hoặc bị CSP chặn thì đổi sang ảnh gốc trên host media
+// và tắt tối ưu cho phần còn lại của phiên, để trang không bao giờ mất ảnh vì tính năng này.
+export const installImageFallback = () => {
+  const toOriginal = (value: string): string | null => {
+    try {
+      const parsed = new URL(value, window.location.href);
+      if (!/\/Img$/i.test(parsed.pathname)) return null;
+      const source = parsed.searchParams.get('src');
+      return source ? new URL(source.replace(/^\/+/, ''), mediaBase() + '/').href : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const disable = () => {
+    optimizationDisabled = true;
+    try { sessionStorage.setItem(FALLBACK_FLAG, '1'); } catch { /* bỏ qua */ }
+    document.querySelectorAll<HTMLImageElement>('img').forEach((image) => {
+      const original = toOriginal(image.currentSrc || image.src);
+      if (original) { image.removeAttribute('srcset'); image.src = original; }
+    });
+    document.querySelectorAll<HTMLElement>('[style*="/Img?"]').forEach((element) => {
+      const match = /url\(["']?([^"')]+)["']?\)/.exec(element.style.backgroundImage || '');
+      const original = match ? toOriginal(match[1]) : null;
+      if (original) element.style.backgroundImage = `url("${original}")`;
+    });
+  };
+
+  document.addEventListener('error', (event) => {
+    const image = event.target;
+    if (!(image instanceof HTMLImageElement)) return;
+    const original = toOriginal(image.currentSrc || image.src);
+    if (!original) return;
+    image.removeAttribute('srcset');
+    image.src = original;
+    disable();
+  }, true);
+
+  document.addEventListener('securitypolicyviolation', (event) => {
+    const apiBase = window.env?.VITE_API_URL;
+    if (!apiBase) return;
+    try {
+      if (event.blockedURI.startsWith(new URL(apiBase).origin)) disable();
+    } catch { /* bỏ qua */ }
+  });
 };
