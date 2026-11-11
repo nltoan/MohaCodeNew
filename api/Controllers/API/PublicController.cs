@@ -324,11 +324,39 @@ namespace API.Controllers
 
         // Goi he thong Phan anh kien nghi: co timeout, cache 5 phut va phuc vu ban cu (toi da 24h) khi he thong ngoai cham/loi,
         // tranh viec trang chu phai cho dong bo (truoc day 5 giay moi lan, khong co timeout).
-        private static readonly HttpClient ExternalJsonClient = new HttpClient { Timeout = TimeSpan.FromSeconds(4) };
+        // Timeout 15s (< timeout 20s cua axios o portal): he thong ngoai tu may chu production mat khoang 5s; 4s truoc day khien moi lan deu loi 503 va danh sach trong.
+        private static readonly HttpClient ExternalJsonClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+        private static readonly Dictionary<string, Task<string>> ExternalInFlight = new Dictionary<string, Task<string>>();
         private static readonly object ExternalRefreshLock = new object();
         private static readonly HashSet<string> ExternalRefreshing = new HashSet<string>();
 
+        // Nhieu yeu cau cung luc dung chung mot lan goi he thong ngoai (khong tao N lan goi cham song song).
         private static async Task<string> RefreshExternalJson(string url, string cacheKey)
+        {
+            Task<string> task;
+            lock (ExternalRefreshLock)
+            {
+                if (!ExternalInFlight.TryGetValue(cacheKey, out task))
+                {
+                    task = FetchExternalJson(url, cacheKey);
+                    ExternalInFlight[cacheKey] = task;
+                }
+            }
+            try { return await task.ConfigureAwait(false); }
+            finally { lock (ExternalRefreshLock) { Task<string> current; if (ExternalInFlight.TryGetValue(cacheKey, out current) && ReferenceEquals(current, task)) ExternalInFlight.Remove(cacheKey); } }
+        }
+
+        // Goi khi khoi dong ung dung de lan truy cap dau tien da co du lieu trong cache.
+        internal static void WarmExternalCaches()
+        {
+            Task.Run(async () =>
+            {
+                try { await RefreshExternalJson("https://phananh.moha.gov.vn/Integrated/getList", "ext:getPAKN").ConfigureAwait(false); } catch { }
+                try { await RefreshExternalJson("https://phananh.moha.gov.vn/Integrated/getListKNCT", "ext:getKNCT").ConfigureAwait(false); } catch { }
+            });
+        }
+
+        private static async Task<string> FetchExternalJson(string url, string cacheKey)
         {
             var bytes = await ExternalJsonClient.GetByteArrayAsync(url).ConfigureAwait(false);
             var json = Encoding.UTF8.GetString(bytes);

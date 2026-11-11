@@ -84,27 +84,33 @@ export const HomeInteractSection = ({ title }: HomeInteractSectionProps) => {
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response1 = await getPhanAnhKienNghi();
-        if (response1.status === HttpStatusCode.Ok) {
-          setPhanAnhKienNghi(response1.data.map((item: any) => {
-            return {title: item.title, description: item.description, link: item.link, address: item.address, appointment_date: item.appointment_date, date: item.date};
-          }));
+    let active = true;
+    // Hệ thống Phản ánh kiến nghị bên ngoài đôi khi trả lỗi/chậm: tải song song hai danh sách, mỗi danh sách thử lại một lần.
+    const load = async (request: () => Promise<{ status: number; data: any }>, apply: (items: any[]) => void) => {
+      for (let attempt = 0; attempt < 2 && active; attempt++) {
+        try {
+          const response = await request();
+          if (response.status === HttpStatusCode.Ok && Array.isArray(response.data)) {
+            if (active) apply(response.data);
+            return;
+          }
+        } catch (error) {
+          console.error('err', error);
         }
-
-        const response2 = await getPhanAnhKienNghiCuTri();
-        if (response2.status === HttpStatusCode.Ok) {
-          setPhanAnhKienNghiCuaCuTri(response2.data.map((item: any) => {
-            return {title: item.title, description: item.description, link: item.link};
-          }));
-        }
-      } catch (error) {
-        console.error('err', error);
+        if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 4000));
       }
     };
 
-    fetchData();
+    load(getPhanAnhKienNghi, (items) =>
+      setPhanAnhKienNghi(items.map((item: any) => ({
+        title: item.title, description: item.description, link: item.link, address: item.address,
+        appointment_date: item.appointment_date, date: item.date,
+      }))),
+    );
+    load(getPhanAnhKienNghiCuTri, (items) =>
+      setPhanAnhKienNghiCuaCuTri(items.map((item: any) => ({ title: item.title, description: item.description, link: item.link }))),
+    );
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {

@@ -48,6 +48,7 @@ namespace API.OAuth
                 await next();
             });
             ConfigureOAuth(appBuilder);
+            API.Controllers.PublicController.WarmExternalCaches();
             // Phien dang nhap bang mat khau mac dinh da het luot: chi cho doi mat khau + bat 2FA.
             var allowedDuringSetup = new[] {
                 "/api/home/updateprofile", "/api/home/generateauthenticatesecret", "/api/user_account/getloginuser"
