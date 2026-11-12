@@ -154,9 +154,19 @@ namespace API.Controllers
         {
             if (string.IsNullOrWhiteSpace(html)) return "";
             if (html.Length > 100000) html = html.Substring(0, 100000);
-            var document = new HtmlDocument();
-            document.LoadHtml(html);
-            var text = Regex.Replace(HttpUtility.HtmlDecode(document.DocumentNode.InnerText), @"\s+", " ").Trim();
+            // Noi dung CMS co the bi ma hoa HTML 2 lan (&lt;title&gt;... do dan ma nguon trang cu): sau khi giai ma lai la the,
+            // nen lap toi da 3 lan cho den khi khong con the; bo han noi dung <style>/<script>/<title>/<head>/chu thich.
+            var text = html;
+            for (int pass = 0; pass < 3; pass++)
+            {
+                var document = new HtmlDocument();
+                document.LoadHtml(text);
+                foreach (var node in document.DocumentNode.Descendants().Where(n => n.Name == "script" || n.Name == "style" || n.Name == "title" || n.Name == "head" || n.Name == "#comment").ToList())
+                    node.Remove();
+                text = HttpUtility.HtmlDecode(document.DocumentNode.InnerText);
+                if (!Regex.IsMatch(text, @"<[a-zA-Z/!]")) break;
+            }
+            text = Regex.Replace(text, @"\s+", " ").Trim();
             return text.Length > 500 ? text.Substring(0, 500) : text;
         }
 
