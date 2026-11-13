@@ -1,5 +1,5 @@
 using API.OAuth.Providers;
-﻿using DevExtreme.AspNet.Data;
+using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
 using Newtonsoft.Json;
 using System;

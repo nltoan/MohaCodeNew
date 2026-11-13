@@ -1,7 +1,7 @@
 using API.Services;
 using System.Web;
 using System.Web.Caching;
-﻿using Microsoft.Owin.Security.OAuth;
+using Microsoft.Owin.Security.OAuth;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using API.Models;

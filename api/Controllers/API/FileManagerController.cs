@@ -4,7 +4,7 @@ using System.Web.Http.Filters;
 using System.Web.Http.Controllers;
 using System.Security.Claims;
 using Newtonsoft.Json.Linq;
-﻿using API.Models;
+using API.Models;
 using DevExtreme.AspNet.Mvc.FileManagement;
 using Newtonsoft.Json;
 using System;

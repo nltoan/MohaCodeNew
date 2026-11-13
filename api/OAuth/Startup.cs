@@ -2,7 +2,7 @@ using System.Configuration;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json.Serialization;
-﻿using API.OAuth.Providers;
+using API.OAuth.Providers;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.OAuth;
 using Owin;

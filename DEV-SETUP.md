@@ -18,7 +18,7 @@ Ba thành phần chính:
 - IIS Express 10 x64: `C:\Program Files\IIS Express`.
 - SQL Server LocalDB 2022: `C:\Program Files\Microsoft SQL Server\160\Tools\Binn`.
 - NuGet CLI, 7-Zip standalone và Playwright: `%LOCALAPPDATA%\MohaDev`.
-- Git và Chrome đã có sẵn trên máy.
+- Chrome đã có sẵn trên máy. Git: nếu lệnh `git` không có trong PATH (máy chỉ cài GitHub Desktop), dùng bản kèm theo tại `%LOCALAPPDATA%\GitHubDesktop\app-*\resources\app\git\cmd\git.exe`; `Prepare-ProductionRelease.ps1` tự tìm bản này.
 
 Node và pnpm được thêm vào PATH của tài khoản; mở terminal mới để nhận PATH. Script bên dưới cũng thiết lập PATH cho phiên chạy.
 
@@ -96,7 +96,7 @@ Backup database không gồm kho media/upload. Thư mục upload dev được t�
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Initialize-Migrations.ps1
 ```
 
-Khi triển khai lên môi trường khác, chạy `db/migrations/20261001-HoiQuy.sql` bằng tài khoản có quyền tạo bảng và thêm quyền trước khi cập nhật API. Migration không tự import dữ liệu. Cấu hình IIS giới hạn upload riêng cho endpoint xem trước; không thêm thư viện Excel bên ngoài.
+Khi triển khai lên môi trường khác, chạy toàn bộ `db/migrations/*.sql` theo thứ tự tên file (xem `deployment/DEPLOY-MOHA.md`, mục 3) bằng tài khoản có quyền tạo bảng và thêm quyền trước khi cập nhật API. Migration không tự import dữ liệu. Cấu hình IIS giới hạn upload riêng cho endpoint xem trước; không thêm thư viện Excel bên ngoài.
 
 Kiểm tra chức năng bằng `scripts/Test-HoiQuy.mjs` trên ba URL local. Chạy `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Prepare-HoiQuyTests.ps1` để tạo hai tài khoản test riêng trong database local. Script dùng hai tài khoản test được lưu trong `.dev/hoi-test-accounts.json` (tài khoản có quyền và tài khoản không có quyền), chạy import vào database dev và lưu ảnh trong `.dev/test-results/hoi-quy/`. Khi log `CAPTCHA_READY` xuất hiện, đọc ảnh `captcha.png`, ghi 5 ký tự vào `.dev/hoi-captcha-answer.txt` trong 120 giây để kiểm tra mã xác nhận thật; script không bỏ qua xác thực CAPTCHA.
 

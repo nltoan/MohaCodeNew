@@ -14,7 +14,7 @@ Hai danh sách "Trả lời phản ánh kiến nghị" và "Trả lời kiến n
 
 ## Tối ưu ảnh portal (thu nhỏ theo bề rộng)
 
-Ảnh trong `Upload/` và `Media_Share/` (jpg/png) không còn tải bản gốc nhiều MB. Portal gọi `GET api/Public/Img?src=/Upload/abc.jpg&w=640`; API thu nhỏ theo bề rộng (chỉ các mốc 160/240/320/480/640/800/1024/1280/1600, làm tròn lên), giữ PNG trong suốt, xoay theo EXIF, lưu cache ở `App_Data/img-cache` và trả `Cache-Control` 30 ngày kèm ETag/304. Ví dụ ảnh thật 148 KB còn 33 KB ở 480px. `getUrlImage(url, width)` mặc định 640px; banner dùng 1600, ảnh chính tin 1024, `width = 0` lấy ảnh gốc (og:image). Ảnh trong nội dung bài viết thu nhỏ 1280px và tải lười.
+Ảnh trong `Upload/` và `Media_Share/` (jpg/png) không còn tải bản gốc nhiều MB. Portal gọi `GET api/Public/Img?src=/Upload/abc.jpg&w=640`; API thu nhỏ theo bề rộng (chỉ các mốc 160/240/320/480/640/800/1024/1280/1600/1920, làm tròn lên), giữ PNG trong suốt, xoay theo EXIF, lưu cache ở `App_Data/img-cache` và trả `Cache-Control` 30 ngày kèm ETag/304. Ví dụ ảnh thật 148 KB còn 33 KB ở 480px. `getUrlImage(url, width)` mặc định 800px; banner dùng 1920, ảnh chính tin 1280, `width = 0` lấy ảnh gốc (og:image). Ảnh trong nội dung bài viết thu nhỏ 1280px và tải lười. (Bản đầu dùng 640/1600/1024; các số ở đây là giá trị hiện hành trong `frontend/src/utils/image.ts` và `api/Services/ImageOptimizer.cs`.)
 
 Chất lượng: JPEG 88, mặc định 800px (banner 1920, ảnh chính tin 1280). Nếu ảnh gốc chỉ lớn hơn bề rộng yêu cầu dưới ~11% thì giữ nguyên ảnh gốc, không thu nhỏ lại để khỏi làm mờ chữ trong ảnh thông báo/infographic. Cache có tiền tố phiên bản (`v3_`); đổi chất lượng thì tăng phiên bản để cache cũ không còn dùng.
 

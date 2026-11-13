@@ -82,7 +82,11 @@ if($IncludeImportData){
  if(!(Test-Path $excel)){throw 'Customer workbook missing'}
  Copy-Item -LiteralPath $excel -Destination $dataDir
 }
-$manifest=[ordered]@{CreatedAt=(Get-Date).ToString('o');Commit=(& git -C $root rev-parse HEAD);WorkingTreeHasChanges=([bool](& git -C $root status --porcelain));PortalUrl=$config.PortalUrl;ApiUrl=$config.ApiUrl;AdminUrl=$config.AdminUrl;AdminReady=$adminReady;ApiWebConfigIncluded=$false;Note='Candidate package. Validate staging and production baseline before deployment.';Files=@()}
+# git co the khong nam trong PATH (vd may chi cai GitHub Desktop): tim ban kem theo, neu khong co thi ghi 'unknown' thay vi lam hong ca goi da build.
+$git=(Get-Command git -ErrorAction SilentlyContinue | Select-Object -First 1).Source
+if(!$git){$git=Get-ChildItem (Join-Path $env:LOCALAPPDATA 'GitHubDesktop\app-*\resources\app\git\cmd\git.exe') -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName}
+if($git){$commit=(& $git -C $root rev-parse HEAD);$dirty=[bool](& $git -C $root status --porcelain)}else{Write-Warning 'git not found: manifest records Commit=unknown';$commit='unknown';$dirty=$null}
+$manifest=[ordered]@{CreatedAt=(Get-Date).ToString('o');Commit=$commit;WorkingTreeHasChanges=$dirty;PortalUrl=$config.PortalUrl;ApiUrl=$config.ApiUrl;AdminUrl=$config.AdminUrl;AdminReady=$adminReady;ApiWebConfigIncluded=$false;Note='Candidate package. Validate staging and production baseline before deployment.';Files=@()}
 $manifest.Files=@(Get-ChildItem $release -Recurse -File | ForEach-Object {[ordered]@{Path=$_.FullName.Substring($release.Length+1);Sha256=(Get-FileHash $_.FullName -Algorithm SHA256).Hash;Bytes=$_.Length}})
 $manifest | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $release 'manifest.json') -Encoding utf8
 $zip=$release+'.zip';Compress-Archive -Path (Join-Path $release '*') -DestinationPath $zip

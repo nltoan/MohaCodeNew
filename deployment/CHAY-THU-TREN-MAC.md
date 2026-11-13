@@ -33,9 +33,9 @@ Các script chạy được trực tiếp từ `scripts/mac/`; mọi thứ sinh 
 ## Ba script chính
 
 ```bash
-.dev/mac/start.sh          # bật container (nếu đang dừng), API, portal, admin; chạy lại nhiều lần vẫn an toàn
-.dev/mac/stop.sh           # dừng API, portal, admin và `docker stop moha-dev-mssql` (không xóa volume)
-.dev/mac/rebuild-api.sh    # biên dịch lại API.dll từ mã hiện tại rồi khởi động lại API
+scripts/mac/start.sh          # bật container (nếu đang dừng), API, portal, admin; chạy lại nhiều lần vẫn an toàn
+scripts/mac/stop.sh           # dừng API, portal, admin và `docker stop moha-dev-mssql` (không xóa volume)
+scripts/mac/rebuild-api.sh    # biên dịch lại API.dll từ mã hiện tại rồi khởi động lại API
 ```
 
 Có thể truyền tham số `api|portal|admin|db` cho `start.sh`, và `api|portal|admin` cho `stop.sh`. Log: `.dev/mac/logs/` (`api.log`, `portal.log`, `admin.log`).
