@@ -2,6 +2,11 @@
 
 Ghi chú theo từng đợt, chuyển từ DEV-SETUP.md. Hướng dẫn cài đặt và chạy nằm ở DEV-SETUP.md.
 
+## Chú thích ảnh trong bài và ô nhập tin tức (góp ý 17/11)
+
+- Portal: ảnh chèn bằng plugin `image2` của CKEditor (`<figure><img><figcaption>`) có chú thích dài làm khung xám rộng hơn ảnh, ảnh lệch trái, chú thích không xuống dòng. `frontend/stylenoivufromSP.css` cho `figcaption` không góp vào bề rộng của `figure` (`width: 0; min-width: 100%`), nên khung ôm theo ảnh và chú thích tự xuống dòng.
+- Admin, Tin tức: ô Sapo (`MoTa`) cao 150px thay vì 300px; ô Nội dung (CKEditor) cao 500px thay vì 200px, kéo góc dưới để giãn thêm theo chiều dọc.
+
 ## Máy chủ API production không gọi ra ngoài được (nguyên nhân thật của danh sách trống và ảnh không thu nhỏ)
 
 Chẩn đoán trên máy chủ production: `Invoke-WebRequest https://phananh.moha.gov.vn/Integrated/getList` báo "Unable to connect to the remote server", và `curl` tới chính `api-portal.moha.gov.vn` báo `CRYPT_E_REVOCATION_OFFLINE` (không tới được máy chủ thu hồi chứng chỉ). Tức là máy chủ không có đường ra internet/mạng ngoài; tăng timeout hay thử lại đều vô ích. Đã xử lý ở phía mã, không cần mở mạng:

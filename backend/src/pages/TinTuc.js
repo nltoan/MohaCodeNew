@@ -815,7 +815,7 @@ export default function TinTuc() {
               <FormItem
                 colSpan={2}
                 editorType="dxHtmlEditor"
-                editorOptions={{...config.htmlEditorMediumOptions, elementAttr:{class: 'cke_ignored'}}}
+                editorOptions={{...config.htmlEditorMediumOptions, height: 150, elementAttr:{class: 'cke_ignored'}}}
               />
             </Column>
             <Column

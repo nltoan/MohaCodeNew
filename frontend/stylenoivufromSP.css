@@ -657,6 +657,19 @@ figure {
             width: 0;
         }
 
+    /* CKEditor image2 dat chu chu thich truc tiep trong figcaption: khong de chu thich dai lam figure rong hon anh */
+    figure figcaption {
+        width: 0;
+        min-width: 100%;
+        box-sizing: border-box;
+        overflow-wrap: anywhere;
+    }
+
+    figure img {
+        max-width: 100%;
+        height: auto;
+    }
+
 
 
 *.disabled,

@@ -46,6 +46,9 @@ const CKEditor4Wrapper = ({
                     allowedContent: true,
                     // Giu nguyen chu co dau (UTF-8) thay vi doi thanh &aacute;...: HTML nho hon, tim kiem SQL/LIKE khop duoc.
                     entities: false,
+                    // O noi dung du cao de doc/nhap; keo goc duoi de gian them theo chieu doc.
+                    height: 500,
+                    resize_dir: 'vertical',
                     fileTools_requestHeaders:{
                         Authorization: `Bearer ${access_token}`
                     }
