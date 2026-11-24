@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { encodeBase64Url } from '../utils/helpers';
 import { CKEditor } from 'ckeditor4-react';
 import { LoadPanel } from 'devextreme-react/load-panel';
@@ -13,25 +13,44 @@ const CKEditor4Wrapper = ({
     const [isLoading, setIsLoading] = useState(false);
     const onValueChangedRef = useRef(onValueChanged);
     onValueChangedRef.current = onValueChanged;
-    const [originalPosition, setOriginalPosition] = useState('');
-    const [originalWidth, setOriginalWidth] = useState('');
-    const [originalHeight, setOriginalHeight] = useState('');
-    const [originalContentHeight, setOriginalContentHeight] = useState('');
-    
+    // Kich thuoc truoc khi phong to; dung ref vi lenh maximize duoc tao mot lan luc editor san sang
+    // (state se bi "dong bang" o gia tri cu va khung bi co lai khi thu nho).
+    const originalRef = useRef({ position: '', width: '', height: '', contentHeight: '' });
+    const wrapperRef = useRef(null);
+    // Chi tao CKEditor khi khung da gan vao trang va on dinh: popup/form cua DevExtreme co the ve lai
+    // template ngay sau khi mo; tao editor vao khung bi go se de lai loi JS cua CKEditor khi bi huy giua chung.
+    const [canMount, setCanMount] = useState(false);
+    useEffect(() => {
+        let frame = 0;
+        let stable = 0;
+        let tries = 0;
+        const check = () => {
+            const el = wrapperRef.current;
+            stable = el && el.isConnected ? stable + 1 : 0;
+            if (stable >= 3) {
+                setCanMount(true);
+                return;
+            }
+            if (++tries < 600) frame = requestAnimationFrame(check);
+        };
+        frame = requestAnimationFrame(check);
+        return () => cancelAnimationFrame(frame);
+    }, []);
+
     const urlCkfider = `/FilePicker?type=Images&s1=${encodeBase64Url(window.env.REACT_APP_API_UPLOAD_URL)}`;
     const urlCkfiderVideo = `/FilePicker?type=Videos&s1=${encodeBase64Url(window.env.REACT_APP_API_UPLOAD_URL)}`;
     const urlUpload = `${window.env.REACT_APP_API_URL}/FileManager/CKEditorImageUpload`;
     let access_token = getToken();
 
     return (
-        <div className="ckeditor-wrapper" style={{ position: 'relative', minHeight: '200px' }}>
+        <div className="ckeditor-wrapper" ref={wrapperRef} style={{ position: 'relative', minHeight: '200px' }}>
             <LoadPanel
                 visible={isLoading}
                 message="Xin vui lòng đợi..."
                 position={{ of: '.ckeditor-wrapper' }}
                 shading={true}
             />
-            <CKEditor
+            {canMount && <CKEditor
                 editorUrl="/ckeditor/ckeditor.js"
                 initData={value}
                 onNamespaceLoaded={ CKEDITOR => {
@@ -88,10 +107,12 @@ const CKEditor4Wrapper = ({
                             if(!isMaximized) {
                                 if(parentElem.length > 0) parentElem[0].style.transform='unset';
                                 editor.container.addClass('cke_maximized');
-                                setOriginalPosition(editor.container.$.style.position);
-                                setOriginalWidth(editor.container.$.style.width);
-                                setOriginalHeight(editor.container.$.style.height);
-                                setOriginalContentHeight(editorContent.offsetHeight);
+                                originalRef.current = {
+                                    position: editor.container.$.style.position,
+                                    width: editor.container.$.style.width,
+                                    height: editor.container.$.style.height,
+                                    contentHeight: editorContent.style.height || `${editorContent.offsetHeight}px`,
+                                };
                                 editor.container.$.style.position = 'fixed';
                                 editor.container.$.style.width='100%';
                                 editor.container.$.style.height='100%';
@@ -101,13 +122,13 @@ const CKEditor4Wrapper = ({
                             } else {
                                 if(parentElem.length > 0) parentElem[0].style.transform='translate(0px, 0px)';
                                 editor.container.removeClass('cke_maximized');
-                                editor.container.$.style.position = originalPosition;
-                                editor.container.$.style.width=originalWidth;
-                                editor.container.$.style.height=originalHeight;
+                                const original = originalRef.current;
+                                editor.container.$.style.position = original.position;
+                                editor.container.$.style.width = original.width;
+                                editor.container.$.style.height = original.height;
                                 editor.container.$.style.top = 'unset';
                                 editor.container.$.style.left = 'unset';
-                                editor.container.$.style.left = 'unset';
-                                editorContent.style.height = originalContentHeight;
+                                editorContent.style.height = original.contentHeight;
                             }
                         },
                     });
@@ -120,7 +141,7 @@ const CKEditor4Wrapper = ({
                     }
                 }}
                 name={instanceName}
-            />
+            />}
         </div>
     );
 };

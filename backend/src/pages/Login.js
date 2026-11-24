@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/auth';
 import LayoutLogin from '../layouts/LayoutLogin';
+import { safeReturnUrl } from '../utils/token';
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -11,9 +12,19 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const auth = useAuth();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const url = searchParams.get("url");
+  // Trang can quay lai sau khi dang nhap; chi chap nhan duong dan tuong doi cung nguon (chong open redirect).
+  const url = safeReturnUrl(searchParams.get("url"));
+  const expired = searchParams.get("reason") === "expired";
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    document.title = "Đăng nhập - Quản trị nội dung";
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   async function signInProcess(email, password, code, type) {
     if (busy) return;
@@ -21,20 +32,17 @@ export default function Login() {
     setError(null);
     let ret;
     try {
-      ret = await auth.signIn(email, password, code, type);
+      // signIn tu chuyen trang: /Profile neu phai doi mat khau mac dinh, nguoc lai ve ?url= (hoac trang chu).
+      ret = await auth.signIn(email, password, code, type, url);
     } finally {
-      setBusy(false);
+      if (mounted.current) setBusy(false);
     }
-    if (ret.isOk) {
-      if (url && !ret.setupRequired) {
-        navigate(url);
-      }
-    } else {
+    if (!ret.isOk && mounted.current) {
       setError(ret.message || "Đăng nhập không thành công!");
     }
   }
   return (
-    <LayoutLogin title={"Login"}>
+    <LayoutLogin title={"Đăng nhập"}>
       <div className="login-box">
         <div className="login-logo">
           <a className="text-white" href="/">
@@ -49,12 +57,19 @@ export default function Login() {
                 signInProcess(email, password, code, "password");
               }}
             >
+            {expired && !error && (
+              <p className="text-info" role="status">
+                Phiên đăng nhập đã hết hạn hoặc không còn hiệu lực. Vui lòng đăng nhập lại để tiếp tục.
+              </p>
+            )}
             {error && <p className="text-danger" role="alert">{error}</p>}
             <div className="input-group mb-3">
               <input
                 type="text"
                 className="form-control"
-                placeholder="Username"
+                placeholder="Tên đăng nhập"
+                aria-label="Tên đăng nhập"
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -68,7 +83,9 @@ export default function Login() {
               <input
                 type={showPassword ? "text" : "password"}
                 className="form-control"
-                placeholder="Password"
+                placeholder="Mật khẩu"
+                aria-label="Mật khẩu"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -92,7 +109,8 @@ export default function Login() {
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 className="form-control"
-                placeholder="Authenticator code"
+                placeholder="Mã xác thực (nếu đã bật Google Authenticator)"
+                aria-label="Mã xác thực Google Authenticator"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
               />
@@ -104,20 +122,12 @@ export default function Login() {
             </div>
             <div className="row">
               <div className="col-12">
-                <div className="icheck-primary">
-                  <input type="checkbox" id="remember" />
-                  <label htmlFor="remember">Remember Me</label>
-                </div>
-              </div>
-            </div>
-            <div className="row">
-              <div className="col-12">
                 <button
                   type="submit"
                   disabled={busy}
                   className="btn btn-primary btn-block"
                 >
-                  Sign In
+                  {busy ? "Đang đăng nhập..." : "Đăng nhập"}
                 </button>
               </div>
             </div>

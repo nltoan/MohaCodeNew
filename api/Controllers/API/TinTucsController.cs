@@ -110,9 +110,24 @@ namespace API.Controllers
                     or (t.TrangThai = 'draft' and t.NguoiTaoId = @userId)
                     THEN 1
                     ELSE 0
-                END AS CanSendApprove
+                END AS CanSendApprove,
+                -- Buoc quy trinh hien tai cua tin (cot Buoc hien tai / Nguoi xu ly o TinTuc.js).
+                -- BuocThu = vi tri buoc trong quy trinh (1..TongSoBuoc); NguoiXuLyHienTai chi tinh khi tin dang cho duyet.
+                bq.TenBuocQuyTrinh AS TenBuocHienTai,
+                CASE WHEN bq.ID IS NULL THEN NULL ELSE (select count(*) from BuocQuyTrinh bqa where bqa.IDQuyTrinh = bq.IDQuyTrinh and bqa.SoThuTu <= bq.SoThuTu) END AS BuocThu,
+                CASE WHEN bq.ID IS NULL THEN NULL ELSE (select count(*) from BuocQuyTrinh bqb where bqb.IDQuyTrinh = bq.IDQuyTrinh) END AS TongSoBuoc,
+                CASE WHEN t.TrangThai = 'waitapprove' and bq.ID IS NOT NULL THEN STUFF((
+                    select N', ' + ISNULL(NULLIF(uax.TenTruyCap, N''), uax.TenDangKy)
+                    from UserBuocQuyTrinh ubx
+                    join User_Account uax on uax.UserID = ubx.UserID
+                    where ubx.BuocQuyTrinhId = bq.ID
+                    order by uax.TenTruyCap
+                    FOR XML PATH(''), TYPE).value('.', 'nvarchar(max)'), 1, 2, N'')
+                    ELSE NULL
+                END AS NguoiXuLyHienTai
 
                 from TinTuc t
+                left join BuocQuyTrinh bq on bq.ID = t.BuocQuyTrinhID
                 left join (
 	                select count(*) as total, ub2.BuocQuyTrinhId 
 	                from UserBuocQuyTrinh ub2 

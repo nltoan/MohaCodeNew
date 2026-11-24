@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
-import FileManager, { Item, Permissions, ContextMenu } from 'devextreme-react/file-manager';
+import FileManager, { Item, Permissions, ContextMenu, Upload } from 'devextreme-react/file-manager';
+import { CHUNKED_MAX_MB, FILE_MANAGER_UPLOAD_HINT, MB, onFileManagerError } from '../utils/upload';
 import Notify from 'devextreme/ui/notify';
 import config from '../config';
 import { pathFile } from '../utils/api';
@@ -56,6 +57,7 @@ export default function FilePicker() {
         <h3 className="card-title">Quản lý file</h3>
       </div>
       <div className="card-body">
+        <p className="text-muted mb-2"><small>{FILE_MANAGER_UPLOAD_HINT}</small></p>
         <FileManager
           currentPath={currentPath}
           onContextMenuItemClick={onContextMenuItemClick}
@@ -68,7 +70,10 @@ export default function FilePicker() {
           fileSystemProvider={config.remoteProvider}
           onSelectedFileOpened={onSelected}
           onCurrentDirectoryChanged={onCurrentDirectoryChanged}
+          onErrorOccurred={onFileManagerError}
         >
+          {/* API (FileManager/FileSystem UploadChunk) tu choi file lon hon 80 MB. */}
+          <Upload maxFileSize={CHUNKED_MAX_MB * MB} />
           <Permissions
             create={true}
             copy={true}

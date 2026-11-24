@@ -407,7 +407,7 @@ export default function MyCustomHtmlEditor({ defaultValue, onValueChange }) {
       </Popup>
       <Popup
         showTitle={true}
-        title="Upload Image"
+        title="Tải ảnh lên để chèn"
         hideOnOutsideClick={true}
         visible={popupImageUploadVisible}
         onHidden={() => {
@@ -439,7 +439,7 @@ export default function MyCustomHtmlEditor({ defaultValue, onValueChange }) {
       ></Popup>
       <Popup
         showTitle={true}
-        title="Upload Video"
+        title="Tải video lên để chèn"
         hideOnOutsideClick={true}
         visible={popupVideoUploadVisible}
         onHidden={() => {

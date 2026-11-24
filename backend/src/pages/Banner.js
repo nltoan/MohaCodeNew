@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 
 import DataGrid, {
   Column,
@@ -13,7 +13,7 @@ import DataGrid, {
 } from 'devextreme-react/data-grid';
 import { Item, Tab, TabbedItem } from 'devextreme-react/form';
 import config from '../config';
-import { createCustomStore, createLookupStore } from '../utils/api';
+import { createCustomStore, createLookupStore, notify } from '../utils/api';
 import MyImageFileUploader from '../components/MyImageFileUploader';
 
 const dataSourceViTriOptions = createLookupStore("QuangCao_ViTri");
@@ -23,6 +23,15 @@ const dataSourceBanners = createCustomStore("Banners");
 
 export default function Banner() {
   const rowDataRef = useRef();
+  // Sau lan luu dau tien (them moi) popup mo lai o che do sua: chuyen thang sang the vi tri.
+  const openPositionsTabRef = useRef(false);
+  const tabPanelOptions = useMemo(() => ({
+    onInitialized: (ev) => {
+      if (!openPositionsTabRef.current) return;
+      openPositionsTabRef.current = false;
+      setTimeout(() => ev.component.option("selectedIndex", 1), 0);
+    },
+  }), []);
   return (
     <div className="card">
       <div className="card-header">
@@ -53,6 +62,8 @@ export default function Banner() {
             rowDataRef.current = e.data;
           }}
           onRowInserted={(e) => {
+            openPositionsTabRef.current = true;
+            notify("Đã lưu banner. Bây giờ bạn có thể gắn banner vào vị trí hiển thị.", "info");
             e.component.navigateToRow(e.key).done(function () {
               var rowindex = e.component.getRowIndexByKey(e.key);
               e.component.editRow(rowindex);
@@ -71,10 +82,12 @@ export default function Banner() {
             <Popup title="Thông tin" showTitle={true} />
             <Form
               onInitialized={(e) => {
+                // Banner chua luu: hien the thay the kem huong dan thay vi an mat the vi tri.
                 e.component.option("items[0].tabs[1].visible", !!rowDataRef.current);
+                e.component.option("items[0].tabs[2].visible", !rowDataRef.current);
               }}
             >
-              <TabbedItem colSpan={2}>
+              <TabbedItem colSpan={2} tabPanelOptions={tabPanelOptions}>
                 <Tab title="Thông tin chung" colCount={2}>
                   <Item dataField="TenBanner" colSpan={2} isRequired={true} />
                   <Item dataField="ID_File" isRequired={true} />
@@ -129,6 +142,16 @@ export default function Banner() {
                     <Pager allowedPageSizes={[20, 50, 100]} showPageSizeSelector={true} />
                     <Paging defaultPageSize={20} />
                   </DataGrid>
+                </Tab>
+                <Tab title="Danh sách vị trí được gắn">
+                  <Item
+                    itemType="simple"
+                    render={() => (
+                      <div className="alert alert-info mb-0">
+                        Hãy lưu thông tin chung trước để gắn banner vào vị trí. Sau khi bấm "Lưu", thẻ này sẽ cho phép chọn vị trí.
+                      </div>
+                    )}
+                  />
                 </Tab>
               </TabbedItem>
             </Form>

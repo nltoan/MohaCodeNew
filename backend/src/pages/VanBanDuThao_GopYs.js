@@ -1,23 +1,40 @@
+import { useRef } from 'react';
 import DataGrid, {
   Column,
   Pager,
   Paging,
   SearchPanel,
   Editing,
-  Popup,
   Lookup,
-  Form,
-  FormItem,
   FilterRow,
-  HeaderFilter} from 'devextreme-react/data-grid';
-import { Item } from 'devextreme-react/form';
+  HeaderFilter,
+  Toolbar,
+  Item as GridToolbarItem,
+  Button as DataGridButton,
+} from 'devextreme-react/data-grid';
 import { createCustomStore, createLookupStore } from '../utils/api';
-import 'devextreme/ui/html_editor/converters/markdown';
+import { exportButtonOptions } from '../utils/exportCsv';
+import GopYChiTietPopup from '../components/GopYChiTietPopup';
 
 const dataSourceOptions = createCustomStore("VanBanDuThao_GopYs");
 const dataSourceVanBanOptions = createLookupStore("VanBanDuThaos");
 
 export default function VanBanDuThao_GopY() {
+  const dataGridRef = useRef(null);
+  const chiTietPopupRef = useRef(null);
+
+  // Gop y do nguoi dan gui tu portal: chi xem (va xoa neu can), khong them/sua tren trang quan tri.
+  function xemChiTiet(data) {
+    if (!data) return;
+    let tenDuThao = "";
+    const grid = dataGridRef.current && dataGridRef.current.instance;
+    const lookup = grid && grid.columnOption("VanBanDuThaoID", "lookup");
+    if (lookup && lookup.calculateCellValue && data.VanBanDuThaoID != null) {
+      tenDuThao = lookup.calculateCellValue(data.VanBanDuThaoID) || "";
+    }
+    chiTietPopupRef.current.open(data, tenDuThao);
+  }
+
   return (
     <div className="card">
       <div className="card-header">
@@ -43,56 +60,56 @@ export default function VanBanDuThao_GopY() {
       </div>
       <div className="card-body">
         <DataGrid
+          ref={dataGridRef}
           dataSource={dataSourceOptions}
           allowColumnReordering={true}
           rowAlternationEnabled={true}
           showBorders={true}
           height="calc(100vh - 190px)"
+          onRowDblClick={(e) => {
+            if (e.rowType === "data") xemChiTiet(e.data);
+          }}
         >
           <FilterRow visible={true} />
           <HeaderFilter visible={true} />
-          <SearchPanel visible={true} highlightCaseSensitive={true} />
+          <SearchPanel
+            visible={true}
+            width={260}
+            placeholder="Tìm họ tên, email, số điện thoại..."
+          />
+          <Toolbar>
+            <GridToolbarItem
+              location="after"
+              widget="dxButton"
+              options={exportButtonOptions(
+                () => dataGridRef.current.instance,
+                "gop-y-du-thao-van-ban",
+                { columns: ["ID", "VanBanDuThaoID", "NgayGui", "HoTen", "SoDienThoai", "Email", "DiaChi", "NoiDung"] },
+              )}
+            />
+            <GridToolbarItem name="searchPanel" />
+          </Toolbar>
           <Editing
             mode="popup"
             useIcons={true}
-            allowUpdating={true}
-            allowAdding={true}
+            allowUpdating={false}
+            allowAdding={false}
             allowDeleting={true}
-          >
-            <Popup title="Ý kiến đóng góp" showTitle={true} />
-            <Form>
-              <Item dataField="VanBanDuThaoID" colSpan={2} />
-              <Item dataField="NgayGui" colSpan={2} />
-              <Item dataField="HoTen" colSpan={2} />
-              <Item dataField="SoDienThoai" colSpan={2} />
-              <Item dataField="Email" colSpan={2} />
-              <Item dataField="DiaChi" colSpan={2} />
-              <Item dataField="NoiDung" colSpan={2} />
-            </Form>
-          </Editing>
+          />
+          <Column type="buttons" width={70}>
+            <DataGridButton
+              hint="Xem chi tiết"
+              icon="info"
+              onClick={(e) => xemChiTiet(e.row.data)}
+            />
+            <DataGridButton name="delete" />
+          </Column>
           <Column
             dataField="ID"
             caption="ID"
             width={70}
             defaultSortOrder={"desc"}
           />
-          <Column
-            dataField="VanBanDuThaoID"
-            caption="Văn bản dự thảo"
-            visible={false}
-          >
-            <FormItem
-              dataField="VanBanDuThaoID"
-              colSpan={2}
-              editorType="dxLookup"
-              editorOptions={{
-                readOnly: true,
-                dataSource: dataSourceVanBanOptions,
-                valueExpr: "ID",
-                displayExpr: "TieuDe",
-              }}
-            />
-          </Column>
           <Column dataField="VanBanDuThaoID" caption="Văn bản dự thảo">
             <Lookup
               allowClearing={true}
@@ -105,37 +122,19 @@ export default function VanBanDuThao_GopY() {
           <Column
             dataField="NgayGui"
             dataType="date"
+            format={"dd/MM/yyyy"}
             caption="Ngày gửi"
             width={100}
-          >
-            <FormItem colSpan={2} editorOptions={{ readOnly: true }} />
-          </Column>
-          <Column dataField="HoTen" caption="Họ tên">
-            <FormItem
-              colSpan={2}
-              editorOptions={{ readOnly: true }}
-              width={200}
-            />
-          </Column>
-          <Column dataField="SoDienThoai" caption="Số điện thoại" width={100}>
-            <FormItem colSpan={2} editorOptions={{ readOnly: true }} />
-          </Column>
-          <Column dataField="Email" caption="Email" width={200}>
-            <FormItem colSpan={2} editorOptions={{ readOnly: true }} />
-          </Column>
-          <Column dataField="DiaChi" caption="Địa chỉ" visible={false}>
-            <FormItem colSpan={2} editorOptions={{ readOnly: true }} />
-          </Column>
-          <Column dataField="NoiDung" caption="Nội dung" visible={false}>
-            <FormItem
-              colSpan={2}
-              editorType="dxHtmlEditor"
-              editorOptions={{ readOnly: true }}
-            />
-          </Column>
+          />
+          <Column dataField="HoTen" caption="Họ tên" />
+          <Column dataField="SoDienThoai" caption="Số điện thoại" width={110} />
+          <Column dataField="Email" caption="Email" width={200} />
+          <Column dataField="DiaChi" caption="Địa chỉ" visible={false} />
+          <Column dataField="NoiDung" caption="Nội dung" visible={false} />
           <Pager allowedPageSizes={[20, 50, 100]} showPageSizeSelector={true} />
           <Paging defaultPageSize={20} />
         </DataGrid>
+        <GopYChiTietPopup ref={chiTietPopupRef} />
       </div>
       <div className="card-footer"></div>
     </div>

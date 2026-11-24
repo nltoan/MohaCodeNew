@@ -8,7 +8,9 @@ import DataGrid, {
   Lookup,
   Form,
   FilterRow, HeaderFilter,
+  CustomRule,
 } from 'devextreme-react/data-grid';
+import { useRef } from 'react';
 import { Item } from 'devextreme-react/form';
 import { createCustomStore, createLookupStore } from '../utils/api';
 
@@ -23,7 +25,45 @@ const dataSourceOptions = createCustomStore(
 );
 const dataSourceRoleOptions = createLookupStore("Roles");
 
+const TRANG_THAI_ITEMS = [
+  { Val: "active", Name: "Kích hoạt" },
+  { Val: "locked", Name: "Đã khóa" },
+  { Val: "inactive", Name: "Chưa kích hoạt" },
+];
+
+// Du lieu cu luu trang thai dang "True"/"False" (o checkbox truoc day); API coi "true" la dang hoat dong.
+function trangThaiValue(row) {
+  const v = row && row.TrangThai;
+  if (typeof v !== "string") return v;
+  const s = v.trim().toLowerCase();
+  if (s === "true") return "active";
+  if (s === "false") return "inactive";
+  return s;
+}
+
+const PASSWORD_HELP =
+  "Từ 12 đến 255 ký tự. Khi sửa tài khoản, để trống nếu không muốn đổi mật khẩu. " +
+  "Mật khẩu do quản trị đặt chỉ dùng cho vài lần đăng nhập đầu, sau đó người dùng phải tự đổi mật khẩu và bật xác thực hai lớp.";
+
+function onInitNewRow(e) {
+  e.data.TrangThai = "active";
+}
+
 export default function User_Account() {
+  // Tên đăng nhập: nhập khi tạo mới, chỉ xem khi sửa tài khoản đã có.
+  const isNewRowRef = useRef(false);
+
+  const onEditorPreparing = (e) => {
+    if (e.parentType !== "dataRow") return;
+    if (e.dataField === "TenTruyCap") {
+      isNewRowRef.current = !!(e.row && e.row.isNewRow);
+      e.editorOptions.readOnly = !isNewRowRef.current;
+    }
+  };
+
+  const validateTenTruyCap = (o) =>
+    !isNewRowRef.current || (typeof o.value === "string" && o.value.trim() !== "");
+
   return (
     <div className="card">
       <div className="card-header">
@@ -56,6 +96,8 @@ export default function User_Account() {
           rowAlternationEnabled={true}
           showBorders={true}
           height="calc(100vh - 190px)"
+          onInitNewRow={onInitNewRow}
+          onEditorPreparing={onEditorPreparing}
         >
           <FilterRow visible={true} />
           <HeaderFilter visible={true} />
@@ -70,13 +112,20 @@ export default function User_Account() {
             <Popup title="Thông tin" showTitle={true} />
             <Form>
               <Item dataField="TenDangKy" />
-              <Item dataField="TenTruyCap" disabled={true} />
-              <Item dataField="MatKhau" editorOptions={{ mode: "password" }} />
+              <Item
+                dataField="TenTruyCap"
+                helpText="Bắt buộc khi tạo tài khoản mới; không sửa được sau khi đã tạo."
+              />
+              <Item
+                dataField="MatKhau"
+                editorOptions={{ mode: "password" }}
+                helpText={PASSWORD_HELP}
+              />
               <Item dataField="DiaChi" />
               <Item dataField="SoDienThoai" />
               <Item dataField="EmailAddress" />
               <Item dataField="SoCMND" />
-              <Item dataField="TrangThai" editorType="dxCheckBox" />
+              <Item dataField="TrangThai" />
               <Item dataField="PasswordQuestion" visible={false} />
               <Item dataField="PasswordAnswer" visible={false} />
               <Item dataField="IDDVC_DonViDangKy" visible={false} />
@@ -95,7 +144,12 @@ export default function User_Account() {
             dataField="TenTruyCap"
             dataType="string"
             caption="Tên đăng nhập"
-          />
+          >
+            <CustomRule
+              message="Vui lòng nhập tên đăng nhập"
+              validationCallback={validateTenTruyCap}
+            />
+          </Column>
           <Column
             dataField="MatKhau"
             dataType="string"
@@ -110,15 +164,14 @@ export default function User_Account() {
           />
           <Column dataField="EmailAddress" dataType="string" caption="Email" />
           <Column dataField="SoCMND" dataType="string" caption="Số CMND" />
-          <Column dataField="TrangThai" dataType="string" caption="Trạng thái">
+          <Column
+            dataField="TrangThai"
+            dataType="string"
+            caption="Trạng thái"
+            calculateCellValue={trangThaiValue}
+          >
             <Lookup
-              allowClearing={true}
-              searchEnabled={true}
-              dataSource={[
-                { Val: "locked", Name: "Đã khóa" },
-                { Val: "inactive", Name: "Chưa kích hoạt" },
-                { Val: "active", Name: "Kích hoạt" },
-              ]}
+              dataSource={TRANG_THAI_ITEMS}
               valueExpr="Val"
               displayExpr="Name"
             />

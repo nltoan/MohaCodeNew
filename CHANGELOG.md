@@ -2,6 +2,25 @@
 
 Ghi chú theo từng đợt, chuyển từ DEV-SETUP.md. Hướng dẫn cài đặt và chạy nằm ở DEV-SETUP.md.
 
+## Giao diện admin 24/11: lỗi dữ liệu và bất tiện thường gặp
+
+Sửa sau đợt rà soát giao diện admin (nhóm 1: lỗi làm sai dữ liệu hoặc chặn thao tác; nhóm 2: bất tiện lớn).
+
+- Văn bản: thêm "Văn bản liên quan"/"Văn bản bị tác động" trước đây ghi `VanBanID` rỗng (`rowDataRef.current.id` thay vì `.ID`); nay gắn đúng văn bản và chặn khi chưa lưu. Trên production nên kiểm tra dữ liệu cũ bằng câu chỉ đọc: `SELECT COUNT(*) FROM VanBan_LienQuan x WHERE NOT EXISTS (SELECT 1 FROM VanBan v WHERE v.ID = x.VanBanID)` (tương tự với `VanBan_BiTacDong`). Văn bản/dự thảo mới mặc định Tiếng Việt nên các ô Lĩnh vực, Cơ quan ban hành, Loại văn bản có dữ liệu. Hiện cột Loại văn bản, Cơ quan ban hành (lọc theo cơ quan qua tham số `CoQuanBanHanhID` của `VanBans/Get`), nút chọn cột; ô chọn văn bản liên quan hiện số ký hiệu – trích yếu – ngày.
+- Dự thảo: kiểm tra ngày hết hạn ≥ ngày bắt đầu, cột "Tình trạng lấy ý kiến". Góp ý dự thảo: bỏ Thêm/Sửa (vốn chỉ đọc), có "Xem chi tiết". Phản ánh kiến nghị: cột "Đã trả lời" (API trả `DaTraLoi`), câu chưa trả lời lên đầu, popup toàn màn hình, thông tin người gửi chỉ đọc.
+- Xuất Excel (CSV UTF-8, `backend/src/utils/exportCsv.js`, không thêm thư viện): văn bản, góp ý dự thảo, phản ánh kiến nghị.
+- Tin tức: hỏi trước khi đóng form có thay đổi chưa lưu (X, Esc, Hủy) và khi đóng tab; nháp cục bộ mỗi 30 giây; nút "Lưu và tiếp tục", "Lưu và gửi duyệt"; cột "Bước hiện tại / Người xử lý" (API `TinTucs/Get`), trạng thái có màu; thao tác quy trình gom vào nút "Thao tác"; popup duyệt bắt buộc lý do khi trả về, có "Xem toàn văn"; hộp xác nhận xuất bản/gỡ nêu tên tin; ô "Tin liên quan" phân trang phía máy chủ.
+- Tài khoản: nhập được tên đăng nhập khi tạo mới (API chặn tên trùng hoặc rỗng, `User_AccountController.CheckLoginName`); "Trạng thái" là danh sách Kích hoạt/Đã khóa/Chưa kích hoạt thay cho checkbox.
+- Cơ cấu tổ chức: không còn tạo đơn vị con không tên; sửa được "Chức năng nhiệm vụ". Cấu hình bố cục: báo lỗi khi lưu thất bại, hỏi trước khi bỏ thay đổi, khối mới kéo vào cấu hình được. Sao lưu: khóa nút khi đang chạy, hỏi xác nhận.
+- Phiên đăng nhập: hết hạn hoặc bị thu hồi thì về `/Login?url=…` và quay lại đúng trang sau khi đăng nhập (chỉ nhận đường dẫn nội bộ); cảnh báo 5 phút trước khi hết hạn (`SessionWatcher`). Hồ sơ: chỉ đăng xuất khi đổi mật khẩu hoặc bật/tắt 2FA. Màn đăng nhập tiếng Việt (test dùng nút "Đăng nhập").
+- Menu: tô sáng trang đang mở, tự mở nhóm chứa nó, tự đóng trên màn hình hẹp; tiêu đề trang, breadcrumb và `document.title` theo route.
+- Media: lỗi tải lên (kể cả 401) báo tiếng Việt; báo trước định dạng và dung lượng; ảnh xem trước chỉ đổi khi tải xong; chặn Lưu khi còn file đang tải; "Chọn từ thư viện" (`MediaLibraryPicker`); danh sách file album lấy đường dẫn từ API (`FileLinkLuuTru`), không gọi từng dòng.
+- Tab đính kèm của bản ghi mới (văn bản, tin, album, thông báo) hiện kèm hướng dẫn "lưu trước", sau lần lưu đầu tự chuyển sang tab đó.
+- "Chọn từ thư viện" dùng được cho mọi ảnh trong thư viện: API mới `FileManager/FileFromLibrary?path=/Upload/...` (POST, cùng quyền với upload) trả về dòng `Files` sẵn có hoặc tạo dòng mới; chỉ nhận file có thật trong `~/Upload` (không nhận `Thumb/`, `..`, đuôi ngoài danh sách cho phép), không ghi hay chép file. Đường dẫn đi qua query string vì `MediaUploadValidation` đọc `Request.Form`.
+- Lỗi JS "Cannot read properties of undefined (reading 'document')" của CKEditor khi đóng/mở lại form tin: DevExtreme vẽ lại popup làm iframe của editor nạp lại sau khi editor đã bị hủy. Vá một điều kiện trong `backend/public/ckeditor/ckeditor.js` (wysiwygarea `onDomReady`: bỏ qua khi cửa sổ iframe không còn; tìm `a&&a.document`). Nếu thay file CKEditor bằng bản khác thì phải vá lại. `CKEditorWrapper` chỉ tạo editor khi khung đã gắn vào trang, và thoát chế độ toàn màn hình trả khung về đúng kích thước cũ (trước đây bị co lại).
+- Tiêu đề popup tải ảnh/video của trình soạn thảo HTML bằng tiếng Việt.
+- API dev chạy từ bản sao `.dev\api`; `Dev.ps1 -Action Start` chỉ chép `api\bin` khi API chưa chạy. Sau khi build lại API trong lúc dev đang chạy, chép `api\bin` sang `.dev\api\bin` (hoặc Stop/Start) trước khi chạy test API.
+
 ## Rà soát bảo mật 23/11: biểu mẫu góp ý, đăng nhập, CSP admin
 
 - Góp ý dự thảo (`Public/SendCommentVBDT`): kiểm tra đầu vào trước reCAPTCHA (ID số, bắt buộc họ tên và nội dung, độ dài theo cột DB, email). Đầu vào sai trả 400 tiếng Việt thay vì 500. `ReCaptchaValidator` có timeout 10 giây; khi không gọi được Google, API trả 503 "Không kiểm tra được mã xác thực…". Portal hiện thông báo của máy chủ.

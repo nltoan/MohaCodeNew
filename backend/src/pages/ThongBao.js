@@ -17,7 +17,7 @@ import config from '../config';
 import {
   TabbedItem, Tab, Item
 } from 'devextreme-react/form';
-import { createCustomStore, createLookupStore } from '../utils/api';
+import { createCustomStore, createLookupStore, notify } from '../utils/api';
 import MyFileFileUploader from '../components/MyFileFileUploader';
 import 'devextreme/ui/html_editor/converters/markdown';
 
@@ -28,6 +28,7 @@ const dataSourceFileOptions = createLookupStore({
 
 export default function ThongBao() {
   const rowDataRef = useRef();
+  const openAttachmentsRef = useRef(false);
   return (
     <div className="card">
       <div className="card-header">
@@ -60,6 +61,7 @@ export default function ThongBao() {
           height="calc(100vh - 190px)"
           onInitNewRow={(e) => {
             rowDataRef.current = null;
+            openAttachmentsRef.current = false;
             e.data.NgayDang = new Date();
             e.data.TenFileHienThi = "Bấm vào đây để tải về";
           }}
@@ -67,6 +69,9 @@ export default function ThongBao() {
             rowDataRef.current = e.data;
           }}
           onRowInserted={(e) => {
+            // Mo lai ban ghi vua luu va chuyen sang tab tep dinh kem.
+            openAttachmentsRef.current = true;
+            notify("Đã lưu. Bạn có thể đính kèm tệp ở tab Tệp đính kèm.");
             e.component.navigateToRow(e.key).done(function () {
               var rowindex = e.component.getRowIndexByKey(e.key);
               e.component.editRow(rowindex);
@@ -86,7 +91,14 @@ export default function ThongBao() {
             <Popup title="Thông báo" showTitle={true} />
             <Form
               onInitialized={(e) => {
-                e.component.option("items[0].tabs[1].visible", !!rowDataRef.current);
+                const isExisting = !!rowDataRef.current;
+                // tabs[1]: thong bao cho ban ghi moi; tabs[2]: danh sach tep dinh kem that.
+                e.component.option("items[0].tabs[1].visible", !isExisting);
+                e.component.option("items[0].tabs[2].visible", isExisting);
+                if (isExisting && openAttachmentsRef.current) {
+                  e.component.option("items[0].tabPanelOptions", { selectedIndex: 2 });
+                }
+                openAttachmentsRef.current = false;
               }}
             >
               <TabbedItem colSpan={2}>
@@ -99,7 +111,17 @@ export default function ThongBao() {
                   <Item dataField="HienThiTrangChu" />
                   <Item dataField="TenFileHienThi" />
                 </Tab>
-                <Tab title="Danh sách file đính kèm">
+                <Tab title="Tệp đính kèm">
+                  <Item
+                    render={() => (
+                      <div className="text-muted p-3">
+                        <i className="fas fa-info-circle mr-2" />
+                        Lưu thông tin chung trước để đính kèm tệp.
+                      </div>
+                    )}
+                  />
+                </Tab>
+                <Tab title="Tệp đính kèm">
                   <DataGrid
                     onInitialized={(e) => {
                       setTimeout(function () {

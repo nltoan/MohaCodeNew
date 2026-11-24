@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { getUser, signIn as sendSignInRequest } from "../api/auth";
-import { clearToken, getToken } from "../utils/token";
+import { clearToken, getToken, safeReturnUrl } from "../utils/token";
 
 function AuthProvider(props) {
   const [user, setUser] = useState();
@@ -26,14 +26,28 @@ function AuthProvider(props) {
     locale(lng);
   }, []);
 
-  const signIn = useCallback(async (email, password, code, type) => {
+  // returnUrl: trang can quay lai sau khi dang nhap (?url= tren trang dang nhap); chi nhan duong dan cung nguon.
+  const signIn = useCallback(async (email, password, code, type, returnUrl) => {
     const result = await sendSignInRequest(email, password, code, type);
     if (result.isOk) {
       setUser(result.data);
-      navigate(result.setupRequired ? "/Profile" : "/");
+      navigate(result.setupRequired ? "/Profile" : safeReturnUrl(returnUrl) || "/", { replace: true });
     }
 
     return result;
+  }, []);
+
+  // Cap nhat thong tin nguoi dung dang dang nhap (state + localStorage) sau khi tu sua ho so.
+  const updateUser = useCallback((changes) => {
+    setUser((prev) => {
+      const next = { ...(prev || {}), ...changes };
+      try {
+        localStorage.setItem("user", JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
   }, []);
 
   const signOut = useCallback(() => {
@@ -78,6 +92,7 @@ function AuthProvider(props) {
         language,
         signIn,
         signOut,
+        updateUser,
         changeLanguage,
         loading,
         setLoading,

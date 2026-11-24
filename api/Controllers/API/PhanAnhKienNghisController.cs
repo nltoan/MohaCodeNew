@@ -41,7 +41,9 @@ namespace API.Controllers
                 i.LuotXem,
                 i.HienThiLuotXem,
                 i.NoiDungCauHoi,
-                i.NoiDungCauTraLoi
+                i.NoiDungCauTraLoi,
+                // Cot tinh san de luoi quan tri loc/sap xep "Da tra loi" (ca khi xuat Excel qua server).
+                DaTraLoi = i.NoiDungCauTraLoi != null && i.NoiDungCauTraLoi.Trim() != ""
             });
 
             return Request.CreateResponse(await DataSourceLoader.LoadAsync(source, loadOptions));

@@ -4,21 +4,22 @@ import LayoutAdmin from './layouts/LayoutAdmin';
 import LayoutAdminWithoutAside from './layouts/LayoutAdminWithoutAside';
 import DiffPage from './pages/DiffPage';
 import FilePicker from './pages/FilePicker';
+import SessionWatcher from './components/SessionWatcher';
+import { safeReturnUrl } from './utils/token';
 
 // A logged-in user must never see the login form inside the admin shell: send them on
 // to the page they were heading to (?url=, same-origin paths only) or the dashboard.
 function LoginRedirect() {
   const [searchParams] = useSearchParams();
-  const url = searchParams.get('url');
-  const target =
-    url && url.startsWith('/') && !url.startsWith('//') && !url.startsWith('/Login')
-      ? url
-      : '/';
+  const target = safeReturnUrl(searchParams.get('url')) || '/';
   return <Navigate to={target} replace />;
 }
 
 export default function AuthenticatedContent() {
   return (
+    <>
+    {/* Canh bao sap het phien / bao phien da ket thuc (mount 1 lan cho moi trang da dang nhap). */}
+    <SessionWatcher />
     <Routes>
       <Route element={<LayoutAdmin />}>
         {routes.map(({ path, element }) => (
@@ -40,5 +41,6 @@ export default function AuthenticatedContent() {
       <Route path="/Login" element={<LoginRedirect />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
+    </>
   );
 }

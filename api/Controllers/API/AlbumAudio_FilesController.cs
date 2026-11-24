@@ -30,7 +30,9 @@ namespace API.Controllers
                 i.ID,
                 i.AlbumID,
                 i.FileID,
-                i.File
+                // Tra san ten/duong dan file (thay vi ca thuc the File) de danh sach album khong phai tra cuu tung dong.
+                FileTen = i.File.Ten,
+                FileLinkLuuTru = i.File.LinkLuuTru
             });
 
             // If underlying data is a large SQL table, specify PrimaryKey and PaginateViaPrimaryKey.

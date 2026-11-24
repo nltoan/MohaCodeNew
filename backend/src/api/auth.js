@@ -33,9 +33,13 @@ export async function signIn(email, password, code, type) {
         // Khoa theo ten dang nhap/UserID sau nhieu lan sai
         'Vui lòng thử lại sau 15 phút.',
       ]);
+      // Thong bao chung cua server (khong lo tai khoan nao ton tai) -> viet lai cho de hieu.
+      const visibleMessage = data.error_description === 'Username hay mật khẩu không đúng!'
+        ? 'Tên đăng nhập hoặc mật khẩu không đúng!'
+        : visibleErrors.has(data.error_description) ? data.error_description : 'Đăng nhập không thành công!';
       Notify(
         {
-          message: visibleErrors.has(data.error_description) ? data.error_description : 'Đăng nhập không thành công!',
+          message: visibleMessage,
           height: 45,
           width: 150,
           minWidth: 150,
@@ -48,7 +52,7 @@ export async function signIn(email, password, code, type) {
       );
       return {
         isOk: false,
-        message: data.error_description,
+        message: visibleMessage,
       };
     }
     setToken(data.access_token, data.expires_in);
@@ -61,7 +65,7 @@ export async function signIn(email, password, code, type) {
     if (!userResp?.data?.length) {
       return {
         isOk: false,
-        message: "Authentication failed",
+        message: "Không lấy được thông tin tài khoản. Vui lòng thử lại.",
       };
     }
     localStorage.setItem("user", JSON.stringify(userResp.data[0]));
@@ -74,7 +78,7 @@ export async function signIn(email, password, code, type) {
     console.error(ex);
     return {
       isOk: false,
-      message: "Authentication failed",
+      message: "Đăng nhập không thành công! Vui lòng kiểm tra kết nối và thử lại.",
     };
   }
 }

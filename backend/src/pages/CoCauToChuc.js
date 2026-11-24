@@ -163,8 +163,19 @@ export default function CoCauToChuc() {
                   <Item dataField="Website" />
                   <Item dataField="Phone" />
                   <Item dataField="DiaChi" colSpan={2} />
-                  {/* <Item dataField="SoThuTu" /> */}
+                  <Item
+                    dataField="SoThuTu"
+                    editorType="dxNumberBox"
+                    editorOptions={{ min: 0, showSpinButtons: true }}
+                    helpText="Số nhỏ hiển thị trước."
+                  />
                   <Item dataField="HienThi" isRequired={true} />
+                  <Item
+                    dataField="ChucNangNhiemVu"
+                    colSpan={2}
+                    editorType="dxHtmlEditor"
+                    editorOptions={config.htmlEditorLargeOptions}
+                  />
                 </Tab>
                 <Tab title="Danh sách lãnh đạo">
                   <DataGrid
@@ -279,16 +290,10 @@ export default function CoCauToChuc() {
                         e.component.option("dataSource", tmpDs);
                       }, 0);
                     }}
-                    onRowInserted={(e) => {
-                      e.component.refresh();
-                    }}
                     allowColumnResizing={true}
                     allowColumnReordering={true}
                     rowAlternationEnabled={true}
                     showBorders={true}
-                    onInitNewRow={(e) => {
-                      e.data.IDDVCha = rowDataRef.current.ID;
-                    }}
                   >
                     <DataGridFilterRow visible={true} />
                     <DataGridHeaderFilter visible={true} />
@@ -296,11 +301,13 @@ export default function CoCauToChuc() {
                       visible={true}
                       highlightCaseSensitive={true}
                     />
+                    {/* Them don vi truc thuoc tu cay chinh (nut "+" tren dong don vi cha) de nhap day du ten, ngon ngu, hien thi.
+                        O day chi sua so thu tu hoac xoa. */}
                     <DataGridEditing
                       mode="popup"
                       useIcons={true}
                       allowUpdating={true}
-                      allowAdding={true}
+                      allowAdding={false}
                       allowDeleting={true}
                     >
                       <DataGridPopup

@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
-import FileManager, { Item, Permissions, ContextMenu } from 'devextreme-react/file-manager';
+import FileManager, { Item, Permissions, ContextMenu, Upload } from 'devextreme-react/file-manager';
 import Notify from 'devextreme/ui/notify';
 import { Popup } from 'devextreme-react/popup';
 import Plyr from "plyr-react"
@@ -8,6 +8,7 @@ import "plyr-react/plyr.css"
 import config from '../config';
 import { createLookupStore, pathFile } from '../utils/api';
 import { Button } from 'devextreme-react';
+import { CHUNKED_MAX_MB, FILE_MANAGER_UPLOAD_HINT, MB, onFileManagerError } from '../utils/upload';
 
 const dataSourceOptions = createLookupStore("ImageSizes");
 // Plyr mac dinh tai icon/video rong tu cdn.plyr.io (CSP chan): dung ban tu host trong public/.
@@ -120,6 +121,7 @@ export default function MediaFileManager() {
           <Button onClick={() => setImageResize(false)}>Đồng ý</Button>
           <Button onClick={() => setImageResize(false)}> Hủy</Button>
         </Popup>
+        <p className="text-muted mb-2"><small>{FILE_MANAGER_UPLOAD_HINT}</small></p>
         <FileManager
           currentPath={currentPath}
           onContextMenuItemClick={onContextMenuItemClick}
@@ -132,7 +134,10 @@ export default function MediaFileManager() {
           fileSystemProvider={config.remoteProvider}
           onSelectedFileOpened={displayImagePopup}
           onCurrentDirectoryChanged={onCurrentDirectoryChanged}
+          onErrorOccurred={onFileManagerError}
         >
+          {/* API (FileManager/FileSystem UploadChunk) tu choi file lon hon 80 MB. */}
+          <Upload maxFileSize={CHUNKED_MAX_MB * MB} />
           <Permissions
             create={true}
             copy={true}

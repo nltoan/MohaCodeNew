@@ -1,7 +1,7 @@
 import DataSource from "devextreme/data/data_source";
 import Notify from "devextreme/ui/notify";
 import { createStore } from "devextreme-aspnet-data-nojquery";
-import { getToken, clearToken } from "./token";
+import { getToken, clearToken, loginUrlForCurrentPage } from "./token";
 
 
 export function notify(message, type = "success") {
@@ -91,13 +91,14 @@ export function onBeforeSend(method, ajaxOptions) {
   };
 }
 
-// 401: phien het han / token sai -> xoa phien va chuyen ve trang dang nhap.
+// 401 (het han, token_revoked do doi mat khau / khoa tai khoan...) -> xoa phien va chuyen ve trang dang nhap,
+// kem ?url= de dang nhap xong quay lai dung trang dang lam.
 export function handleUnauthorized() {
   clearToken();
   localStorage.removeItem("user");
   localStorage.removeItem("setup_required");
-  if (!window.location.pathname.startsWith("/Login")) {
-    window.location.href = "/Login";
+  if (!/^\/login(?:\/|$)/i.test(window.location.pathname)) {
+    window.location.href = loginUrlForCurrentPage("expired");
   }
 }
 

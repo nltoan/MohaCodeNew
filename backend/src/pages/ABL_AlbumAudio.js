@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import DataGrid, {
   Column,
   Pager,
@@ -16,15 +16,12 @@ import {
   TabbedItem, Tab, Item
 } from 'devextreme-react/form';
 import config from '../config';
-import { createCustomStore, createLookupStore } from '../utils/api';
+import { createCustomStore, createLookupStore, notify } from '../utils/api';
 import MyImageFileUploader from '../components/MyImageFileUploader';
 import MyFileFileUploader from '../components/MyFileFileUploader';
 import MediaLookup from '../components/MediaLookup';
 
 const dataSourceABLChuyenMucAlbumOptions = createLookupStore("ABL_ChuyenMucAlbumAudio");
-const dataSourceFileOptions = createLookupStore({
-  loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetLookUp`,
-});
 const dataSourceFileWithPathOptions = createLookupStore({
   loadUrl: `${window.env.REACT_APP_API_URL}/Files/GetFilePath`,
 });
@@ -33,6 +30,15 @@ const dataSourceABL_AlbumAudio = createCustomStore("ABL_AlbumAudio");
 
 export default function ABL_AlbumAudio() {
   const rowDataRef = useRef();
+  // Sau lan luu dau tien (them moi) popup mo lai o che do sua: chuyen thang sang the danh sach file.
+  const openFilesTabRef = useRef(false);
+  const tabPanelOptions = useMemo(() => ({
+    onInitialized: (ev) => {
+      if (!openFilesTabRef.current) return;
+      openFilesTabRef.current = false;
+      setTimeout(() => ev.component.option("selectedIndex", 1), 0);
+    },
+  }), []);
   return (
     <div className="card">
       <div className="card-header">
@@ -72,6 +78,8 @@ export default function ABL_AlbumAudio() {
             rowDataRef.current = e.data;
           }}
           onRowInserted={(e) => {
+            openFilesTabRef.current = true;
+            notify("Đã lưu thông tin chung. Bây giờ bạn có thể thêm file âm thanh vào album.", "info");
             e.component.navigateToRow(e.key).done(function () {
               var rowindex = e.component.getRowIndexByKey(e.key);
               e.component.editRow(rowindex);
@@ -91,10 +99,12 @@ export default function ABL_AlbumAudio() {
             <Popup title="Album Audio" showTitle={true} />
             <Form
               onInitialized={(e) => {
+                // Album chua luu: hien the thay the kem huong dan thay vi an mat the danh sach file.
                 e.component.option("items[0].tabs[1].visible", !!rowDataRef.current);
+                e.component.option("items[0].tabs[2].visible", !rowDataRef.current);
               }}
             >
-              <TabbedItem colSpan={2}>
+              <TabbedItem colSpan={2} tabPanelOptions={tabPanelOptions}>
                 <Tab title="Thông tin chung" colCount={2}>
                   <Item dataField="TieuDe" />
                   <Item dataField="MoTa" />
@@ -114,11 +124,16 @@ export default function ABL_AlbumAudio() {
                           insertUrl: `${window.env.REACT_APP_API_URL}/AlbumAudio_Files/Post`,
                           updateUrl: `${window.env.REACT_APP_API_URL}/AlbumAudio_Files/Put`,
                           deleteUrl: `${window.env.REACT_APP_API_URL}/AlbumAudio_Files/Delete`,
+                          // Thong bao so file da them o onRowInserted thay cho "Thêm mới thành công!".
+                          onInserted: () => {},
                         });
                         e.component.option("dataSource", tmpDs);
                       }, 0);
                     }}
                     onRowInserted={(e) => {
+                      const ids = e.data && e.data.FileID;
+                      const n = Array.isArray(ids) ? ids.length : ids != null ? 1 : 0;
+                      notify(`Đã thêm ${n} file vào album`);
                       e.component.refresh();
                     }}
                     allowColumnResizing={true}
@@ -148,21 +163,15 @@ export default function ABL_AlbumAudio() {
                     <Column
                       dataField="FileID"
                       dataType="string"
-                      caption="Link file"
+                      caption="Chọn file"
+                      visible={false}
+                      showInColumnChooser={false}
                       editCellRender={(cellInfo) => (
-                        <MyFileFileUploader cellInfo={cellInfo} />
+                        <MyFileFileUploader cellInfo={cellInfo} kind="audio" />
                       )}
-                    >
-                      <Lookup
-                        allowClearing={true}
-                        searchEnabled={true}
-                        dataSource={dataSourceFileOptions}
-                        remoteOperations={true}
-                        allowColumnResizing={true}
-                        valueExpr="ID"
-                        displayExpr="Ten"
-                      />
-                    </Column>
+                    />
+                    {/* Ten file tra san tu AlbumAudio_Files/Get: khong tai ca bang Files de hien ten. */}
+                    <Column dataField="FileTen" dataType="string" caption="Tên file" allowEditing={false} />
                     <Column
                       dataField="FileID"
                       name="FileIDPreview"
@@ -174,6 +183,7 @@ export default function ABL_AlbumAudio() {
                       cellRender={(cellInfo) => (
                         <MediaLookup kind="audio"
                           cellInfo={cellInfo}
+                          pathField="FileLinkLuuTru"
                           dataSource={dataSourceFileWithPathOptions}
                           valueExpr="ID"
                           displayExpr="LinkLuuTru"
@@ -181,6 +191,16 @@ export default function ABL_AlbumAudio() {
                       )}
                     />
                   </DataGrid>
+                </Tab>
+                <Tab title="Danh sách file đính kèm">
+                  <Item
+                    itemType="simple"
+                    render={() => (
+                      <div className="alert alert-info mb-0">
+                        Hãy lưu thông tin chung trước để thêm file âm thanh vào album. Sau khi bấm "Lưu", thẻ này sẽ cho phép tải file lên.
+                      </div>
+                    )}
+                  />
                 </Tab>
               </TabbedItem>
             </Form>

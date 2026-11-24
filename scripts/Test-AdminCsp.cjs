@@ -164,7 +164,8 @@ function startMediaServer() {
     async function visit(route, ready) {
       current = route;
       await page.goto(origin + route, { waitUntil: 'domcontentloaded', timeout: 120000 });
-      await page.locator('#root *').first().waitFor({ timeout: 60000 });
+      // Phan tu dau tien hien thi (popup canh bao phien dang an nam o dau #root).
+      await page.locator('#root *:visible').first().waitFor({ timeout: 60000 });
       assert.ok(!page.url().includes('/Login'), `${route}: bi chuyen ve trang dang nhap`);
       if (ready) await ready();
       await page.waitForLoadState('networkidle', { timeout: 30000 }).catch(() => {});

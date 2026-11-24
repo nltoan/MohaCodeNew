@@ -74,7 +74,7 @@ export default function NiemGiamThongKe() {
           </Editing>
 
           <Column dataField="TieuDe" dataType="string" caption="Tiêu đề" />
-          <Column dataField="AnhDaiDien" dataType="string" caption="Ảnh đại diện" cellRender={config.defaultImageCellRender} editCellRender={MyImageUploader} />
+          <Column dataField="AnhDaiDien" dataType="string" caption="Ảnh đại diện" cellRender={config.defaultImageCellRender} editCellRender={(cellInfo) => <MyImageUploader cellInfo={cellInfo} />} />
           <Column dataField="FileDinhKem" dataType="string" caption="FileDinhKem" />
           <Column dataField="TrangThai" dataType="string" caption="Trạng thái">
             <Lookup allowClearing={true} searchEnabled={true} dataSource={[{ Val: 0, Name: "Không hoạt động" }, { Val: 1, Name: "Hoạt động" },]} valueExpr="Val" displayExpr="Name" />

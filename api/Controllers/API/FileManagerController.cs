@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data.Entity;
 using System.Drawing;
 using System.Dynamic;
 using System.IO;
@@ -258,6 +259,56 @@ namespace API.Controllers
             public string FileType { get; set; }
             public string FileGuid { get; set; }
         }
+        // "Chon tu thu vien": tra ve dong Files cua mot file da co trong thu muc ~/Upload (tao dong moi neu chua co),
+        // de cac truong luu ID file dung lai duoc anh/tep da tai len truoc do. Khong ghi hay chep file nao.
+        // Duong dan nhan qua query string: MediaUploadValidation doc Request.Form, khong dung duoc khi Web API da doc body.
+        [HttpPost]
+        public async Task<HttpResponseMessage> FileFromLibrary([FromUri] string path)
+        {
+            var raw = path;
+            if (string.IsNullOrWhiteSpace(raw) || raw.Length > 1000)
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Đường dẫn file không hợp lệ.");
+            string decoded;
+            try { decoded = Uri.UnescapeDataString(raw.Trim()); }
+            catch { return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Đường dẫn file không hợp lệ."); }
+            var link = decoded.Replace('\\', '/');
+            if (!link.StartsWith(UploadURL, StringComparison.OrdinalIgnoreCase) || link.Contains("..") || link.Contains("//") ||
+                link.StartsWith(UploadURL + "Thumb/", StringComparison.OrdinalIgnoreCase))
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Chỉ chọn được file trong thư viện.");
+            var name = System.IO.Path.GetFileName(link);
+            if (!SafeUploadName(name))
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Tên hoặc định dạng file không được phép.");
+
+            var root = System.IO.Path.GetFullPath(HttpContext.Current.Server.MapPath(RelativePath)).TrimEnd('\\') + "\\";
+            var full = System.IO.Path.GetFullPath(System.IO.Path.Combine(root, link.Substring(UploadURL.Length).Replace('/', '\\')));
+            if (!full.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Chỉ chọn được file trong thư viện.");
+            var info = new FileInfo(full);
+            if (!info.Exists)
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Không tìm thấy file trong thư viện.");
+
+            // LinkLuuTru luu duong dan chua ma hoa ("/Upload/abc def.jpg"); chap nhan ca ban da ma hoa tu ban ghi cu.
+            var encoded = raw.Trim();
+            var existing = await _context.Files
+                .Where(f => f.LinkLuuTru == link || f.LinkLuuTru == encoded)
+                .OrderByDescending(f => f.ID)
+                .FirstOrDefaultAsync();
+            if (existing == null)
+            {
+                existing = _context.Files.Add(new Models.File
+                {
+                    Ten = name,
+                    MoTa = name,
+                    NgayTao = DateTime.Now,
+                    LinkLuuTru = link,
+                    KichThuoc = info.Length.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    TrangThai = "active"
+                });
+                await _context.SaveChangesAsync();
+            }
+            return Request.CreateResponse(HttpStatusCode.OK, new { existing.ID, existing.Ten, existing.LinkLuuTru });
+        }
+
         [HttpPost]
         public async Task<HttpResponseMessage> FileUpload()
         {

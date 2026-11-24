@@ -130,7 +130,7 @@ export default function TinTuc_Temp() {
             dataType="string"
             caption="Ảnh đại diện"
             cellRender={config.defaultImageCellRender}
-            editCellRender={MyImageUploader}
+            editCellRender={(cellInfo) => <MyImageUploader cellInfo={cellInfo} />}
           />
           <Column
             dataField="NgayXuatBan"

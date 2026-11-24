@@ -114,6 +114,9 @@ namespace API.Controllers
             Validate(model);
             if (!ModelState.IsValid)
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, GetFullErrorMessage(ModelState));
+            var loginError = await CheckLoginName(model, 0);
+            if (loginError != null)
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, loginError);
 
             var result = _context.User_Account.Add(model);
             await _context.SaveChangesAsync();
@@ -138,6 +141,12 @@ namespace API.Controllers
             Validate(model);
             if (!ModelState.IsValid)
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, GetFullErrorMessage(ModelState));
+            if (values.Contains(nameof(User_Account.TenTruyCap)))
+            {
+                var loginError = await CheckLoginName(model, model.UserID);
+                if (loginError != null)
+                    return Request.CreateErrorResponse(HttpStatusCode.BadRequest, loginError);
+            }
 
             await _context.SaveChangesAsync();
             API.Services.TokenRevocation.Evict(model.UserID);
@@ -158,6 +167,16 @@ namespace API.Controllers
             API.Services.TokenRevocation.Evict(model.UserID);
         }
 
+
+        // Ten dang nhap bat buoc, bo khoang trang dau/cuoi va khong trung voi tai khoan khac (ke ca tai khoan da xoa mem).
+        private async Task<string> CheckLoginName(User_Account model, int currentUserId)
+        {
+            var name = (model.TenTruyCap ?? "").Trim();
+            if (name.Length == 0) return "Vui lòng nhập tên đăng nhập.";
+            model.TenTruyCap = name;
+            var taken = await _context.User_Account.AnyAsync(u => u.UserID != currentUserId && u.TenTruyCap.Trim() == name);
+            return taken ? "Tên đăng nhập \"" + name + "\" đã được dùng cho tài khoản khác." : null;
+        }
 
         private void PopulateModel(User_Account model, IDictionary values)
         {

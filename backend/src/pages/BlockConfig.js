@@ -1,5 +1,5 @@
 import ScrollView from 'devextreme-react/scroll-view';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import DataGrid, {
   Column,
   Paging,
@@ -9,22 +9,41 @@ import DataGrid, {
   FilterRow, HeaderFilter, Button as DataGridButton
 } from 'devextreme-react/data-grid';
 import { Item } from 'devextreme-react/form';
-import { createCustomStore, createLookupStore } from '../utils/api';
+import { createCustomStore, createLookupStore, notify } from '../utils/api';
+import { confirmDiscard, setBeforeUnload } from '../utils/unsaved';
 import LayoutBuilder from '../components/LayoutBuilder';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from "react-dnd-html5-backend";
 import "./styles.css"
-import { Button, Popup } from 'devextreme-react';
+import { Popup } from 'devextreme-react';
 
 const dataSourceOptions = createCustomStore("BlockConfigs");
 const dataSourceBlocksOptions = createLookupStore("Blocks");
 
+function parseLayout(code) {
+  if (!code) return [];
+  try {
+    const parsed = JSON.parse(code);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    notify("Dữ liệu bố cục hiện tại không đọc được, bố cục sẽ bắt đầu trống.", "warning");
+    return [];
+  }
+}
+
 export default function BlockConfig() {
-  const [popupVisible, setPopupVisible] = useState();
-  const [initialData, setInitialData] = useState();
+  const [popupVisible, setPopupVisible] = useState(false);
+  const [initialLayout, setInitialLayout] = useState();
   const [item, setItem] = useState();
   const [layout, setLayout] = useState();
-  const [sidebars, setSidebars] = useState();
+  const [sidebars, setSidebars] = useState([]);
+  const [openSeq, setOpenSeq] = useState(0);
+  const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  // Ban JSON cua bo cuc khi mo popup, de biet co thay doi chua luu hay khong.
+  const baselineRef = useRef("[]");
+  const dirtyRef = useRef(false);
+  const allowCloseRef = useRef(false);
 
   useEffect(() => {
     dataSourceBlocksOptions.load().then((data) => {
@@ -35,39 +54,78 @@ export default function BlockConfig() {
           Title: x.Title,
           Code: x.Code,
           Path: x.Path,
+          Config: x.Config,
         };
       });
       setSidebars(sidebars);
     });
   }, []);
+  // Bo cuc ban dau chi tinh lai khi doi ban ghi; danh sach khoi (sidebars) tai xong sau
+  // khong duoc lam mat nhung gi nguoi dung dang sua.
   useEffect(() => {
-    if (!item || !item.Code) {
-      setInitialData({
-        layout: [],
-        sidebars: sidebars,
-      });
+    const tmpLayout = item ? parseLayout(item.Code) : [];
+    baselineRef.current = JSON.stringify(tmpLayout);
+    dirtyRef.current = false;
+    setIsDirty(false);
+    setInitialLayout(tmpLayout);
+  }, [item]);
+  const initialData = useMemo(
+    () => (initialLayout ? { layout: initialLayout, sidebars: sidebars || [] } : undefined),
+    [initialLayout, sidebars],
+  );
+
+  useEffect(() => {
+    setBeforeUnload(popupVisible && isDirty);
+  }, [popupVisible, isDirty]);
+  useEffect(() => () => setBeforeUnload(false), []);
+
+  const handleChangeLayout = (newLayout) => {
+    setLayout(newLayout);
+    const dirty = JSON.stringify(newLayout || []) !== baselineRef.current;
+    dirtyRef.current = dirty;
+    setIsDirty(dirty);
+  };
+
+  const closePopup = () => {
+    allowCloseRef.current = true;
+    setPopupVisible(false);
+  };
+
+  const requestClose = () => {
+    if (!dirtyRef.current) {
+      closePopup();
       return;
     }
-    let tmpLayout = JSON.parse(item.Code);
-    setInitialData({
-      layout: tmpLayout,
-      sidebars: sidebars,
+    confirmDiscard().then((ok) => {
+      if (ok) closePopup();
     });
-  }, [item]);
-  const handleUpdateLayout = (event) => {
+  };
+
+  const handleUpdateLayout = () => {
+    if (!item || isSaving) return;
+    setIsSaving(true);
+    const code = JSON.stringify(layout || []);
     dataSourceOptions
       .store()
-      .update(item.ID, { Code: JSON.stringify(layout) })
+      .update(item.ID, { Code: code })
       .then(
-        (dataObj) => {
+        () => {
+          setIsSaving(false);
+          dirtyRef.current = false;
+          setIsDirty(false);
+          // Mo lai ngay (truoc khi luoi tai xong) van thay bo cuc vua luu.
+          setItem((prev) => (prev && prev.ID === item.ID ? { ...prev, Code: code } : prev));
           dataSourceOptions.reload();
-          setPopupVisible(false);
+          closePopup();
         },
         (error) => {
-          /* ... */
+          setIsSaving(false);
+          const detail = error && error.message ? ` ${error.message}` : "";
+          notify(`Lưu bố cục thất bại.${detail}`, "error");
         },
       );
   };
+
   return (
     <>
       <div className="card">
@@ -99,21 +157,54 @@ export default function BlockConfig() {
               fullScreen={true}
               visible={popupVisible}
               dragEnabled={false}
-              hideOnOutsideClick={true}
+              hideOnOutsideClick={false}
               showCloseButton={true}
+              onHiding={(e) => {
+                if (allowCloseRef.current || !dirtyRef.current) return;
+                e.cancel = true;
+                confirmDiscard().then((ok) => {
+                  if (ok) closePopup();
+                });
+              }}
               onHidden={() => {
+                allowCloseRef.current = false;
                 setPopupVisible(false);
+                setBeforeUnload(false);
               }}
               showTitle={true}
-              title="Cấu hình layout"
+              title={`Cấu hình bố cục: ${item.Title || ""}${isDirty ? " (chưa lưu)" : ""}`}
+              toolbarItems={[
+                {
+                  widget: "dxButton",
+                  toolbar: "bottom",
+                  location: "after",
+                  options: {
+                    text: isSaving ? "Đang lưu…" : "Lưu",
+                    type: "success",
+                    icon: "save",
+                    disabled: isSaving,
+                    onClick: handleUpdateLayout,
+                  },
+                },
+                {
+                  widget: "dxButton",
+                  toolbar: "bottom",
+                  location: "after",
+                  options: {
+                    text: "Hủy",
+                    disabled: isSaving,
+                    onClick: requestClose,
+                  },
+                },
+              ]}
             >
               <ScrollView width="100%" height="100%">
-                <Button onClick={handleUpdateLayout}>Lưu</Button>
-                <h3>Hệ thống tính theo grid, 1 trang được chia thành 12 cột</h3>
+                <h3>Hệ thống tính theo lưới: 1 trang được chia thành 12 cột</h3>
                 <DndProvider backend={HTML5Backend}>
                   <LayoutBuilder
+                    key={`${item.ID}-${openSeq}`}
                     initialData={initialData}
-                    onChangeLayout={(layout) => setLayout(layout)}
+                    onChangeLayout={handleChangeLayout}
                   />
                 </DndProvider>
               </ScrollView>
@@ -142,7 +233,13 @@ export default function BlockConfig() {
               <Form>
                 <Item dataField="Title" colSpan={2} />
                 <Item dataField="Description" colSpan={2} />
-                <Item dataField="Code" colSpan="2" editorType="dxTextArea" />
+                <Item
+                  dataField="Code"
+                  colSpan={2}
+                  editorType="dxTextArea"
+                  editorOptions={{ readOnly: true, height: 120 }}
+                  helpText="Chỉ xem. Dùng nút Cấu hình bố cục trên dòng để sửa."
+                />
               </Form>
             </Editing>
             <Column
@@ -156,15 +253,18 @@ export default function BlockConfig() {
             <Column
               dataField="Code"
               dataType="string"
-              caption="Code"
+              caption="Mã bố cục"
               visible={false}
             />
             <Column type="buttons">
+              <DataGridButton name="edit" />
               <DataGridButton
-                hint="Cấu hình"
+                hint="Cấu hình bố cục"
                 icon="copy"
-                onClick={(item) => {
-                  setItem(item.row.data);
+                onClick={(e) => {
+                  allowCloseRef.current = false;
+                  setOpenSeq((n) => n + 1);
+                  setItem(e.row.data);
                   setPopupVisible(true);
                 }}
               />

@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import DataGrid, {
   Column,
   Pager,
@@ -8,21 +9,30 @@ import DataGrid, {
   Lookup,
   Form,
   FormItem,
-  FilterRow, 
+  FilterRow,
   HeaderFilter,
   RequiredRule,
-  EmailRule
+  CustomRule,
+  EmailRule,
+  Toolbar,
+  Item as GridToolbarItem,
 } from 'devextreme-react/data-grid';
 import { Item } from 'devextreme-react/form';
 import config from '../config';
 import { createCustomStore, createLookupStore } from '../utils/api';
+import { exportButtonOptions } from '../utils/exportCsv';
 import 'devextreme/ui/html_editor/converters/markdown';
 
 const dataSourceOptions = createCustomStore("PhanAnhKienNghis");
 const dataSourceLinhVucOptions = createLookupStore("PhanAnhKienNghi_LinhVucs");
 const dataSourceCoQuanOptions = createLookupStore("PhanAnhKienNghi_CoQuans");
 
+// Thong tin do nguoi gui nhap tu portal / he thong ghi nhan: chi xem khi tra loi (van nhap duoc khi them moi).
+const READ_ONLY_WHEN_EDITING = ["TenNguoiGui", "Email", "SoDienThoai", "IPNguoiGui", "NgayHoi", "LuotXem"];
+
 export default function PhanAnhKienNghi() {
+  const dataGridRef = useRef(null);
+
   return (
     <div className="card">
       <div className="card-header">
@@ -48,15 +58,44 @@ export default function PhanAnhKienNghi() {
       </div>
       <div className="card-body">
         <DataGrid
+          ref={dataGridRef}
           dataSource={dataSourceOptions}
           allowColumnReordering={true}
+          allowColumnResizing={true}
           rowAlternationEnabled={true}
           showBorders={true}
+          wordWrapEnabled={true}
           height="calc(100vh - 190px)"
+          onEditorPreparing={(e) => {
+            if (
+              e.parentType === "dataRow" &&
+              READ_ONLY_WHEN_EDITING.indexOf(e.dataField) >= 0 &&
+              e.row &&
+              !e.row.isNewRow
+            ) {
+              e.editorOptions.readOnly = true;
+            }
+          }}
         >
           <FilterRow visible={true} />
           <HeaderFilter visible={true} />
-          <SearchPanel visible={true} highlightCaseSensitive={true} />
+          <SearchPanel
+            visible={true}
+            width={260}
+            placeholder="Tìm tên câu hỏi..."
+          />
+          <Toolbar>
+            <GridToolbarItem name="addRowButton" />
+            <GridToolbarItem
+              location="after"
+              widget="dxButton"
+              options={exportButtonOptions(
+                () => dataGridRef.current.instance,
+                "phan-anh-kien-nghi",
+              )}
+            />
+            <GridToolbarItem name="searchPanel" />
+          </Toolbar>
           <Editing
             mode="popup"
             useIcons={true}
@@ -64,7 +103,11 @@ export default function PhanAnhKienNghi() {
             allowAdding={true}
             allowDeleting={true}
           >
-            <Popup title="Trả lời phản án, kiến nghị" showTitle={true} />
+            <Popup
+              title="Trả lời phản ánh, kiến nghị"
+              showTitle={true}
+              fullScreen={true}
+            />
             <Form>
               <Item dataField="TenCauHoi" colSpan={2} />
               <Item dataField="TenNguoiGui" colSpan={2} />
@@ -84,18 +127,62 @@ export default function PhanAnhKienNghi() {
           <Column
             dataField="ID"
             caption="ID"
-            defaultSortOrder={"desc"}
             width={70}
           />
           <Column dataField="TenCauHoi" caption="Tên câu hỏi">
-            <RequiredRule />
+            <RequiredRule message="Hãy nhập tên câu hỏi" />
+          </Column>
+          <Column
+            dataField="NgayHoi"
+            dataType="date"
+            format={"dd/MM/yyyy"}
+            caption="Ngày gửi"
+            width={100}
+            sortIndex={1}
+            sortOrder={"desc"}
+          />
+          <Column
+            dataField="DaTraLoi"
+            caption="Đã trả lời"
+            dataType="boolean"
+            width={110}
+            trueText="Đã trả lời"
+            falseText="Chưa trả lời"
+            allowEditing={false}
+            allowSearch={false}
+            sortIndex={0}
+            sortOrder={"asc"}
+            cellRender={(cell) => (
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "2px 8px",
+                  borderRadius: 10,
+                  color: "#fff",
+                  background: cell.value ? "#28a745" : "#dc3545",
+                  fontSize: "0.85em",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {cell.value ? "Đã trả lời" : "Chưa trả lời"}
+              </span>
+            )}
+          >
+            <FormItem visible={false} />
           </Column>
           <Column
             dataField="TenNguoiGui"
             caption="Tên người gửi"
             visible={false}
           >
-            <RequiredRule />
+            {/* Chi bat buoc khi them moi: khi tra loi o nay chi xem, ban ghi cu thieu ten van luu duoc. */}
+            <CustomRule
+              message="Hãy nhập tên người gửi"
+              validationCallback={(o) =>
+                (o.data && o.data.ID != null) ||
+                (o.value != null && String(o.value).trim() !== "")
+              }
+            />
           </Column>
           <Column
             dataField="Email"
@@ -103,8 +190,7 @@ export default function PhanAnhKienNghi() {
             caption="Email"
             visible={false}
           >
-            <RequiredRule />
-            <EmailRule />
+            <EmailRule message="Email không hợp lệ" />
           </Column>
           <Column
             dataField="SoDienThoai"
@@ -139,13 +225,6 @@ export default function PhanAnhKienNghi() {
             />
           </Column>
           <Column
-            dataField="NgayHoi"
-            dataType="date"
-            format={"dd/MM/yyyy"}
-            caption="Ngày hỏi"
-            visible={false}
-          />
-          <Column
             dataField="NguoiTraLoi"
             caption="Người trả lời"
             visible={false}
@@ -162,7 +241,7 @@ export default function PhanAnhKienNghi() {
             caption="Nội dung câu hỏi"
             visible={false}
           >
-            <RequiredRule />
+            <RequiredRule message="Hãy nhập nội dung câu hỏi" />
             <FormItem
               colSpan={2}
               editorType="dxHtmlEditor"

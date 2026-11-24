@@ -79,7 +79,7 @@ export default function DongSuKien() {
             dataType="string"
             caption="Ảnh đại diện"
             cellRender={config.defaultImageCellRender}
-            editCellRender={MyImageUploader}
+            editCellRender={(cellInfo) => <MyImageUploader cellInfo={cellInfo} />}
           />
           <Column dataField="TrangThai" dataType="string" caption="Trạng thái">
             <Lookup

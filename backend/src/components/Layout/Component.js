@@ -7,6 +7,16 @@ import {
     ButtonItem
 } from 'devextreme-react/form';
 
+function parseConfig(config) {
+  if (!config) return null;
+  try {
+    const parsed = JSON.parse(config);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 const Component = ({ data, components, handleComponentChange, path }) => {
   const ref = useRef(null);
   const configForm = useRef();
@@ -23,16 +33,15 @@ const Component = ({ data, components, handleComponentChange, path }) => {
   const opacity = isDragging ? 0 : 1;
   drag(ref);
 
-  const component = components[data.id];
-  let propertyNames = [];
-  if (component.Config) {
-    propertyNames = Object.keys(JSON.parse(component.Config));
-  }
+  // Khoi vua keo vao co the chua co trong danh sach components -> dung chinh du lieu trong bo cuc.
+  const component = (components && components[data.id]) || data;
+  const configData = parseConfig(component.Config);
+  const propertyNames = configData ? Object.keys(configData) : [];
 
   const handleSubmit = (e) => {
     e.preventDefault();
     handleComponentChange(component.id, configForm.current.props.formData);
-    setPopupVisible(!popupVisible);
+    setPopupVisible(false);
   };
   return (
     <>
@@ -40,30 +49,38 @@ const Component = ({ data, components, handleComponentChange, path }) => {
         hideOnOutsideClick={true}
         visible={popupVisible}
         onHiding={() => setPopupVisible(false)}
+        showTitle={true}
+        title={`Cấu hình khối: ${component.Title || ""}`}
+        width={480}
+        height="auto"
       >
-        <form onSubmit={handleSubmit}>
-          <Form
-            ref={configForm}
-            formData={component.Config ? JSON.parse(component.Config) : null}
-          >
-            {propertyNames &&
-              propertyNames.map((item, index) => (
-                <SimpleItem dataField={item} />
+        {propertyNames.length === 0 ? (
+          <p>Khối này không có thông số để cấu hình.</p>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <Form ref={configForm} formData={configData}>
+              {propertyNames.map((name) => (
+                <SimpleItem key={name} dataField={name} />
               ))}
 
-            <ButtonItem
-              horizontalAlignment="left"
-              buttonOptions={{
-                text: "Lưu",
-                type: "success",
-                useSubmitBehavior: true,
-              }}
-            />
-          </Form>
-        </form>
+              <ButtonItem
+                horizontalAlignment="left"
+                buttonOptions={{
+                  text: "Lưu",
+                  type: "success",
+                  useSubmitBehavior: true,
+                }}
+              />
+            </Form>
+          </form>
+        )}
       </Popup>
       <div ref={ref} style={{ opacity }} className="component draggable">
-        <i class="fa fa-cog" onClick={() => setPopupVisible(!popupVisible)}></i>
+        <i
+          className="fa fa-cog"
+          title="Cấu hình khối"
+          onClick={() => setPopupVisible(!popupVisible)}
+        ></i>
         <div>{component.Title}</div>
       </div>
     </>

@@ -1,73 +1,143 @@
-import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { Children, isValidElement, useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/auth";
 import { request } from "../utils/api";
 
-const MenuItem = ({
-  path,
-  icon = "fas fa-angle-right nav-icon",
-  linkClass = `nav-link`,
-  permission,
-  hidden = false,
-  title,
-  children,
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const auth = useAuth();
+// Man hinh nho hon muc nay thi sidebar AdminLTE la lop phu (sidebar-open), can dong sau khi chon trang.
+const SMALL_SCREEN = 992;
 
-  function isHavePermission(name) {
-    if (!auth.user) {
-      return false;
-    }
+// Ham kiem tra quyen theo nguoi dung dang dang nhap.
+function usePermissionCheck() {
+  const auth = useAuth();
+  return (name) => {
     const perms = auth.user?.Role?.RolePermissions;
-    if (!Array.isArray(perms)) {
-      auth.signOut();
-      return false;
-    }
-    if (perms.length <= 0) {
-      return false;
-    }
-    for (var i = 0; i < perms.length; i++) {
-      let element = perms[i];
-      if (element.Permission.Name == name) {
-        return true;
-      }
-    }
-    return false;
+    if (!Array.isArray(perms) || perms.length <= 0) return false;
+    return perms.some((p) => p?.Permission?.Name === name);
+  };
+}
+
+function normalizePath(p) {
+  return (p || "").replace(/\/+$/, "").toLowerCase() || "/";
+}
+
+// Muc menu ung voi trang hien tai: khop dung duong dan (khong phan biet hoa thuong, giong React Router)
+// hoac la trang con cua no ("/a" khop "/a/x" nhung khong khop "/ab"). "/" chi khop trang chu.
+function isPathActive(itemPath, pathname) {
+  if (!itemPath) return false;
+  const a = normalizePath(itemPath);
+  const b = normalizePath(pathname);
+  if (a === "/") return b === "/";
+  return b === a || b.startsWith(a + "/");
+}
+
+function childMenuItems(children) {
+  return Children.toArray(children).filter((c) => isValidElement(c) && c.type === MenuItem);
+}
+
+// Muc hien khi khong bi an, du quyen, va (neu la nhom) con it nhat mot muc con hien.
+function isItemVisible(props, can) {
+  if (props.hidden) return false;
+  if (props.permission !== undefined && !can(props.permission)) return false;
+  const kids = childMenuItems(props.children);
+  if (kids.length > 0) return kids.some((k) => isItemVisible(k.props, can));
+  return props.children == null || !!props.path;
+}
+
+function isItemActive(props, pathname, can) {
+  const kids = childMenuItems(props.children);
+  if (kids.length > 0) {
+    return kids.some((k) => isItemVisible(k.props, can) && isItemActive(k.props, pathname, can));
   }
+  return isPathActive(props.path, pathname);
+}
+
+// Man hinh nho: dong sidebar (dung PushMenu cua AdminLTE neu co, neu khong thi doi class tren body).
+function closeSidebarOnSmallScreen() {
+  if (window.innerWidth >= SMALL_SCREEN) return;
+  try {
+    const $ = window.$;
+    if ($ && $.fn && $.fn.PushMenu) {
+      $('[data-widget="pushmenu"]').PushMenu("collapse");
+      return;
+    }
+  } catch {
+    /* dung cach duoi */
+  }
+  document.body.classList.remove("sidebar-open");
+  document.body.classList.add("sidebar-collapse", "sidebar-closed");
+}
+
+function MenuItem(props) {
+  const {
+    path,
+    icon = "fas fa-angle-right nav-icon",
+    linkClass = `nav-link`,
+    title,
+    header,
+    children,
+  } = props;
+  const can = usePermissionCheck();
+  const { pathname } = useLocation();
+  const isGroup = children != null && childMenuItems(children).length > 0;
+  const visible = isItemVisible(props, can);
+  const active = visible && isItemActive(props, pathname, can);
+  const [isOpen, setIsOpen] = useState(isGroup && active);
+
+  // Tu mo nhom chua trang hien tai khi tai trang va moi lan chuyen trang.
+  useEffect(() => {
+    if (isGroup && active) setIsOpen(true);
+  }, [isGroup, active, pathname]);
+
+  if (!visible) return null;
 
   return (
     <>
-      {!hidden && ((permission != undefined && isHavePermission(permission)) ||
-        permission == undefined) && (
-        <li className={`nav-item ${isOpen ? "menu-open" : ""}`}>
-          <Link
-            to={path}
-            className={linkClass}
+      {header && <li className="nav-header">{header}</li>}
+      <li className={`nav-item ${isGroup && isOpen ? "menu-open" : ""}`}>
+        {isGroup ? (
+          <a
+            href="#"
+            role="button"
+            aria-expanded={isOpen}
+            className={`${linkClass} ${active ? "active menu-parent-active" : ""}`}
             onClick={(e) => {
-              if (children && children.length > 0) {
-                e.preventDefault();
-                e.stopPropagation();
-                setIsOpen(!isOpen);
-              }
+              e.preventDefault();
+              e.stopPropagation();
+              setIsOpen(!isOpen);
             }}
           >
             <i className={icon}></i>
             <p>
               {title}
-              {children && <i className="right fas fa-angle-left"></i>}
+              <i className="right fas fa-angle-left"></i>
             </p>
+          </a>
+        ) : (
+          <Link
+            to={path}
+            className={`${linkClass} ${active ? "active" : ""}`}
+            aria-current={active ? "page" : undefined}
+            onClick={closeSidebarOnSmallScreen}
+          >
+            <i className={icon}></i>
+            <p>{title}</p>
           </Link>
-          {children && <ul className="nav nav-treeview">{children}</ul>}
-        </li>
-      )}
+        )}
+        {isGroup && <ul className="nav nav-treeview">{children}</ul>}
+      </li>
     </>
   );
-};
+}
+
 export default function Aside() {
-  const location = useLocation();
   const auth = useAuth();
+  // Du lieu nguoi dung hong (khong co danh sach quyen) -> dang xuat (truoc day goi trong luc render).
+  const { user, signOut } = auth;
+  useEffect(() => {
+    if (user && !Array.isArray(user?.Role?.RolePermissions)) {
+      signOut();
+    }
+  }, [user, signOut]);
   // Muc "Tin tuc" (tin chung) chi hien cho admin hoac nguoi phe duyet; mac dinh an cho den khi API xac nhan.
   const [canViewAllNews, setCanViewAllNews] = useState(false);
   useEffect(() => {
@@ -84,14 +154,8 @@ export default function Aside() {
       cancelled = true;
     };
   }, [auth.user]);
-  useEffect(() => {
-    window.$('[data-widget="treeview"]').each(function () {
-      if (window.$(this).data("treeview-init") === undefined) {
-        window.$(this).Treeview("init");
-        window.$(this).data("treeview-init", true);
-      }
-    });
-  }, []);
+  // Dong/mo nhom menu do React quan ly (menu-open), khong dung Treeview cua AdminLTE de tranh hai ben
+  // cung doi class / style cua cung mot phan tu.
   return (
     <aside className="main-sidebar sidebar-light-light elevation-4">
       <div className="navbar-brand d-flex justify-content-center">
@@ -101,15 +165,19 @@ export default function Aside() {
       </div>
       <div className="sidebar">
         <div className="form-inline">
-          <div className="input-group" data-widget="sidebar-search">
+          <div
+            className="input-group"
+            data-widget="sidebar-search"
+            data-not-found-text="Không tìm thấy chức năng"
+          >
             <input
               className="form-control form-control-sidebar"
               type="search"
-              placeholder="Search"
-              aria-label="Search"
+              placeholder="Tìm chức năng (từ 3 ký tự)"
+              aria-label="Tìm chức năng trong menu"
             />
             <div className="input-group-append">
-              <button className="btn btn-sidebar">
+              <button type="button" className="btn btn-sidebar" aria-label="Tìm / xóa tìm kiếm">
                 <i className="fas fa-search fa-fw" />
               </button>
             </div>
@@ -118,7 +186,7 @@ export default function Aside() {
             <div className="list-group">
               <a href="#" className="list-group-item">
                 <div className="search-title">
-                  <strong className="text-light">No element found!</strong>
+                  <strong className="text-light">Không tìm thấy chức năng</strong>
                 </div>
                 <div className="search-path" />
               </a>
@@ -128,8 +196,6 @@ export default function Aside() {
         <nav className="mt-2">
           <ul
             className="nav nav-pills nav-sidebar flex-column"
-            data-widget="treeview"
-            role={"menu"}
           >
             <MenuItem
               icon="fas fa-file-excel nav-icon"
@@ -139,7 +205,7 @@ export default function Aside() {
             />
             <MenuItem
               icon="fas fa-chart-line nav-icon"
-              title={"Dashboard"}
+              title={"Trang tổng quan"}
               path={"/"}
             />
             <MenuItem
@@ -416,8 +482,11 @@ export default function Aside() {
               title={"QL Hội nghị, Sự kiện"}
               path={"/HoiNghiSuKien"}
             />
-            <li className="nav-header">SYSTEMS</li>
-            <MenuItem icon="fas fa-cogs nav-icon" title={"Hệ thống"}>
+            <MenuItem
+              header="QUẢN TRỊ HỆ THỐNG"
+              icon="fas fa-cogs nav-icon"
+              title={"Hệ thống"}
+            >
               <MenuItem
                 icon="fas fa-users nav-icon"
                 permission={"manage-user"}

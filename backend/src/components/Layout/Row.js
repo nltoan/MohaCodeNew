@@ -64,10 +64,14 @@ const Row = ({
         hideOnOutsideClick={true}
         visible={popupVisible}
         onHiding={() => setPopupVisible(false)}
+        showTitle={true}
+        title="Cấu hình hàng"
+        width={480}
+        height="auto"
       >
         <form onSubmit={handleSubmit}>
           <Form formData={{ cssClass: data.class }} ref={configForm}>
-            <SimpleItem dataField="cssClass" />
+            <SimpleItem dataField="cssClass" label={{ text: "Lớp CSS của hàng" }} helpText="Không bắt buộc. Để trống nếu không cần." />
             <ButtonItem
               horizontalAlignment="left"
               buttonOptions={{
@@ -84,7 +88,7 @@ const Row = ({
         style={{ ...style, opacity }}
         className="base draggable row"
       >
-        <i class="fa fa-cog" onClick={() => setPopupVisible(!popupVisible)}></i>
+        <i className="fa fa-cog" title="Cấu hình hàng" onClick={() => setPopupVisible(!popupVisible)}></i>
         <div className="columns">
           {data.children.map((column, index) => {
             const currentPath = `${path}-${index}`;

@@ -1,13 +1,16 @@
 import { Fragment, useEffect, useState } from "react";
 import FileUploader from 'devextreme-react/file-uploader';
 import { createLookupStore } from "../utils/api";
-import { getToken } from "../utils/token";
+import { DIRECT_MAX_MB, createUploadErrorHandler, uploadHint, uploadLimitProps } from "../utils/upload";
 
 const dataSourceOptions = createLookupStore("ImageSizes");
+// ImageUpload nhan nguyen file (khong theo phan) nen dung gioi han upload truc tiep.
+const onUploadError = createUploadErrorHandler({ maxMB: DIRECT_MAX_MB });
 
 export default function MyImageResizeUploader({ onUploaded }) {
   const [size, setSize] = useState();
   const [imageSizes, setImageSizes] = useState();
+  const [uploading, setUploading] = useState(false);
   useEffect(() => {
     dataSourceOptions.load().then(
       (data) => {
@@ -47,20 +50,26 @@ export default function MyImageResizeUploader({ onUploaded }) {
         ))}
       <FileUploader
         multiple={false}
-        accept="image/*"
         uploadMode="instantly"
         uploadUrl={
           window.env.REACT_APP_API_URL +
           `/FileManager/ImageUpload?Width=${size ? size.Width : ""}&Height=${size ? size.Height : ""}`
         }
-        onUploaded={onUploaded}
-        uploadHeaders={(() => {
-          let access_token = getToken();
-          return {
-            Authorization: `Bearer ${access_token}`,
-          };
-        })()}
+        {...uploadLimitProps("image", { chunked: false })}
+        onUploadStarted={() => setUploading(true)}
+        onUploaded={(e) => {
+          setUploading(false);
+          onUploaded && onUploaded(e);
+        }}
+        onUploadError={(e) => {
+          setUploading(false);
+          onUploadError(e);
+        }}
+        onUploadAborted={() => setUploading(false)}
       />
+      <small className="text-muted d-block">
+        {uploading ? "Đang tải lên…" : uploadHint("image", { chunked: false })}
+      </small>
     </>
   );
 }

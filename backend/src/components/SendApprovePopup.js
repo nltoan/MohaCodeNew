@@ -9,6 +9,7 @@ export default function SendApprovePopup({ ID, action, onHidden }) {
   const [id, setId] = useState(ID);
   const [comment, setComment] = useState("");
   const [popupVisible, setPopupVisible] = useState();
+  const [busy, setBusy] = useState(false);
   useEffect(() => {
     setId(ID);
   }, [ID]);
@@ -28,8 +29,8 @@ export default function SendApprovePopup({ ID, action, onHidden }) {
   return (
     <Popup
       showTitle={true}
-      title="Xác nhận"
-      hideOnOutsideClick={true}
+      title="Gửi duyệt tin"
+      hideOnOutsideClick={false}
       visible={popupVisible}
       onHidden={() => {
         setPopupVisible(false);
@@ -41,7 +42,7 @@ export default function SendApprovePopup({ ID, action, onHidden }) {
             {item && item.data.length > 0 && (
               <>
                 <h4>{item.data[0].TieuDe}</h4>
-                <p>{parse(item.data[0].MoTa ?? "")}</p>
+                <div>{parse(item.data[0].MoTa ?? "")}</div>
                 <h5>Ghi chú</h5>
                 <TextArea
                   onValueChange={(e) => {
@@ -51,18 +52,22 @@ export default function SendApprovePopup({ ID, action, onHidden }) {
                 <br />
                 <Button
                   type="success"
+                  disabled={busy}
                   onClick={async (e) => {
+                    // Chan bam hai lan lien tiep (gui duyet trung).
+                    setBusy(true);
                     const result = await requestAction(
                       `/TinTucs/Action?ID=${ID}&action=${action}&comment=${encodeURIComponent(comment ?? "")}`, { method: "POST" });
+                    setBusy(false);
                     if (!result.ok) {
                       notify(result.message, "error");
                       return;
                     }
-                    notify("Thao tác thành công!");
+                    notify("Đã gửi tin lên người duyệt.");
                     setPopupVisible(false);
                   }}
                 >
-                  Đồng ý
+                  Gửi duyệt
                 </Button>
                 <Button
                   onClick={async (e) => {

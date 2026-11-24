@@ -28,7 +28,7 @@ namespace API.Controllers
         private CongTTDT_MOHAEntities _context = new CongTTDT_MOHAEntities();
 
         [HttpGet]
-        public async Task<HttpResponseMessage> Get(DataSourceLoadOptions loadOptions, int? LopVanBanID) {
+        public async Task<HttpResponseMessage> Get(DataSourceLoadOptions loadOptions, int? LopVanBanID, int? CoQuanBanHanhID = null) {
             var vanbans = _context.VanBans
                 .Include(x => x.VanBan_CoQuanBanHanh)
                 .Include(x => x.VanBan_LinhVuc)
@@ -54,6 +54,12 @@ namespace API.Controllers
                 var parents = _context.CollectionFromSql(sql,new Dictionary<string, object> { { "@ID", LopVanBanID } })
                     .Select(x=>x.ID).Cast<int>().ToArray();
                 vanbans = vanbans.Where(x => x.VanBan_LopVanBan.Any(y=> parents.Contains(y.LopVanBanID)));
+            }
+            // Loc theo co quan ban hanh (quan he nhieu-nhieu, bo loc chuan cua DataGrid khong loc duoc).
+            if (CoQuanBanHanhID != null)
+            {
+                var coQuanId = CoQuanBanHanhID.Value;
+                vanbans = vanbans.Where(x => x.VanBan_CoQuanBanHanh.Any(y => y.CoQuanBanHanhID == coQuanId));
             }
             // If underlying data is a large SQL table, specify PrimaryKey and PaginateViaPrimaryKey.
             // This can make SQL execution plans more efficient.

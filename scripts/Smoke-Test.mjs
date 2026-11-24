@@ -61,7 +61,7 @@ try {
   await admin.locator('input').first().fill('__moha_smoke_nonexistent__');
   const rejection = admin.waitForResponse(response =>
     response.url().startsWith('http://localhost:55104/api/Token') && response.status() === 400);
-  await admin.getByRole('button', { name: 'Sign In', exact: true }).click();
+  await admin.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
   await rejection;
   assert.deepEqual(adminErrors, [], 'Admin has uncaught JavaScript errors');
   await admin.screenshot({ path: path.join(output, 'admin-login.png'), fullPage: true });

@@ -3,10 +3,12 @@ import { useState } from 'react';
 import {
   TabbedItem, Tab, SimpleItem, Form, ButtonItem, CompareRule, Label} from 'devextreme-react/form';
 import { createCustomStore, notify, request, requestXFormRaw } from '../utils/api';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/auth';
 
 export default function Profile() {
   const auth = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     UserID: auth.user.UserID,
     Email: auth.user.EmailAddress,
@@ -26,6 +28,15 @@ export default function Profile() {
       if (formData.Password === formData.CurrentPassword) { showError("Mật khẩu mới phải khác mật khẩu hiện tại."); return; }
       if (formData.Password !== formData.ConfirmPassword) { showError("Mật khẩu nhập lại không khớp."); return; }
     }
+    const passwordChanged = !!formData.Password;
+    // Server chi bat/tat 2FA khi co ma xac nhan; khong co ma thi thay doi bi bo qua am tham.
+    const twoFAToggled = !!formData.IsTwoFA !== !!auth.user.IsTwoFA;
+    if (twoFAToggled && !String(formData.Code || "").trim()) {
+      showError(formData.IsTwoFA
+        ? "Vui lòng quét mã QR bằng Google Authenticator và nhập mã xác nhận để bật xác thực 2 lớp."
+        : "Vui lòng nhập mã xác nhận từ Google Authenticator để tắt xác thực 2 lớp.");
+      return;
+    }
     const res = await requestXFormRaw(`Home/UpdateProfile`, {
       method: "POST",
       body: new URLSearchParams({ values: JSON.stringify(formData) }).toString(),
@@ -36,8 +47,19 @@ export default function Profile() {
       showError(`Cập nhật thông tin không thành công: ${reason}`);
       return;
     }
-    notify("Cập nhật thông tin thành công!", "success");
-    auth.signOut();
+    if (passwordChanged || twoFAToggled) {
+      // Doi mat khau thu hoi token hien tai (token_revoked); bat/tat 2FA cung yeu cau dang nhap lai.
+      notify(passwordChanged
+        ? "Đã đổi mật khẩu, vui lòng đăng nhập lại."
+        : "Đã cập nhật xác thực 2 lớp, vui lòng đăng nhập lại.", "success");
+      auth.signOut();
+      navigate("/Login", { replace: true });
+      return;
+    }
+    // Chi doi tuy chon nhan email: cap nhat thong tin dang nhap tai cho, khong dang xuat.
+    auth.updateUser({ IsReceiveEmail: formData.IsReceiveEmail ? 1 : 0 });
+    setFormData((prev) => ({ ...prev, CurrentPassword: "", Password: "", ConfirmPassword: "", Code: "" }));
+    notify("Cập nhật thành công", "success");
   }
 
   return (
@@ -50,7 +72,7 @@ export default function Profile() {
               type="button"
               className="btn btn-tool"
               data-card-widget="collapse"
-              title="Collapse"
+              title="Thu gọn"
             >
               <i className="fas fa-minus" />
             </button>
@@ -58,7 +80,7 @@ export default function Profile() {
               type="button"
               className="btn btn-tool"
               data-card-widget="remove"
-              title="Remove"
+              title="Đóng"
             >
               <i className="fas fa-times" />
             </button>
@@ -78,7 +100,9 @@ export default function Profile() {
             <Form formData={formData}>
               <TabbedItem colSpan={2}>
                 <Tab title="Thông tin cá nhân" colCount={2}>
-                  <SimpleItem dataField="Email" colSpan={2} label="Email" />
+                  <SimpleItem dataField="Email" colSpan={2} editorOptions={{ readOnly: true }} helpText="Liên hệ quản trị hệ thống nếu cần đổi email.">
+                    <Label text="Email" />
+                  </SimpleItem>
                   <SimpleItem dataField="CurrentPassword" editorType="dxTextBox" editorOptions={{ mode: "password" }}><Label text="Mật khẩu hiện tại" /></SimpleItem>
                   <SimpleItem dataField="Password" editorType="dxTextBox" editorOptions={{ mode: "password" }}>
                     <Label text="Mật khẩu" />
@@ -89,7 +113,7 @@ export default function Profile() {
                       comparisonTarget={() => {
                         return formData.Password;
                       }}
-                      message="Password and Confirm Password do not match"
+                      message="Mật khẩu nhập lại không khớp."
                     />
                   </SimpleItem>
                   <SimpleItem
@@ -113,7 +137,7 @@ export default function Profile() {
                     colSpan={2}
                     editorType="dxCheckBox"
                     editorOptions={{
-                      text: "Bật google authenticator",
+                      text: "Bật xác thực 2 lớp (Google Authenticator)",
                       value: !!formData.IsTwoFA,
                       enableThreeStateBehavior: false,
                       onValueChanged: async (e) => {
@@ -147,12 +171,15 @@ export default function Profile() {
                         <>
                           <img
                             src={authenSetupImg}
+                            alt="Mã QR thiết lập Google Authenticator"
                           />
                         </>
                       );
                     }}
                   />}
-                  <SimpleItem dataField="EntryKey" editorOptions={{readOnly:true}} />
+                  <SimpleItem dataField="EntryKey" editorOptions={{readOnly:true}}>
+                    <Label text="Khóa thiết lập (nhập tay nếu không quét được mã QR)" />
+                  </SimpleItem>
                   <SimpleItem dataField="Code" editorType="dxTextBox">
                     <Label text="Mã code để kích hoạt/bỏ kích hoạt" />
                   </SimpleItem>
