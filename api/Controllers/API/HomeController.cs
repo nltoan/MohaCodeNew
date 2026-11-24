@@ -121,8 +121,8 @@ namespace API.Controllers
             {
                 int isTwoFA = Convert.ToInt32(values["IsTwoFA"]);
                 string Code = Convert.ToString(values["Code"]);
-                TwoFactorAuthenticator tfa = new TwoFactorAuthenticator();
-                bool result = tfa.ValidateTwoFactorPIN(aUser.Authenticator_Secret, Code);
+                // Do lech dong ho toi da 60 giay (mac dinh thu vien la 5 phut).
+                bool result = API.Services.TwoFactorCode.IsValid(aUser.Authenticator_Secret, Code);
                 if (!result)
                 {
                     return Request.CreateResponse(HttpStatusCode.OK, new { status = "ko", error = "Mã xác nhận không đúng" });
@@ -146,6 +146,7 @@ namespace API.Controllers
             if (principal != null && principal.HasClaim(API.Services.DefaultPasswordPolicy.SetupClaim, "1") && (!passwordChanged || aUser.IsTwoFA != 1))
                 return Request.CreateResponse(HttpStatusCode.BadRequest, new { status = "ko", error = "Cần đặt mật khẩu mới và bật Google Authenticator (nhập mã xác nhận) cùng lúc." });
             _context.SaveChanges();
+            if (passwordChanged) API.Services.TokenRevocation.Evict(ID);
             if (passwordChanged) API.Services.DefaultPasswordPolicy.Clear(_context, ID);
             return Request.CreateResponse(HttpStatusCode.OK, new { status = "ok"});
         }

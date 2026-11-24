@@ -49,6 +49,26 @@ namespace API.OAuth
             });
             ConfigureOAuth(appBuilder);
             API.Controllers.PublicController.WarmExternalCaches();
+            // Token da bi thu hoi (doi mat khau, khoa/xoa tai khoan, token cu khong co pwd_stamp) -> 401.
+            // Chi ap dung cho request da xac thuc; /api/Token va request an danh khong bi anh huong.
+            appBuilder.Use(async (context, next) => {
+                var principal = context.Request.User as System.Security.Claims.ClaimsPrincipal;
+                if (principal != null && principal.Identity != null && principal.Identity.IsAuthenticated)
+                {
+                    var idClaim = principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                    var stampClaim = principal.FindFirst(API.Services.TokenRevocation.StampClaim);
+                    int userId;
+                    if (idClaim == null || stampClaim == null || !int.TryParse(idClaim.Value, out userId) ||
+                        !await API.Services.TokenRevocation.IsValidAsync(userId, stampClaim.Value))
+                    {
+                        context.Response.StatusCode = 401;
+                        context.Response.ContentType = "application/json";
+                        await context.Response.WriteAsync("{\"error\":\"token_revoked\",\"error_description\":\"Phiên đăng nhập không còn hiệu lực, vui lòng đăng nhập lại.\"}");
+                        return;
+                    }
+                }
+                await next();
+            });
             // Phien dang nhap bang mat khau mac dinh da het luot: chi cho doi mat khau + bat 2FA.
             var allowedDuringSetup = new[] {
                 "/api/home/updateprofile", "/api/home/generateauthenticatesecret", "/api/user_account/getloginuser"

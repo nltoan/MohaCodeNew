@@ -22,8 +22,9 @@
 
 ## Quy tắc
 
-- Cấu hình runtime nằm trong `window.env` (`frontend/public/runtime-config.js`, `backend/public/index.html`), không dùng `.env` (`backend/.env` chỉ giữ cổng dev).
-- URL `tefli.vn` trong `runtime-config.js`, `index.html` của admin và hai `public/web.config` là chỗ giữ của staging; `scripts/Prepare-ProductionRelease.ps1` thay bằng URL trong `deployment/production.json`. Không sửa tay thành URL production.
+- Cấu hình runtime nằm trong `window.env` (`frontend/public/runtime-config.js`, `backend/public/runtime-config.js`), không dùng `.env` (`backend/.env` chỉ giữ cổng dev). Không thêm script inline hay `on*=` vào `index.html`: CSP admin chỉ cho `script-src 'self'`.
+- URL `tefli.vn` trong hai `runtime-config.js` và hai `public/web.config` (kể cả CSP admin) là chỗ giữ của staging; `scripts/Prepare-ProductionRelease.ps1` thay bằng URL trong `deployment/production.json` và bỏ khối `DEV-BEGIN`/`DEV-END` của admin. Không sửa tay thành URL production.
+- CSP admin nằm trong `backend/public/web.config`; đổi CSP hoặc thêm nguồn ngoài thì build admin rồi chạy `scripts/Test-AdminCsp.cjs`.
 - Cột/bảng mới cần migration idempotent tên `yyyymmdd-Ten.sql` trong `db/migrations/`; `Dev.ps1` và script phát hành tự lấy mọi file.
 - Không nối chuỗi dữ liệu từ client vào SQL. Endpoint ghi dữ liệu phải có `[PermissionAuthorize("manage-…")]`; ngoại lệ hiện có: `HoiQuyAuthorize`, biểu mẫu công khai trong `PublicController` và `Home/UpdateProfile` (tự sửa hồ sơ).
 - HTML do CMS cung cấp luôn qua `sanitizeHtml` (portal: `frontend/src/utils/sanitizeHtml.ts`) hoặc `safe-html` (admin: `backend/src/utils/safe-html.js`).

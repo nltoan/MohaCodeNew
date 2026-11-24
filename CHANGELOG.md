@@ -2,6 +2,16 @@
 
 Ghi chú theo từng đợt, chuyển từ DEV-SETUP.md. Hướng dẫn cài đặt và chạy nằm ở DEV-SETUP.md.
 
+## Rà soát bảo mật 23/11: biểu mẫu góp ý, đăng nhập, CSP admin
+
+- Góp ý dự thảo (`Public/SendCommentVBDT`): kiểm tra đầu vào trước reCAPTCHA (ID số, bắt buộc họ tên và nội dung, độ dài theo cột DB, email). Đầu vào sai trả 400 tiếng Việt thay vì 500. `ReCaptchaValidator` có timeout 10 giây; khi không gọi được Google, API trả 503 "Không kiểm tra được mã xác thực…". Portal hiện thông báo của máy chủ.
+- Thu hồi token: token có claim `pwd_stamp` lấy từ hash mật khẩu. Khi đổi mật khẩu (người dùng hoặc admin), khoá hay xoá tài khoản, token cũ bị trả 401 `token_revoked`. Trên máy đã thực hiện thay đổi, token bị từ chối ngay; các máy khác chậm tối đa 20 giây vì cache. **Sau khi triển khai, mọi người dùng admin phải đăng nhập lại một lần** (token cũ không có claim này).
+- 2FA: sai lệch đồng hồ cho phép giảm từ 5 phút xuống 60 giây; mỗi mã chỉ dùng một lần (`api/Services/TwoFactorCode.cs`).
+- Khoá theo tài khoản: sai 30 lần trong 15 phút thì khoá đến hết cửa sổ 15 phút, bất kể IP; tên đăng nhập được chuẩn hoá (khoảng trắng cuối) trước khi đếm. Giới hạn cũ 10 lần/phút theo tài khoản + IP vẫn giữ.
+- Admin có CSP và các header bảo mật trong `backend/public/web.config` (`script-src 'self'`, không `unsafe-eval`). `window.env` chuyển sang `backend/public/runtime-config.js`. `ckeditor-csp.js` chuyển handler inline của CKEditor 4 thành listener (tiền tố ngẫu nhiên mỗi trang; cả hai sanitizer bỏ thuộc tính `data-cke-csp*`). Mẫu biểu đồ (plugin chart) dùng hàm thay vì chuỗi. Biểu tượng và video trống của Plyr tự host. Ngoài ra sửa lỗi xem trước video trong popup trước đây không có điều khiển.
+- Runbook: cập nhật `runtime-config.js` và thứ tự chép file admin; nhiều máy API phải dùng chung `<machineKey>`.
+- Test mới: `scripts/Test-AdminCsp.cjs`, `scripts/Test-AuthHardening.cjs` (dùng tài khoản tạm `__codex_tmp_*`, chỉ xoá mềm; tuỳ chọn `--full-lockout` chạy khoảng 3 phút).
+
 ## Chú thích ảnh trong bài và ô nhập tin tức (góp ý 17/11)
 
 - Portal: ảnh chèn bằng plugin `image2` của CKEditor (`<figure><img><figcaption>`) có chú thích dài làm khung xám rộng hơn ảnh, ảnh lệch trái, chú thích không xuống dòng. `frontend/stylenoivufromSP.css` cho `figcaption` không góp vào bề rộng của `figure` (`width: 0; min-width: 100%`), nên khung ôm theo ảnh và chú thích tự xuống dòng.

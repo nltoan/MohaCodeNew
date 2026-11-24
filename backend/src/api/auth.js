@@ -30,6 +30,8 @@ export async function signIn(email, password, code, type) {
         'Tài khoản chưa được cấp quyền sử dụng hệ thống.',
         'Mã xác nhận không đúng!',
         'Vui lòng thử lại sau một phút.',
+        // Khoa theo ten dang nhap/UserID sau nhieu lan sai
+        'Vui lòng thử lại sau 15 phút.',
       ]);
       Notify(
         {

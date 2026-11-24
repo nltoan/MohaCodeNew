@@ -6,7 +6,23 @@ import SunEditor from 'suneditor-react';
 import 'suneditor/dist/css/suneditor.min.css';
 import "./Feedback.scss"
 import useReCaptcha from '@/hooks/useRecaptcha';
-import { sendComment } from '@/services/documents';
+import axiosInstance from '@/services';
+import { APP_CONFIG } from '@/configs';
+
+// Gui gop y, tra ve ca ma HTTP de phan biet loi du lieu (400) / captcha khong kiem tra duoc (503)
+const postComment = async (id: string, data: FormData): Promise<{ status: number; message: unknown }> => {
+    try {
+        const res = await axiosInstance.post(`/SendCommentVBDT`, {
+            ...data,
+            IDVBDT: id,
+            recaptcha: localStorage.getItem(APP_CONFIG.recaptcha.key),
+        });
+        return { status: res.status, message: res?.data?.Message };
+    } catch (error: unknown) {
+        const response = (error as { response?: { status?: number; data?: { Message?: unknown } } })?.response;
+        return { status: response?.status ?? 0, message: response?.data?.Message };
+    }
+};
 
 // 1. Validation Schema using Zod
 const schema = z.object({
@@ -41,7 +57,7 @@ const FeedbackForm: React.FC<{ID: string, onSubmitted:()=>void}> = ({ID, onSubmi
     const onSubmit = async (data: FormData) => {
         try {
             await generateReCaptchaToken('sendcomment'); // this will create a new token in the localStorage
-            const result = await sendComment(ID, data);
+            const { status, message: result } = await postComment(ID, data);
             if(result === "Success"){
                 alert(`Gửi góp ý thành công!\n\nHọ tên: ${data.fullName}\nEmail: ${data.email}`);
                 onSubmitted();
@@ -53,6 +69,9 @@ const FeedbackForm: React.FC<{ID: string, onSubmitted:()=>void}> = ({ID, onSubmi
                 alert(`Nghi vấn gửi thông tin bởi robot. Vui lòng thử lại sau hoặc liên hệ CongTTDT@moha.gov.vn`);
             } else if (result === "Invalid document."){
                 alert(`Văn bản gửi ý kiến không phù hợp. Vui lòng thử lại sau hoặc liên hệ CongTTDT@moha.gov.vn`);
+            } else if ((status === 400 || status === 503) && typeof result === 'string' && result.trim()) {
+                // Thong bao tieng Viet tu server (alert chi hien text, khong render HTML)
+                alert(result.trim());
             } else {
                 alert(`Có lỗi xảy ra. Vui lòng thử lại sau hoặc liên hệ CongTTDT@moha.gov.vn`);
             }

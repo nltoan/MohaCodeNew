@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import FileManager, { Item, Permissions, ContextMenu } from 'devextreme-react/file-manager';
 import Notify from 'devextreme/ui/notify';
 import { Popup } from 'devextreme-react/popup';
@@ -10,6 +10,8 @@ import { createLookupStore, pathFile } from '../utils/api';
 import { Button } from 'devextreme-react';
 
 const dataSourceOptions = createLookupStore("ImageSizes");
+// Plyr mac dinh tai icon/video rong tu cdn.plyr.io (CSP chan): dung ban tu host trong public/.
+const plyrOptions = { iconUrl: `${process.env.PUBLIC_URL}/plyr.svg`, blankVideo: `${process.env.PUBLIC_URL}/plyr-blank.mp4` };
 
 export default function MediaFileManager() {
   const [currentPath, setCurrentPath] = useState("");
@@ -17,6 +19,12 @@ export default function MediaFileManager() {
   const [imageResize, setImageResize] = useState(false);
   const [itemToDisplay, setItemToDisplay] = useState({});
   const [imageSizes, setImageSizes] = useState();
+  // plyr-react tim video bang selector toan trang: chi tao Plyr khi popup da gan vao DOM (onShown).
+  const [popupShown, setPopupShown] = useState(false);
+  const videoSource = useMemo(() => ({
+    type: "video",
+    sources: [{ src: itemToDisplay.url, type: "video/mp4" }],
+  }), [itemToDisplay.url]);
   useEffect(() => {
     dataSourceOptions.load().then(
       (data) => {
@@ -38,6 +46,7 @@ export default function MediaFileManager() {
 
   function hideImagePopup() {
     setPopupVisible(false);
+    setPopupShown(false);
   }
 
   function onCurrentDirectoryChanged(e) {
@@ -149,18 +158,14 @@ export default function MediaFileManager() {
           title={itemToDisplay.name}
           visible={popupVisible}
           onHiding={hideImagePopup}
+          onShown={() => setPopupShown(true)}
         >
           {itemToDisplay.name && itemToDisplay.name.endsWith(".jpg") && (
             <img src={itemToDisplay.url} className="img-fluid" />
           )}
-          {itemToDisplay.name && itemToDisplay.name.endsWith(".mp4") && (
+          {popupShown && itemToDisplay.name && itemToDisplay.name.endsWith(".mp4") && (
             <div>
-              <Plyr
-                source={{
-                  type: "video",
-                  sources: [{ src: itemToDisplay.url, type: "video/mp4" }],
-                }}
-              />
+              <Plyr options={plyrOptions} source={videoSource} />
             </div>
           )}
         </Popup>

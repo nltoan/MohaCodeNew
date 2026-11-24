@@ -53,7 +53,7 @@ Script chạy API, portal, admin (và preview 5175 nếu đã có `frontend/dist
 
 API chạy từ bản runtime `.dev/api`, lấy DLL từ `api/bin`. `Web.config` của bản runtime dùng database dev; `api/Web.config` được giữ nguyên (mật khẩu DB trong đó là `CHANGE_ME`). Các khóa tùy chọn (ví dụ reCAPTCHA) đặt trong `api/appSettings.local.config` (git-ignored, không commit); `Dev.ps1` chép file này vào `.dev/api` khi có. Tạo file này theo mẫu `<appSettings>` và lấy giá trị từ chủ dự án. Sau khi sửa C#, build rồi dừng/chạy lại để cập nhật runtime.
 
-Portal được Vite chèn URL local khi chạy dev. Admin dùng URL local khi `NODE_ENV=development`. Build production giữ các URL được khai báo trong HTML gốc.
+Portal được Vite chèn URL local khi chạy dev. Admin đọc `backend/public/runtime-config.js` (không còn script inline trong `index.html`); khối `DEV-BEGIN`/`DEV-END` trong file đó chuyển sang URL local khi mở admin trên `localhost`/`127.0.0.1`, kể cả bản build. Script phát hành bỏ khối này và thay URL staging bằng URL production.
 
 Khi API local khởi động, `Dev.ps1` chạy toàn bộ migration trong `db/migrations` (theo thứ tự tên file, đều idempotent) trên LocalDB `MohaDev`, gồm `20261109-TinTuc-NgonNgu.sql`. Lần đầu tạo cột, migration gán `vi` cho tin hiện có theo xác nhận nghiệp vụ; các lần chạy sau không ghi đè ngôn ngữ đã chọn. Trước khi triển khai production, xem `deployment/NGON-NGU-TIN-TUC.md`; không dùng LocalDB hoặc script tự khởi động để thao tác production.
 
@@ -147,6 +147,7 @@ Mọi script nằm trong `scripts/`, chạy từ thư mục gốc repo trên Win
 | `Test-PortalAuditFixes.cjs` | Kiểm tra landing chuyên mục/giới thiệu không gọi `ID=null`, phân giải URL media trong bài | Sau khi đổi routing/media |
 | `Test-PortalMediaUrls.cjs` | Kiểm tra hàm URL media/PDF với và không có dấu `/` cuối | Sau khi đổi `utils/image.ts` |
 | `Test-PortalCsp.cjs` | Kiểm tra bản build với CSP production: runtime-config, GA, logo `data:` (mạng giả lập) | Sau khi đổi CSP/runtime-config |
+| `Test-AdminCsp.cjs` | Phục vụ `backend/build` với CSP/header lấy từ `backend/public/web.config` (cổng 5176, `ADMIN_CSP_PORT`), mở các trang admin chính (CKEditor, lưới DevExtreme, grapesjs, media, hồ sơ); thất bại nếu có vi phạm CSP. API gọi qua `route()` của Playwright nên không cần sửa CORS | Sau khi đổi CSP admin/`index.html`/thư viện admin; cần API 55104 và tài khoản test |
 | `Test-Analytics.cjs` | Kiểm tra `analytics.ts` chỉ khởi tạo GA trên host production | Sau khi đổi GA |
 | `Test-PublicCache.cjs` | Kiểm tra `public-cache.ts` (gộp request, hết hạn, thử lại) | Sau khi đổi cache API |
 | `Test-HomePerformance.cjs` | Đo tải trang chủ desktop/mobile, request và lỗi | Sau khi đổi trang chủ |

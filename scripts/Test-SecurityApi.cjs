@@ -47,6 +47,10 @@ const noSecrets=data=>{const text=JSON.stringify(data);assert.ok(!/"(MatKhau|Aut
 
  for(const route of ['/HoiQuy/Search?name=','/HoiQuy/Search?name=test&token=invalid&code=WRONG','/Public/PostDetail?ID=invalid','/Public/PostsByCategory?ID=invalid']){const r=await req(route);assert.equal(r.status,400,route);assert.ok(!/StackTrace|ExceptionType|C:\\\\Users/.test(r.text))}
  pass('Invalid search/captcha/input rejected without stack traces');
+ const comment=(over={})=>req('/Public/SendCommentVBDT',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({IDVBDT:'1',fullName:'Security test',email:'security@example.invalid',phone:'',address:'',content:'<p>security test comment</p>',recaptcha:'',...over})});
+ for(const [label,over] of [['non-numeric IDVBDT',{IDVBDT:'abc'}],['oversized content',{content:'x'.repeat(60000)}],['oversized fullName',{fullName:'x'.repeat(300)}],['missing fullName',{fullName:'   '}],['missing content',{content:''}],['invalid email',{email:'not-an-email'}]]){const r=await comment(over);assert.equal(r.status,400,'SendCommentVBDT '+label);assert.ok(!/StackTrace|ExceptionType|ExceptionMessage|C:\\\\Users/.test(r.text),'SendCommentVBDT '+label+' leaks exception details')}
+ const noCaptcha=await comment();assert.ok(noCaptcha.status>=400&&noCaptcha.status<500,'SendCommentVBDT without captcha token must be 4xx, got '+noCaptcha.status);assert.ok(!/StackTrace|ExceptionType/.test(noCaptcha.text));
+ pass('Public comment form rejects bad input and missing captcha with 4xx before any write');
  const menu=await req('/Public/Menu?lang=vi');assert.equal(menu.status,200);assert.equal(menu.headers.get('x-content-type-options'),'nosniff');pass('Public portal API remains available with nosniff');
  fs.writeFileSync('.dev/security-api-results.json',JSON.stringify(rows,null,2));
 })().catch(e=>{console.error(e);rows.push({name:'suite failure',status:'FAIL',error:e.message});fs.writeFileSync('.dev/security-api-results.json',JSON.stringify(rows,null,2));process.exitCode=1});

@@ -52,12 +52,25 @@ $deployRunbooks=@('DEPLOY-MOHA.md','SECURITY-HARDENING.md','NGON-NGU-TIN-TUC.md'
 Get-ChildItem (Join-Path $root 'deployment') -File | Where-Object { $_.Name -like '*.fragment.xml' -or $_.Name -like '*.sql' -or $_.Name -like '*.txt' -or $_.Name -eq 'production.json' -or $deployRunbooks -contains $_.Name } | Copy-Item -Destination $deployDir
 # Dong goi moi migration trong db\migrations de khong sot file moi.
 Get-ChildItem (Join-Path $root 'db\migrations') -Filter '*.sql' | Copy-Item -Destination (Join-Path $release 'deployment')
+$adminUrl=if($adminReady){$config.AdminUrl.TrimEnd('/')}else{'https://ADMIN-HOST-UNCONFIRMED.invalid'}
+# Origin (scheme+host+port) cho CSP; portal va media co the khac host nen CSP admin cho ca hai.
+$apiOrigin=([uri]$config.ApiUrl).GetLeftPart('Authority')
+$portalOrigin=([uri]$config.PortalUrl).GetLeftPart('Authority')
+$mediaOrigin=([uri]$config.MediaUrl).GetLeftPart('Authority')
+$adminWebSources=(@($portalOrigin,$mediaOrigin) | Select-Object -Unique) -join ' '
 # IIS configurations are merge samples; never replace a production Web.config.
+$samples=@()
 foreach($app in @('portal','admin-candidate')){
  $webConfig=Join-Path $release ($app+'\web.config')
  if(Test-Path $webConfig){
-  $sample=[IO.File]::ReadAllText($webConfig).Replace('http://mohaapi.tefli.vn',$config.ApiUrl.TrimEnd('/'))
-  [IO.File]::WriteAllText((Join-Path $release ('deployment\'+$app+'.web.config.sample.xml')),$sample)
+  $sample=[IO.File]::ReadAllText($webConfig)
+  if($app -eq 'admin-candidate'){
+   # CSP admin dung origin; moha.tefli.vn chi xuat hien trong img-src/media-src/frame-src (portal + media).
+   $sample=$sample.Replace('http://mohaapi.tefli.vn',$apiOrigin).Replace('http://mohabackend.tefli.vn',$adminUrl).Replace('http://moha.tefli.vn',$adminWebSources)
+  }else{$sample=$sample.Replace('http://mohaapi.tefli.vn',$config.ApiUrl.TrimEnd('/'))}
+  $samplePath=Join-Path $release ('deployment\'+$app+'.web.config.sample.xml')
+  [IO.File]::WriteAllText($samplePath,$sample)
+  $samples+=$samplePath
   Remove-Item -LiteralPath $webConfig
  }
 }
@@ -65,13 +78,24 @@ $portalIndex=Join-Path $release 'portal\runtime-config.js'
 $html=[IO.File]::ReadAllText($portalIndex).Replace('http://mohaapi.tefli.vn/api/Public/',$config.ApiUrl.TrimEnd('/')+'/api/Public/').Replace('http://moha.tefli.vn/',$config.MediaUrl.TrimEnd('/')+'/')
 [IO.File]::WriteAllText($portalIndex,$html)
 if($gaId -and $html -notmatch [regex]::Escape($gaId)){throw 'Portal Analytics ID does not match production.json; update frontend/public/runtime-config.js and rebuild'}
+# window.env cua admin nam trong runtime-config.js (index.html khong con script inline vi CSP).
 $adminIndex=Join-Path $release 'admin-candidate\index.html'
-$adminUrl=if($adminReady){$config.AdminUrl.TrimEnd('/')}else{'https://ADMIN-HOST-UNCONFIRMED.invalid'}
+$adminRuntime=Join-Path $release 'admin-candidate\runtime-config.js'
+if(!(Test-Path $adminRuntime)){throw 'Admin runtime-config.js missing'}
+$js=[IO.File]::ReadAllText($adminRuntime)
+# Bo khoi ghi de localhost (chi dung khi dev).
+$js=[regex]::Replace($js,'(?s)[ \t]*// DEV-BEGIN.*?// DEV-END[^\r\n]*\r?\n?','')
+if($js -match 'DEV-BEGIN|DEV-END|localhost'){throw 'Admin runtime-config.js: dev override block not removed'}
+# Media co the khac origin portal: thay rieng khoa nay truoc khi thay chung.
+$uploadKey="`"REACT_APP_UPLOAD_URL`": 'http://moha.tefli.vn'"
+if(!$js.Contains($uploadKey)){throw 'Admin runtime-config.js: REACT_APP_UPLOAD_URL placeholder not found'}
+$js=$js.Replace($uploadKey,("`"REACT_APP_UPLOAD_URL`": '"+$config.MediaUrl.TrimEnd('/')+"'"))
+$js=$js.Replace('http://mohaapi.tefli.vn',$config.ApiUrl.TrimEnd('/')).Replace('http://mohabackend.tefli.vn',$adminUrl).Replace('http://moha.tefli.vn',$config.PortalUrl.TrimEnd('/'))
+[IO.File]::WriteAllText($adminRuntime,$js)
 $html=[IO.File]::ReadAllText($adminIndex).Replace('http://mohaapi.tefli.vn',$config.ApiUrl.TrimEnd('/')).Replace('http://mohabackend.tefli.vn',$adminUrl).Replace('http://moha.tefli.vn',$config.PortalUrl.TrimEnd('/'))
-# Media may use another origin; replace its particular runtime key after general replacement.
-$html=$html.Replace(('REACT_APP_UPLOAD_URL:"'+$config.PortalUrl.TrimEnd('/')+'"'),('REACT_APP_UPLOAD_URL:"'+$config.MediaUrl.TrimEnd('/')+'"'))
 [IO.File]::WriteAllText($adminIndex,$html)
-foreach($index in @($portalIndex,$adminIndex)){
+if($html -notmatch 'src="/runtime-config\.js"'){throw 'Admin index.html does not load runtime-config.js'}
+foreach($index in @($portalIndex,$adminIndex,$adminRuntime)+$samples){
  $content=[IO.File]::ReadAllText($index)
  if($content -match 'tefli\.vn|localhost:517|localhost:55104'){throw "Non-production URL in $index"}
 }

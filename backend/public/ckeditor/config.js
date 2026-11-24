@@ -69,11 +69,41 @@ CKEDITOR.editorConfig = function( config ) {
 		 data: [ '#B33131', '#B66F2D', '#B6B330', '#71B232', '#33B22D', '#31B272', '#2DB5B5', '#3172B6', '#3232B6', '#6E31B2', '#B434AF', '#B53071' ]
 	 };	
 	
-	config.chart_configBar = { animation: false };
-	config.chart_configDoughnut = { animateRotate: false };
-	config.chart_configLine = { animation: false };
-	config.chart_configPie = { animateRotate: false };
-	config.chart_configPolarArea = { animateRotate: false };
+	// CSP admin khong co 'unsafe-eval': template dang chuoi cua Chart.js 1.x dung new Function.
+	// Truyen ham thay cho chuoi thi Chart.js goi thang ham, khong eval (cung ket qua voi mac dinh).
+	var chartEsc = function( s ) {
+		return String( s == null ? '' : s ).replace( /&/g, '&amp;' ).replace( /</g, '&lt;' ).replace( />/g, '&gt;' ).replace( /"/g, '&quot;' );
+	};
+	var chartLegend = function( items, colorKey ) {
+		return function( chart ) {
+			var name = chartEsc( String( chart.name ).toLowerCase() ), html = '<ul class="' + name + '-legend">';
+			var list = chart[ items ] || [];
+			for ( var i = 0; i < list.length; i++ ) {
+				html += '<li><span class="' + name + '-legend-icon" style="background-color:' + chartEsc( list[ i ][ colorKey ] ) + '"></span>' +
+					'<span class="' + name + '-legend-text">' + ( list[ i ].label ? chartEsc( list[ i ].label ) : '' ) + '</span></li>';
+			}
+			return html + '</ul>';
+		};
+	};
+	var chartTemplates = function( legend ) {
+		return {
+			scaleLabel: function( o ) { return String( o.value ); },
+			tooltipTitleTemplate: function( o ) { return String( o.label ); },
+			tooltipTemplate: function( o ) { return ( o.label ? o.label + ': ' : '' ) + o.value; },
+			multiTooltipTemplate: function( o ) { return o.datasetLabel + ': ' + o.value; },
+			legendTemplate: legend
+		};
+	};
+	var chartWith = function( base, legend ) {
+		var t = chartTemplates( legend );
+		for ( var k in t ) base[ k ] = t[ k ];
+		return base;
+	};
+	config.chart_configBar = chartWith( { animation: false }, chartLegend( 'datasets', 'fillColor' ) );
+	config.chart_configDoughnut = chartWith( { animateRotate: false }, chartLegend( 'segments', 'fillColor' ) );
+	config.chart_configLine = chartWith( { animation: false }, chartLegend( 'datasets', 'strokeColor' ) );
+	config.chart_configPie = chartWith( { animateRotate: false }, chartLegend( 'segments', 'fillColor' ) );
+	config.chart_configPolarArea = chartWith( { animateRotate: false }, chartLegend( 'segments', 'fillColor' ) );
 	config.toolbar_chart = [
         { name: 'chart', items: ['Chart', '-', 'ChartColor', 'ChartAddItem'] }
     ];

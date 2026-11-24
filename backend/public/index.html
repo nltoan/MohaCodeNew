@@ -16,44 +16,10 @@
   <link rel="stylesheet" href="%PUBLIC_URL%/vendor/adminlte/adminlte.min.css">
   <!-- <link href="https://unpkg.com/grapesjs-project-manager/dist/grapesjs-project-manager.min.css" rel="stylesheet"> -->
 
-  <script type="text/javascript">
-    window.env = {
-      'REACT_APP_LANGUAGE': 'vi',
-      // "REACT_APP_API_URL": 'https://molisa.tefli.vn/api',
-      // "REACT_APP_UPLOAD_URL": 'https://molisa.gov.vn',
-
-      "REACT_APP_API_URL": 'http://mohaapi.tefli.vn/api',
-      "REACT_APP_API_UPLOAD_URL": 'http://mohaapi.tefli.vn',
-      "REACT_APP_UPLOAD_URL": 'http://moha.tefli.vn',
-
-
-      "REACT_APP_FRONTEND_URL": 'http://moha.tefli.vn',
-      "REACT_APP_ENG_FRONTEND_URL": 'http://moha.tefli.vn/en',
-      "REACT_APP_BACKEND_URL": 'http://mohabackend.tefli.vn',
-
-
-
-      "REACT_APP_CHUYEN_MUC_BO_TRUONG_PHAT_BIEU_ID": 11535,
-      "REACT_APP_BAI_VIET_BO_TRUONG_TIEP_CONG_DAN_ID": 236702,
-      "REACT_APP_DANH_MUC_THONG_TIN": "/danhmucthongtin/1",
-
-      "REACT_APP_BOXNDDN_BANNER_TRANG_CHU_TIENG_VIET": 3226,
-      "REACT_APP_BOXVBPL_BANNER_TRANG_CHU_TIENG_VIET": 3225,
-      "REACT_APP_BOXHOT_BANNER_TRANG_CHU_TIENG_VIET": 3224,
-      "REACT_APP_SLIDE_BANNER_TRANG_CHU_TIENG_VIET": 1212,
-      "REACT_APP_BOXLEGAL_BANNER_TRANG_CHU_TIENG_ANH": 3228,
-    }
-    if ('%NODE_ENV%' === 'development') {
-      Object.assign(window.env, {
-        REACT_APP_API_URL: 'http://localhost:55104/api',
-        REACT_APP_API_UPLOAD_URL: 'http://localhost:55104',
-        REACT_APP_UPLOAD_URL: 'http://localhost:55104',
-        REACT_APP_FRONTEND_URL: 'http://localhost:5173',
-        REACT_APP_ENG_FRONTEND_URL: 'http://localhost:5173/en',
-        REACT_APP_BACKEND_URL: 'http://localhost:5174',
-      });
-    }
-  </script>
+  <!-- window.env nam trong runtime-config.js (khong inline vi CSP); phai tai dong bo truoc bundle. -->
+  <script src="%PUBLIC_URL%/runtime-config.js"></script>
+  <!-- Cho CKEditor 4 chay khi CSP khong co 'unsafe-inline' (xem file). -->
+  <script src="%PUBLIC_URL%/ckeditor-csp.js"></script>
   <title>Quản trị nội dung</title>
   <style>
     .gjs-editor-cont {
@@ -84,21 +50,6 @@
   <script src="%PUBLIC_URL%/vendor/adminlte/jquery.min.js"></script>
   <script src="%PUBLIC_URL%/vendor/adminlte/bootstrap.bundle.min.js"></script>
   <script src="%PUBLIC_URL%/vendor/adminlte/adminlte.min.js"></script>
-  <!-- <script>
-    $(document).ready(function () {
-      $("body").on("click", '.nav-item', function () {
-        if ($(this).hasClass('menu-open')) {
-          $(this).removeClass("menu-open");
-          $(this).children().removeClass("active");
-        } else {
-          $(this).addClass("menu-open");
-          $(this).children().addClass("active");
-        }
-        $('.nav-item').children().removeClass('active').not(this);
-        $(this).children().addClass("active");
-      });
-    }); 
-  </script> -->
 </body>
 
 </html>

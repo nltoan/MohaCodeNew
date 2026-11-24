@@ -140,6 +140,7 @@ namespace API.Controllers
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, GetFullErrorMessage(ModelState));
 
             await _context.SaveChangesAsync();
+            API.Services.TokenRevocation.Evict(model.UserID);
             if (values.Contains("MatKhau")) API.Services.DefaultPasswordPolicy.MarkDefault(_context, model.UserID);
 
             return Request.CreateResponse(HttpStatusCode.OK);
@@ -154,6 +155,7 @@ namespace API.Controllers
             if (model == null) throw new HttpResponseException(HttpStatusCode.NotFound);
             model.TrangThai = "deleted";
             await _context.SaveChangesAsync();
+            API.Services.TokenRevocation.Evict(model.UserID);
         }
 
 

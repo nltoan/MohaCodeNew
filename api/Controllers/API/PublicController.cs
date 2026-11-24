@@ -1056,8 +1056,32 @@ namespace API.Controllers
             {
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid request.");
             }
+
+            // Kiem tra du lieu truoc khi goi Google (tranh 500 va goi captcha thua)
+            int idVbdt;
+            if (string.IsNullOrWhiteSpace(model.IDVBDT) || !int.TryParse(model.IDVBDT.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out idVbdt) || idVbdt <= 0)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Văn bản dự thảo không hợp lệ.");
+            }
+            var fullName = TrimOrNull(model.fullName);
+            var phone = TrimOrNull(model.phone);
+            var email = TrimOrNull(model.email);
+            var address = TrimOrNull(model.address);
+            var content = TrimOrNull(model.content);
+            var inputError = ValidateCommentInput(fullName, phone, email, address, content);
+            if (inputError != null)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, inputError);
+            }
+
             var recaptchaService = new ReCaptchaValidator();
             var captchaResult = await recaptchaService.VerifyTokenAsync(model.recaptcha);
+
+            // Khong goi duoc Google (may chu khong co internet, timeout) -> 503, khong phai loi nguoi dung
+            if (captchaResult.IsNetworkError)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.ServiceUnavailable, CaptchaUnavailableMessage);
+            }
 
             // Check if the request to Google succeeded
             if (!captchaResult.Success)
@@ -1079,23 +1103,50 @@ namespace API.Controllers
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bot activity detected.");
             }
 
-            var vbdt = _context.VanBanDuThaos.Find(Convert.ToInt32(model.IDVBDT));
+            var vbdt = _context.VanBanDuThaos.Find(idVbdt);
             if (vbdt == null || vbdt.NgayBatDauLayYKien > DateTime.Now || vbdt.NgayHetHanLayYKien < DateTime.Now)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid document.");
-            } 
+            }
 
             VanBanDuThao_GopY gopy = new VanBanDuThao_GopY();
-            gopy.DiaChi = model.address;
-            gopy.VanBanDuThaoID = Convert.ToInt32(model.IDVBDT);
-            gopy.Email = model.email;
-            gopy.SoDienThoai = model.phone;
-            gopy.NoiDung = model.content;
-            gopy.HoTen = model.fullName;
+            gopy.DiaChi = address;
+            gopy.VanBanDuThaoID = idVbdt;
+            gopy.Email = email;
+            gopy.SoDienThoai = phone;
+            gopy.NoiDung = content;
+            gopy.HoTen = fullName;
+            gopy.NgayGui = DateTime.Now;
             _context.VanBanDuThao_GopY.Add(gopy);
             _context.SaveChanges();
 
             return Request.CreateResponse(HttpStatusCode.OK, new { Message = "Success" });
+        }
+
+        private const string CaptchaUnavailableMessage = "Không kiểm tra được mã xác thực, vui lòng thử lại sau.";
+        // Do dai toi da theo cot VanBanDuThao_GopY (nvarchar(200)); NoiDung la ntext, gioi han theo form portal (50.000)
+        private const int GopYFieldMaxLength = 200;
+        private const int GopYContentMaxLength = 50000;
+        private static readonly Regex SimpleEmailRegex = new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled);
+
+        private static string TrimOrNull(string value)
+        {
+            if (value == null) return null;
+            var trimmed = value.Trim();
+            return trimmed.Length == 0 ? null : trimmed;
+        }
+
+        private static string ValidateCommentInput(string fullName, string phone, string email, string address, string content)
+        {
+            if (fullName == null) return "Vui lòng nhập họ tên.";
+            if (content == null) return "Vui lòng nhập nội dung góp ý.";
+            if (fullName.Length > GopYFieldMaxLength) return "Họ tên quá dài (tối đa 200 ký tự).";
+            if (phone != null && phone.Length > GopYFieldMaxLength) return "Số điện thoại quá dài (tối đa 200 ký tự).";
+            if (email != null && email.Length > GopYFieldMaxLength) return "Email quá dài (tối đa 200 ký tự).";
+            if (email != null && !SimpleEmailRegex.IsMatch(email)) return "Email không hợp lệ.";
+            if (address != null && address.Length > GopYFieldMaxLength) return "Địa chỉ quá dài (tối đa 200 ký tự).";
+            if (content.Length > GopYContentMaxLength) return "Nội dung góp ý quá dài (tối đa 50.000 ký tự).";
+            return null;
         }
 
         [HttpGet]
