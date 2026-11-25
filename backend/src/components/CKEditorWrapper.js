@@ -1,9 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { encodeBase64Url } from '../utils/helpers';
+import { mediaUrl } from '../utils/upload';
 import { CKEditor } from 'ckeditor4-react';
 import { LoadPanel } from 'devextreme-react/load-panel';
 import './ckeditor.css'; 
 import { getToken } from "../utils/token";
+
+// Noi dung chen tu ban 25/11 co the chua anh tren host API (https://api-portal.../Upload/...):
+// CSP admin production chan host nay nen anh hien trang. Doi sang host media khi mo trinh soan thao.
+function fixApiMediaUrls(html) {
+    const api = String(window.env.REACT_APP_API_UPLOAD_URL || '').replace(/\/+$/, '');
+    const media = String(window.env.REACT_APP_UPLOAD_URL || '').replace(/\/+$/, '');
+    if (typeof html !== 'string' || !api || !media || api === media) return html;
+    return html.split(api + '/Upload/').join(media + '/Upload/');
+}
 
 const CKEditor4Wrapper = ({ 
     value, 
@@ -37,10 +46,9 @@ const CKEditor4Wrapper = ({
         return () => cancelAnimationFrame(frame);
     }, []);
 
-    // FileManager tra URL tu host API, nhung HTML luu trong CMS phai tro toi host media
-    // de hien thi duoc ca trong admin va portal (khong thanh /Upload/... tuong doi cua admin).
-    const urlCkfider = `/FilePicker?type=Images&s1=${encodeBase64Url(window.env.REACT_APP_UPLOAD_URL)}`;
-    const urlCkfiderVideo = `/FilePicker?type=Videos&s1=${encodeBase64Url(window.env.REACT_APP_UPLOAD_URL)}`;
+    // FilePicker tu doi URL file sang host media (xem mediaUrl trong utils/upload).
+    const urlCkfider = `/FilePicker?type=Images`;
+    const urlCkfiderVideo = `/FilePicker?type=Videos`;
     const urlUpload = `${window.env.REACT_APP_API_URL}/FileManager/CKEditorImageUpload`;
     let access_token = getToken();
 
@@ -54,7 +62,7 @@ const CKEditor4Wrapper = ({
             />
             {canMount && <CKEditor
                 editorUrl="/ckeditor/ckeditor.js"
-                initData={value}
+                initData={fixApiMediaUrls(value)}
                 onNamespaceLoaded={ CKEDITOR => {
                     CKEDITOR.disableAutoInline = true; 
                 }}
@@ -76,6 +84,11 @@ const CKEditor4Wrapper = ({
                 }}
 
                 onInstanceReady={({ editor }) => {
+                    // Anh tai len qua tab "Tai len"/dan/keo tha: API tra "/Upload/..."; doi sang host media
+                    // (chay sau bo xu ly mac dinh cua filetools, uu tien 999).
+                    editor.on('fileUploadResponse', (evt) => {
+                        if (evt.data && evt.data.url) evt.data.url = mediaUrl(evt.data.url);
+                    }, null, null, 1000);
                     // Dong bo gia tri khi mat focus: bam Luu/Xem truoc ngay sau khi go van khong mat noi dung.
                     editor.on('blur', () => {
                         if (onValueChangedRef.current) onValueChangedRef.current(editor.getData());

@@ -230,3 +230,13 @@ export function libraryPath(url) {
   const i = p.toLowerCase().indexOf("/upload/");
   return i > 0 ? p.slice(i) : p;
 }
+
+// URL de hien thi/chen file thu vien: luon tren host media (REACT_APP_UPLOAD_URL).
+// FileManager tra URL tuyet doi cua host API, nhung CSP admin production chi cho tai anh
+// tu 'self' va host media; HTML luu trong CMS cung phai tro toi host media de portal hien duoc.
+export function mediaUrl(url) {
+  if (!url) return "";
+  const p = libraryPath(url);
+  if (!/^\/upload\//i.test(p)) return String(url);
+  return String(window.env.REACT_APP_UPLOAD_URL || "").replace(/\/+$/, "") + p;
+}

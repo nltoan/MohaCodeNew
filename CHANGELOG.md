@@ -2,6 +2,14 @@
 
 Ghi chú theo từng đợt, chuyển từ DEV-SETUP.md. Hướng dẫn cài đặt và chạy nằm ở DEV-SETUP.md.
 
+## Admin 25/11: ảnh chèn vào nội dung không hiện (sau khi tách media theo người tạo)
+
+- Nguyên nhân: sau commit `cf28603`, ảnh tải lên qua tab "Tải lên" của CKEditor có URL `https://api-portal.moha.gov.vn/Upload/...`. CSP admin trên production không có `img-src`; `default-src` chỉ cho `'self'` và `https://moha.gov.vn`, nên trình duyệt chặn ảnh. Kết quả là khung ảnh trắng, và chiều rộng/cao không tự điền. Xem trước trong "Quản lý file" cũng bị chặn vì cùng lý do.
+- `FileManager/CKEditorImageUpload` trả đường dẫn `/Upload/...` (JSON tạo bằng `JsonConvert`, không nối chuỗi). Admin đổi đường dẫn này sang host media (`REACT_APP_UPLOAD_URL`).
+- Hàm `mediaUrl` (`backend/src/utils/upload.js`) dùng chung cho "Duyệt máy chủ" (FilePicker), xem trước trong thư viện và ảnh tải lên, dán hoặc kéo thả vào CKEditor.
+- Khi mở trình soạn thảo, các URL `https://api-portal…/Upload/` có sẵn trong nội dung được đổi sang host media.
+- Đã kiểm tra trên production: `/Upload/...` trả ảnh trên cả `moha.gov.vn`, `api-portal` và `quantri-portal`.
+
 ## Rà soát lại đợt sửa admin 24–25/11
 
 - **Bảo mật, thư viện file:** chặn `BackUp`/`Thumb` (25/11) chỉ xét đoạn đầu đường dẫn do client gửi, nên `a/../BackUp`, `./BackUp`, `BackUp.` lọt qua, tải được bản sao lưu CSDL. `GuardedFileSystemProvider` nay kiểm tra trên đường dẫn thật (`GetFullPath` từ gốc `~/Upload`), từ chối đoạn `.`/`..`/kết thúc bằng dấu chấm hoặc khoảng trắng, không cho thao tác trên chính thư mục gốc (Copy gốc từng chép cả `BackUp` ra ngoài). `FileFromLibrary` kiểm tra tương tự và trả 400 thay vì 500 khi đường dẫn có `:`.

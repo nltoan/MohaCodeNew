@@ -439,9 +439,9 @@ namespace API.Controllers
                     var newFileName = fileGuid + file.FileName;
                     file.SaveAs(Path.Combine(targetLocation, newFileName));
                     UploadImageOptimizer.OptimizeInPlace(Path.Combine(targetLocation, newFileName));
-                    // URL tuyet doi cua API de CKEditor trong host admin hien anh ngay sau khi upload.
-                    string fileUrlInFrontEnd = new Uri(Request.RequestUri, CurrentUploadUrl(newFileName)).AbsoluteUri;
-                    jsonResponse = "{\"fileName\": \"" + newFileName +"\",\"uploaded\": 1,\"url\": \"" + fileUrlInFrontEnd + "\"}";
+                    // Tra duong dan "/Upload/..." (khong kem host API): CSP admin production khong cho tai anh tu host API.
+                    // Admin (CKEditorWrapper) doi sang host media; /Upload cung duoc phuc vu tren host admin va portal.
+                    jsonResponse = JsonConvert.SerializeObject(new { fileName = newFileName, uploaded = 1, url = CurrentUploadUrl(newFileName) });
                 }
             }
             catch (Exception)

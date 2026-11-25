@@ -5,7 +5,7 @@ import { Popup } from 'devextreme-react/popup';
 import config from '../config';
 import { notify, pathFile } from '../utils/api';
 import FilePreview from '../components/FilePreview';
-import { CHUNKED_MAX_MB, FILE_MANAGER_UPLOAD_HINT, MB, onFileManagerError } from '../utils/upload';
+import { CHUNKED_MAX_MB, FILE_MANAGER_UPLOAD_HINT, MB, mediaUrl, onFileManagerError } from '../utils/upload';
 import { useAuth } from '../contexts/auth';
 
 // Sao chep duong dan; trinh duyet chan clipboard (http, khong cap quyen) thi dung cach cu, cuoi cung hien de chep tay.
@@ -47,7 +47,8 @@ export default function MediaFileManager() {
     setPopupVisible(true);
     setItemToDisplay({
       name: e.file.name,
-      url: e.file.dataItem.url,
+      // Host API khong nam trong CSP img-src/media-src cua admin production: xem qua host media.
+      url: mediaUrl(e.file.dataItem.url),
       size: e.file.size,
     });
   }
