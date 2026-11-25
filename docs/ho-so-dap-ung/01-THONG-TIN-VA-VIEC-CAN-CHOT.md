@@ -30,7 +30,7 @@ Thông tin trên được dùng theo lời cung cấp của người dùng; đ�
 
 Đây là danh sách soạn sẵn để Tefli xem xét; chưa gửi cho bất kỳ bên nào.
 
-1. Xác nhận tiến độ áp dụng khi Chương I ghi 02 tháng [B0047] nhưng Chương II và IV quy định 30 ngày [B0295.R016–R017; B0660]. Phương án đang lập theo 30 ngày.
+1. ~~Xác nhận tiến độ 02 tháng hay 30 ngày.~~ Đã rõ: HSYC v7 (25/11/2026) thống nhất 30 ngày ở Chương I và IV. Các mã [Bxxxx] trong danh sách này tham chiếu bản trích xuất cũ `nguon/HSYC-trich-xuat.txt`; bản v7 nằm ở `nguon/HSYC-v7-trich-xuat.txt` và không còn mô tả hiện trạng hạ tầng, SharePoint, LGSP/EMC, RPO/RTO.
 2. Xác nhận cấu phần SharePoint tiếp tục vận hành, phạm vi CMS cần kế thừa, quyền truy cập và cơ chế kết nối giữa SharePoint, lớp React, API và dữ liệu [B0722–B0730].
 3. Chốt đầu mối, tài liệu giao tiếp, môi trường kiểm thử và quyền kết nối AD/SSO, LGSP, EMC, hệ thống tiếp nhận kiến nghị và các hệ thống nghiệp vụ liên quan [B0713].
 4. Chốt số lượng/dung lượng nguồn chuyển đổi, tệp đính kèm, URL cần bảo toàn, dữ liệu lỗi, cửa sổ chuyển đổi và cách đối soát [B0738.R013–R018].
