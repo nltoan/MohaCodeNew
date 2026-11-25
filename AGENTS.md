@@ -6,7 +6,7 @@
 - `backend/`: giao diện quản trị (admin GUI: React 18, CRA 5, DevExtreme, npm). Đây là ứng dụng web tĩnh, không phải server.
 - `api/`: ASP.NET Web API (.NET Framework 4.8, EF6). Bản build chính thức dùng MSBuild trên Windows.
 - `db/migrations/`: migration SQL idempotent.
-- `scripts/`: PowerShell và Node (Playwright), nhắm tới Windows. `scripts/mac/` chỉ để chạy thử trên macOS (Mono), không dùng để phát hành.
+- `scripts/`: PowerShell và Node (Playwright), nhắm tới Windows. `scripts/mac/` chỉ để chạy thử trên macOS (Mono), không dùng để phát hành. `scripts/sharepoint-mock/` là SharePoint giả lập để thử đồng bộ văn bản (xem README trong đó).
 - `deployment/`: runbook và mẫu cấu hình IIS; `deployment/archive/` là ghi chú cũ theo ngày.
 - `docs/ho-so-dap-ung/`: hồ sơ dự thầu (không phải tài liệu kỹ thuật của mã nguồn).
 - `web/`, `migrate/`: mã cũ (legacy), xem mục cuối.

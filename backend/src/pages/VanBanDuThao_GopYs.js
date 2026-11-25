@@ -44,17 +44,9 @@ export default function VanBanDuThao_GopY() {
             type="button"
             className="btn btn-tool"
             data-card-widget="collapse"
-            title="Collapse"
+            title="Thu gọn"
           >
             <i className="fas fa-minus" />
-          </button>
-          <button
-            type="button"
-            className="btn btn-tool"
-            data-card-widget="remove"
-            title="Remove"
-          >
-            <i className="fas fa-times" />
           </button>
         </div>
       </div>

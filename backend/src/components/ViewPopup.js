@@ -115,7 +115,7 @@ export default function ViewPopup({ rowview }) {
                   >
                     <FilterRow visible={true} />
                     <HeaderFilter visible={true} />
-                    <SearchPanel visible={true} highlightCaseSensitive={true} />
+                    <SearchPanel visible={true} />
 
                     <Column
                       dataField="TinTucID"
@@ -146,7 +146,7 @@ export default function ViewPopup({ rowview }) {
                   >
                     <FilterRow visible={true} />
                     <HeaderFilter visible={true} />
-                    <SearchPanel visible={true} highlightCaseSensitive={true} />
+                    <SearchPanel visible={true} />
                     <Column dataField="LienQuanID" caption="Tiêu đề">
                       <Lookup
                         allowClearing={true}
@@ -173,7 +173,7 @@ export default function ViewPopup({ rowview }) {
                   >
                     <FilterRow visible={true} />
                     <HeaderFilter visible={true} />
-                    <SearchPanel visible={true} highlightCaseSensitive={true} />
+                    <SearchPanel visible={true} />
                     <Column
                       dataField="FileID"
                       dataType="string"
@@ -203,7 +203,7 @@ export default function ViewPopup({ rowview }) {
                   >
                     <FilterRow visible={true} />
                     <HeaderFilter visible={true} />
-                    <SearchPanel visible={true} highlightCaseSensitive={true} />
+                    <SearchPanel visible={true} />
 
                     <Column
                       dataField="Comment"
@@ -234,7 +234,7 @@ export default function ViewPopup({ rowview }) {
                   >
                     <FilterRow visible={true} />
                     <HeaderFilter visible={true} />
-                    <SearchPanel visible={true} highlightCaseSensitive={true} />
+                    <SearchPanel visible={true} />
 
                     <Column
                       dataField="ID"
@@ -276,7 +276,7 @@ export default function ViewPopup({ rowview }) {
                   >
                     <FilterRow visible={true} />
                     <HeaderFilter visible={true} />
-                    <SearchPanel visible={true} highlightCaseSensitive={true} />
+                    <SearchPanel visible={true} />
 
                     <Column
                       dataField="ID"

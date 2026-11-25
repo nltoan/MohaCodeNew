@@ -24,17 +24,9 @@ export default function LinhVuc() {
             type="button"
             className="btn btn-tool"
             data-card-widget="collapse"
-            title="Collapse"
+            title="Thu gọn"
           >
             <i className="fas fa-minus" />
-          </button>
-          <button
-            type="button"
-            className="btn btn-tool"
-            data-card-widget="remove"
-            title="Remove"
-          >
-            <i className="fas fa-times" />
           </button>
         </div>
       </div>
@@ -50,7 +42,7 @@ export default function LinhVuc() {
         >
           <FilterRow visible={true} />
           <HeaderFilter visible={true} />
-          <SearchPanel visible={true} highlightCaseSensitive={true} />
+          <SearchPanel visible={true} />
           <Editing
             mode="popup"
             useIcons={true}
@@ -72,7 +64,6 @@ export default function LinhVuc() {
             dataField="ID"
             dataType="string"
             caption="ID"
-            defaultSortOrder={"desc"}
           />
           <Column dataField="TenLinhVuc" dataType="string" caption="Tên" />
           <Column dataField="MoTa" dataType="string" caption="Mô tả" />

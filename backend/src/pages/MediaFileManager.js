@@ -1,51 +1,53 @@
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState } from 'react';
 import FileManager, { Item, Permissions, ContextMenu, Upload } from 'devextreme-react/file-manager';
-import Notify from 'devextreme/ui/notify';
 import { Popup } from 'devextreme-react/popup';
-import Plyr from "plyr-react"
-import "plyr-react/plyr.css"
 import config from '../config';
-import { createLookupStore, pathFile } from '../utils/api';
-import { Button } from 'devextreme-react';
+import { notify, pathFile } from '../utils/api';
+import FilePreview from '../components/FilePreview';
 import { CHUNKED_MAX_MB, FILE_MANAGER_UPLOAD_HINT, MB, onFileManagerError } from '../utils/upload';
 
-const dataSourceOptions = createLookupStore("ImageSizes");
-// Plyr mac dinh tai icon/video rong tu cdn.plyr.io (CSP chan): dung ban tu host trong public/.
-const plyrOptions = { iconUrl: `${process.env.PUBLIC_URL}/plyr.svg`, blankVideo: `${process.env.PUBLIC_URL}/plyr-blank.mp4` };
+// Sao chep duong dan; trinh duyet chan clipboard (http, khong cap quyen) thi dung cach cu, cuoi cung hien de chep tay.
+export async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      ta.remove();
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+}
 
 export default function MediaFileManager() {
   const [currentPath, setCurrentPath] = useState("");
   const [popupVisible, setPopupVisible] = useState(false);
-  const [imageResize, setImageResize] = useState(false);
   const [itemToDisplay, setItemToDisplay] = useState({});
-  const [imageSizes, setImageSizes] = useState();
+  const [copyFallback, setCopyFallback] = useState('');
   // plyr-react tim video bang selector toan trang: chi tao Plyr khi popup da gan vao DOM (onShown).
   const [popupShown, setPopupShown] = useState(false);
-  const videoSource = useMemo(() => ({
-    type: "video",
-    sources: [{ src: itemToDisplay.url, type: "video/mp4" }],
-  }), [itemToDisplay.url]);
-  useEffect(() => {
-    dataSourceOptions.load().then(
-      (data) => {
-        setImageSizes(data);
-      },
-      (error) => {
-        /* Handle the "error" here */
-      },
-    );
-  }, []);
 
-  function displayImagePopup(e) {
+  function displayPreview(e) {
     setPopupVisible(true);
     setItemToDisplay({
       name: e.file.name,
       url: e.file.dataItem.url,
+      size: e.file.size,
     });
   }
 
-  function hideImagePopup() {
+  function hidePreview() {
     setPopupVisible(false);
     setPopupShown(false);
   }
@@ -56,24 +58,10 @@ export default function MediaFileManager() {
   const onContextMenuItemClick = async (e) => {
     if (e.itemData.name === "copypath") {
       const selectedFile = e.fileSystemItem;
-      try {
-        await navigator.clipboard.writeText(selectedFile.dataItem.url.replace(window.env.REACT_APP_API_UPLOAD_URL, ''));
-        Notify(
-          {
-            message: `Copy thành công!`,
-            height: 45,
-            width: 150,
-            minWidth: 150,
-            type: "success",
-            displayTime: 3500,
-          },
-          {
-            position: "top right",
-          },
-        );
-      } catch (err) {
-        console.error("Failed to copy text: ", err);
-      }
+      if (!selectedFile || !selectedFile.dataItem || !selectedFile.dataItem.url) return;
+      const path = selectedFile.dataItem.url.replace(window.env.REACT_APP_API_UPLOAD_URL, '');
+      if (await copyText(path)) notify("Đã sao chép đường dẫn.", "success");
+      else setCopyFallback(path);
     }
   };
   return (
@@ -85,43 +73,14 @@ export default function MediaFileManager() {
             type="button"
             className="btn btn-tool"
             data-card-widget="collapse"
-            title="Collapse"
+            title="Thu gọn"
           >
             <i className="fas fa-minus" />
-          </button>
-          <button
-            type="button"
-            className="btn btn-tool"
-            data-card-widget="remove"
-            title="Remove"
-          >
-            <i className="fas fa-times" />
           </button>
         </div>
       </div>
       <div className="card-body">
-        <Popup
-          visible={imageResize}
-          dragEnabled={false}
-          hideOnOutsideClick={false}
-          showCloseButton={false}
-          showTitle={true}
-          title="Chọn kích cỡ ảnh"
-          width={300}
-          height={280}
-        >
-          <input type={`radio`} name="imagesize" value={0} /> Giữ nguyên <br />
-          {imageSizes &&
-            imageSizes.map((item, index) => (
-              <>
-                <input type={`radio`} name="imagesize" value={item.ID} />{" "}
-                {item.Name} ({item.Width} x {item.Height} )<br />
-              </>
-            ))}
-          <Button onClick={() => setImageResize(false)}>Đồng ý</Button>
-          <Button onClick={() => setImageResize(false)}> Hủy</Button>
-        </Popup>
-        <p className="text-muted mb-2"><small>{FILE_MANAGER_UPLOAD_HINT}</small></p>
+        <p className="text-muted mb-2"><small>{FILE_MANAGER_UPLOAD_HINT} Bấm đúp vào file để xem trước.</small></p>
         <FileManager
           currentPath={currentPath}
           onContextMenuItemClick={onContextMenuItemClick}
@@ -132,7 +91,7 @@ export default function MediaFileManager() {
               : null;
           }}
           fileSystemProvider={config.remoteProvider}
-          onSelectedFileOpened={displayImagePopup}
+          onSelectedFileOpened={displayPreview}
           onCurrentDirectoryChanged={onCurrentDirectoryChanged}
           onErrorOccurred={onFileManagerError}
         >
@@ -154,28 +113,46 @@ export default function MediaFileManager() {
             <Item name="delete" />
             <Item name="refresh" beginGroup="true" />
             <Item name="download" />
-            <Item text="Copy File Path" name="copypath" beginGroup="true" />
+            <Item text="Sao chép đường dẫn" icon="copy" name="copypath" beginGroup="true" />
           </ContextMenu>
         </FileManager>
         <Popup
-          maxHeight={600}
+          maxHeight="90vh"
+          width="80vw"
+          maxWidth={1100}
           hideOnOutsideClick={true}
+          showCloseButton={true}
           title={itemToDisplay.name}
           visible={popupVisible}
-          onHiding={hideImagePopup}
+          onHiding={hidePreview}
           onShown={() => setPopupShown(true)}
         >
-          {itemToDisplay.name && itemToDisplay.name.endsWith(".jpg") && (
-            <img src={itemToDisplay.url} className="img-fluid" />
-          )}
-          {popupShown && itemToDisplay.name && itemToDisplay.name.endsWith(".mp4") && (
-            <div>
-              <Plyr options={plyrOptions} source={videoSource} />
-            </div>
-          )}
+          {/* Luon co phan tu con: devextreme-react chi tao template noi dung khi Popup co children luc render dau. */}
+          <div>
+            {popupVisible && (
+              <FilePreview name={itemToDisplay.name} url={itemToDisplay.url} size={itemToDisplay.size} ready={popupShown} />
+            )}
+          </div>
+        </Popup>
+        <Popup
+          visible={!!copyFallback}
+          title="Sao chép đường dẫn"
+          showCloseButton={true}
+          hideOnOutsideClick={true}
+          width={520}
+          height="auto"
+          onHiding={() => setCopyFallback('')}
+        >
+          <p>Trình duyệt không cho sao chép tự động. Hãy chọn và sao chép (Ctrl+C) đường dẫn dưới đây:</p>
+          <input
+            className="form-control"
+            readOnly
+            value={copyFallback}
+            onFocus={(ev) => ev.target.select()}
+            autoFocus
+          />
         </Popup>
       </div>
-      <div className="card-footer"></div>
     </div>
   );
 }

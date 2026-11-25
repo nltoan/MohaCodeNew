@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import {
   TabbedItem, Tab, SimpleItem, Form, ButtonItem, CompareRule, Label} from 'devextreme-react/form';
-import { createCustomStore, notify, request, requestXFormRaw } from '../utils/api';
+import { notify, request, requestXFormRaw } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/auth';
 
@@ -76,14 +76,6 @@ export default function Profile() {
             >
               <i className="fas fa-minus" />
             </button>
-            <button
-              type="button"
-              className="btn btn-tool"
-              data-card-widget="remove"
-              title="Đóng"
-            >
-              <i className="fas fa-times" />
-            </button>
           </div>
         </div>
         <div className="card-body">
@@ -145,7 +137,8 @@ export default function Profile() {
                           const vbs = await request(
                             `Home/GenerateAuthenticateSecret`,
                           );
-                          setAuthenSetupImg(vbs?.imageUrl);
+                          if (!vbs?.imageUrl) notify("Không tạo được mã QR, vui lòng thử lại.", "error");
+                          setAuthenSetupImg(vbs?.imageUrl || '');
                           setFormData({
                             ...formData,
                             EntryKey: vbs?.entryKey,
@@ -163,26 +156,44 @@ export default function Profile() {
                   >
                     <Label visible={false} />
                   </SimpleItem>
-                  {!!formData.IsTwoFA &&
+                  {!!formData.IsTwoFA && !!auth.user.IsTwoFA && !authenSetupImg &&
                   <SimpleItem
                     colSpan={2}
-                    render={(e) => {
-                      return (
-                        <>
-                          <img
-                            src={authenSetupImg}
-                            alt="Mã QR thiết lập Google Authenticator"
-                          />
-                        </>
-                      );
-                    }}
+                    render={() => (
+                      <div className="text-success">
+                        <i className="fas fa-check-circle" /> Xác thực 2 lớp đang bật. Mỗi lần đăng nhập, nhập mã 6 số trong ứng dụng Google Authenticator.
+                      </div>
+                    )}
                   />}
+                  {!!formData.IsTwoFA && !!authenSetupImg &&
+                  <SimpleItem
+                    colSpan={2}
+                    render={() => (
+                      <div>
+                        <ol className="pl-3 mb-2">
+                          <li>Cài ứng dụng Google Authenticator (hoặc ứng dụng tương tự) trên điện thoại.</li>
+                          <li>Trong ứng dụng, chọn thêm tài khoản rồi quét mã QR bên dưới (hoặc nhập tay khóa thiết lập).</li>
+                          <li>Nhập mã 6 số ứng dụng hiển thị vào ô "Mã xác nhận" rồi bấm Cập nhật.</li>
+                        </ol>
+                        <img src={authenSetupImg} alt="Mã QR thiết lập Google Authenticator" />
+                      </div>
+                    )}
+                  />}
+                  {!!formData.IsTwoFA && !!authenSetupImg &&
                   <SimpleItem dataField="EntryKey" editorOptions={{readOnly:true}}>
                     <Label text="Khóa thiết lập (nhập tay nếu không quét được mã QR)" />
-                  </SimpleItem>
-                  <SimpleItem dataField="Code" editorType="dxTextBox">
-                    <Label text="Mã code để kích hoạt/bỏ kích hoạt" />
-                  </SimpleItem>
+                  </SimpleItem>}
+                  {!!formData.IsTwoFA !== !!auth.user.IsTwoFA &&
+                  <SimpleItem
+                    dataField="Code"
+                    editorType="dxTextBox"
+                    editorOptions={{ inputAttr: { inputmode: "numeric", autocomplete: "one-time-code" }, maxLength: 6 }}
+                    helpText={formData.IsTwoFA
+                      ? "Mã 6 số trong ứng dụng sau khi quét mã QR, để xác nhận bật xác thực 2 lớp."
+                      : "Mã 6 số hiện tại trong ứng dụng, để xác nhận tắt xác thực 2 lớp."}
+                  >
+                    <Label text="Mã xác nhận" />
+                  </SimpleItem>}
                   <ButtonItem
                     horizontalAlignment="left"
                     buttonOptions={{
@@ -196,7 +207,6 @@ export default function Profile() {
             </Form>
           </form>
         </div>
-        <div className="card-footer"></div>
       </div>
     </>
   );

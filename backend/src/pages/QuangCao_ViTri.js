@@ -32,17 +32,9 @@ export default function QuangCao_ViTri() {
             type="button"
             className="btn btn-tool"
             data-card-widget="collapse"
-            title="Collapse"
+            title="Thu gọn"
           >
             <i className="fas fa-minus" />
-          </button>
-          <button
-            type="button"
-            className="btn btn-tool"
-            data-card-widget="remove"
-            title="Remove"
-          >
-            <i className="fas fa-times" />
           </button>
         </div>
       </div>
@@ -70,7 +62,7 @@ export default function QuangCao_ViTri() {
         >
           <TreeListFilterRow visible={true} />
           <TreeListHeaderFilter visible={true} />
-          <TreeListSearchPanel visible={true} highlightCaseSensitive={true} />
+          <TreeListSearchPanel visible={true} />
           <TreeListEditing
             mode="popup"
             useIcons={true}

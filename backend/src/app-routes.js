@@ -65,11 +65,11 @@ import VanBanDuThao_GopYs from "./pages/VanBanDuThao_GopYs";
 import VungHienThi from "./pages/VungHienThi";
 
 // Nhom menu (trung nhan menu ben trai trong components/Aside.js), dung cho breadcrumb.
-const G_TINTUC = "QL tin tức";
-const G_MEDIA = "QL Media";
-const G_VANBAN = "QL văn bản";
-const G_COCAU = "QL cơ cấu tổ chức";
-const G_BANNER = "QL banner";
+const G_TINTUC = "Tin tức";
+const G_MEDIA = "Media";
+const G_VANBAN = "Văn bản";
+const G_COCAU = "Cơ cấu tổ chức";
+const G_BANNER = "Banner";
 const G_CHITIEU = "Quản lý chỉ tiêu";
 const G_HDPL = "Hỏi đáp pháp luật";
 const G_DGYK = "Đóng góp ý kiến";
@@ -78,26 +78,26 @@ const G_CRAWLER = "Thu thập tin";
 
 // Tieu de danh sach tin theo :type (trung nhan menu).
 const TIN_TUC_TITLES = {
-  owner: "DS tin của tôi",
-  publish: "DS tin xuất bản của tôi",
-  unpublish: "DS tin hủy xuất bản",
-  wait: "DS tin gửi duyệt của tôi",
-  cancel: "DS tin bị trả về của tôi",
-  draft: "DS tin lưu nháp của tôi",
-  approving: "DS tin đang kiểm duyệt",
-  ownerApproving: "DS tin chờ tôi xuất bản",
-  publishUnPublish: "DS tin xuất bản / hủy xuất bản",
-  infographic: "DS tin infographic",
-  emagazine: "DS tin Emagazine",
+  owner: "Tin của tôi",
+  publish: "Tin đã xuất bản của tôi",
+  unpublish: "Tin đã gỡ xuất bản",
+  wait: "Tin đã gửi duyệt của tôi",
+  cancel: "Tin bị trả về",
+  draft: "Tin lưu nháp",
+  approving: "Tin đang kiểm duyệt",
+  ownerApproving: "Tin chờ tôi xuất bản",
+  publishUnPublish: "Xuất bản / gỡ xuất bản",
+  infographic: "Tin infographic",
+  emagazine: "Tin eMagazine",
 };
 const VAN_BAN_TITLES = {
-  101: "QL văn bản QPPL",
-  104: "QL văn bản CĐĐH",
+  101: "Văn bản quy phạm pháp luật",
+  104: "Văn bản chỉ đạo điều hành",
 };
 
 // title / group: chuoi hoac ham (params) => chuoi; Content.js hien tieu de + breadcrumb va dat document.title.
 const routes = [
-  { path: "/HoiQuy/Import", element: HoiQuy, title: "Hội và Quỹ - Import Excel" },
+  { path: "/HoiQuy/Import", element: HoiQuy, title: "Nhập Excel Hội và Quỹ" },
   { path: "/ABL_AlbumAnh", element: ABL_AlbumAnh, title: "Album Ảnh", group: G_MEDIA },
   { path: "/ABL_AlbumAudio", element: ABL_AlbumAudio, title: "Album Audio", group: G_MEDIA },
   { path: "/ABL_AlbumVideo", element: ABL_AlbumVideo, title: "Album Video", group: G_MEDIA },
@@ -122,14 +122,14 @@ const routes = [
     title: "Chuyên mục Album Video",
     group: G_MEDIA,
   },
-  { path: "/Banner/Banner", element: Banner, title: "QL banner", group: G_BANNER },
+  { path: "/Banner/Banner", element: Banner, title: "Banner", group: G_BANNER },
   { path: "/Banner/Banner_ViTri", element: Banner_ViTri, title: "Vị trí banner", group: G_BANNER },
   { path: "/BinhLuan", element: BinhLuan, title: "Bình luận", group: G_TINTUC },
   { path: "/BuocQuyTrinh", element: BuocQuyTrinh, title: "Bước quy trình", group: G_HETHONG },
-  { path: "/System/ChucDanh", element: ChucDanh, title: "QL Chức danh", group: G_COCAU },
-  { path: "/ListNews/ChuyenMuc", element: ChuyenMuc, title: "DS chuyên mục", group: G_TINTUC },
-  { path: "/CoCauToChuc", element: CoCauToChuc, title: "QL cơ cấu tổ chức", group: G_COCAU },
-  { path: "/VanBan/CoQuanBanHanh", element: CoQuanBanHanh, title: "DS Cơ quan ban hành", group: G_VANBAN },
+  { path: "/System/ChucDanh", element: ChucDanh, title: "Chức danh", group: G_COCAU },
+  { path: "/ListNews/ChuyenMuc", element: ChuyenMuc, title: "Chuyên mục", group: G_TINTUC },
+  { path: "/CoCauToChuc", element: CoCauToChuc, title: "Cơ cấu tổ chức", group: G_COCAU },
+  { path: "/VanBan/CoQuanBanHanh", element: CoQuanBanHanh, title: "Cơ quan ban hành", group: G_VANBAN },
   { path: "/Crawler_ChuDe", element: Crawler_ChuDe, title: "Chủ đề thu thập tin", group: G_CRAWLER },
   { path: "/Crawler_LienKet/:type", element: Crawler_LienKet, title: "Tin thu thập", group: G_CRAWLER },
   { path: "/Crawler_Nguon", element: Crawler_Nguon, title: "Nguồn tin", group: G_CRAWLER },
@@ -137,44 +137,44 @@ const routes = [
   { path: "/ListNews/DongSuKien", element: DongSuKien, title: "Dòng sự kiện", group: G_TINTUC },
   { path: "/DonVi_LanhDao", element: DonVi_LanhDao, title: "Lãnh đạo đơn vị", group: G_COCAU },
   { path: "/File", element: File, title: "Quản lý tệp" },
-  { path: "/VanBan/HinhThucVanBan", element: HinhThucVanBan, title: "DS hình thức văn bản", group: G_VANBAN },
-  { path: "/VanBan/LinhVuc", element: LinhVuc, title: "DS lĩnh vực văn bản", group: G_VANBAN },
-  { path: "/Event/LoaiSuKien", element: LoaiSuKien, title: "Loại sự kiện", group: "QL Hội nghị, Sự kiện" },
-  { path: "/VanBan/LopVanBan", element: LopVanBan, title: "DS lớp văn bản", group: G_VANBAN },
-  { path: "/Menu_Backend", element: Menu_Backend, title: "QL menu quản trị", group: G_HETHONG },
-  { path: "/System/Menu_FrontEnd", element: Menu_FrontEnd, title: "QL menu frontend", group: G_HETHONG },
+  { path: "/VanBan/HinhThucVanBan", element: HinhThucVanBan, title: "Hình thức văn bản", group: G_VANBAN },
+  { path: "/VanBan/LinhVuc", element: LinhVuc, title: "Lĩnh vực văn bản", group: G_VANBAN },
+  { path: "/Event/LoaiSuKien", element: LoaiSuKien, title: "Loại sự kiện", group: "Hội nghị, sự kiện" },
+  { path: "/VanBan/LopVanBan", element: LopVanBan, title: "Lớp văn bản", group: G_VANBAN },
+  { path: "/Menu_Backend", element: Menu_Backend, title: "Menu quản trị", group: G_HETHONG },
+  { path: "/System/Menu_FrontEnd", element: Menu_FrontEnd, title: "Menu cổng thông tin", group: G_HETHONG },
   { path: "/NghienCuuKhoaHoc", element: NghienCuuKhoaHoc, title: "Nghiên cứu khoa học" },
-  { path: "/System/BackUp", element: BackUp, title: "QL backup", group: G_HETHONG },
-  { path: "/Banner/QuangCao_ViTri", element: QuangCao_ViTri, title: "QL vị trí", group: G_BANNER },
+  { path: "/System/BackUp", element: BackUp, title: "Sao lưu dữ liệu", group: G_HETHONG },
+  { path: "/Banner/QuangCao_ViTri", element: QuangCao_ViTri, title: "Vị trí quảng cáo", group: G_BANNER },
   { path: "/System/CauHinh", element: CauHinh, title: "Cấu hình hệ thống", group: G_HETHONG },
-  { path: "/System/Role", element: Role, title: "QL vai trò", group: G_HETHONG },
-  { path: "/ThoiKyPhatTrien", element: ThoiKyPhatTrien, title: "QL thời kì phát triển" },
+  { path: "/System/Role", element: Role, title: "Vai trò và phân quyền", group: G_HETHONG },
+  { path: "/ThoiKyPhatTrien", element: ThoiKyPhatTrien, title: "Thời kỳ phát triển" },
   {
     path: "/News/TinTuc/:type",
     element: TinTuc,
     title: (p) => TIN_TUC_TITLES[p.type] || "Quản lý tin tức",
     group: (p) => (p.type === "infographic" || p.type === "emagazine" ? G_MEDIA : G_TINTUC),
   },
-  { path: "/News/TinTucAll", element: TinTuc, title: "Tin tức", group: G_TINTUC },
+  { path: "/News/TinTucAll", element: TinTuc, title: "Tất cả tin", group: G_TINTUC },
   { path: "/News/TinTuc_Temp", element: TinTuc_Temp, title: "Tin tạm", group: G_TINTUC },
-  { path: "/System/User_Account", element: User_Account, title: "QL người dùng", group: G_HETHONG },
+  { path: "/System/User_Account", element: User_Account, title: "Người dùng", group: G_HETHONG },
   {
     path: "/VanBan/VanBan/:IdLopVanBan",
     element: VanBan,
-    title: (p) => VAN_BAN_TITLES[p.IdLopVanBan] || "QL văn bản",
+    title: (p) => VAN_BAN_TITLES[p.IdLopVanBan] || "Văn bản",
     group: G_VANBAN,
   },
   { path: "/VanBan/DuThao", element: VanBanDuThao, title: "Văn bản dự thảo", group: G_VANBAN },
   { path: "/VanBan/GopYDuThao", element: VanBanDuThao_GopYs, title: "Góp ý Văn bản dự thảo", group: G_VANBAN },
   { path: "/ListNews/VungHienThi", element: VungHienThi, title: "Vùng hiển thị", group: G_TINTUC },
-  { path: "/System/ImageSize", element: ImageSize, title: "QL kích cỡ ảnh", group: G_HETHONG },
-  { path: "/System/ADConfig", element: ADConfig, title: "QL chuỗi AD", group: G_HETHONG },
-  { path: "/MediaFileManager", element: MediaFileManager, title: "QL thư viện", group: G_HETHONG },
-  { path: "/Block", element: Block, title: "QL khối hiển thị", group: G_HETHONG },
-  { path: "/BlockConfig", element: BlockConfig, title: "QL cấu hình hiển thị", group: G_HETHONG },
+  { path: "/System/ImageSize", element: ImageSize, title: "Kích cỡ ảnh", group: G_HETHONG },
+  { path: "/System/ADConfig", element: ADConfig, title: "Cấu hình đăng nhập AD", group: G_HETHONG },
+  { path: "/MediaFileManager", element: MediaFileManager, title: "Thư viện file", group: G_HETHONG },
+  { path: "/Block", element: Block, title: "Khối hiển thị", group: G_HETHONG },
+  { path: "/BlockConfig", element: BlockConfig, title: "Bố cục hiển thị", group: G_HETHONG },
   { path: "/Template", element: Template, title: "Mẫu Emagazine", group: G_HETHONG },
   { path: "/Profile", element: Profile, title: "Thông tin tài khoản" },
-  { path: "/ThongTinLanhDao", element: ThongTinLanhDao, title: "QL lãnh đạo bộ", group: G_COCAU },
+  { path: "/ThongTinLanhDao", element: ThongTinLanhDao, title: "Lãnh đạo Bộ", group: G_COCAU },
   { path: "/HDPL/PhanAnhKienNghi", element: PhanAnhKienNghi, title: "Trả lời phản ánh, kiến nghị", group: G_HDPL },
   { path: "/HDPL/PhanAnhKienNghi_CoQuan", element: PhanAnhKienNghi_CoQuan, title: "Cơ quan tiếp nhận", group: G_HDPL },
   { path: "/HDPL/PhanAnhKienNghi_LinhVuc", element: PhanAnhKienNghi_LinhVuc, title: "Lĩnh vực", group: G_HDPL },
@@ -183,8 +183,8 @@ const routes = [
   { path: "/ChiTieu/ChiTieu_DanhMuc", element: ChiTieu_DanhMuc, title: "Danh mục chỉ tiêu", group: G_CHITIEU },
   { path: "/ChiTieu/ChiTieu", element: ChiTieu, title: "Danh sách chỉ tiêu", group: G_CHITIEU },
   { path: "/ThongBao", element: ThongBao, title: "Thông báo", group: G_TINTUC },
-  { path: "/HoiNghiSuKien", element: SuKienHoiThao, title: "QL Hội nghị, Sự kiện" },
-  { path: "/QuyTrinhKiemDuyet", element: QuyTrinhKiemDuyet, title: "QL quy trình kiểm duyệt", group: G_HETHONG },
+  { path: "/HoiNghiSuKien", element: SuKienHoiThao, title: "Hội nghị, sự kiện" },
+  { path: "/QuyTrinhKiemDuyet", element: QuyTrinhKiemDuyet, title: "Quy trình kiểm duyệt", group: G_HETHONG },
   { path: "/GioiThieuVanBan", element: GioiThieuVanBan, title: "Giới thiệu văn bản", group: G_VANBAN },
   { path: "/", element: Home, title: "Trang tổng quan" },
 ];

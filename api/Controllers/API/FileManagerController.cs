@@ -443,10 +443,28 @@ namespace API.Controllers
                 return name.Equals("web.config", StringComparison.OrdinalIgnoreCase);
             }
 
+            // Thu muc he thong o goc ~/Upload: ban sao luu CSDL (BackUps) va anh thu nho tu sinh. An khoi thu vien,
+            // khong cho mo, tai ve, xoa, di chuyen, chep hay tai file vao.
+            static readonly string[] HiddenRootFolders = { "BackUp", "Thumb" };
+
+            static bool IsHiddenPath(string value)
+            {
+                if (string.IsNullOrEmpty(value)) return false;
+                var first = value.Replace('\\', '/').TrimStart('/').Split('/')[0].Trim();
+                return HiddenRootFolders.Any(h => h.Equals(first, StringComparison.OrdinalIgnoreCase));
+            }
+
             static void Guard(FileSystemItemInfo item)
             {
                 if (item != null && (IsProtectedName(item.Name) || IsProtectedName(item.Path) || IsProtectedName(item.Key)))
                     throw new FileSystemException(FileSystemErrorCode.NoAccess, "This file is protected.");
+                GuardFolder(item);
+            }
+
+            static void GuardFolder(FileSystemItemInfo item)
+            {
+                if (item != null && (IsHiddenPath(item.Path) || IsHiddenPath(item.Key)))
+                    throw new FileSystemException(FileSystemErrorCode.NoAccess, "Thư mục hệ thống, không thể thao tác.");
             }
 
             static void Guard(string name)
@@ -454,12 +472,20 @@ namespace API.Controllers
                 if (IsProtectedName(name)) throw new FileSystemException(FileSystemErrorCode.NoAccess, "This file is protected.");
             }
 
+            public override IEnumerable<FileSystemItem> GetItems(FileSystemLoadItemOptions options)
+            {
+                GuardFolder(options.Directory);
+                var items = base.GetItems(options);
+                var atRoot = options.Directory == null || string.IsNullOrEmpty(options.Directory.Path);
+                return atRoot ? items.Where(i => !(i.IsDirectory && HiddenRootFolders.Any(h => h.Equals(i.Name, StringComparison.OrdinalIgnoreCase)))).ToList() : items;
+            }
+
             public override void RenameItem(FileSystemRenameItemOptions options) { Guard(options.Item); Guard(options.ItemNewName); base.RenameItem(options); }
-            public override void MoveItem(FileSystemMoveItemOptions options) { Guard(options.Item); base.MoveItem(options); }
-            public override void CopyItem(FileSystemCopyItemOptions options) { Guard(options.Item); base.CopyItem(options); }
+            public override void MoveItem(FileSystemMoveItemOptions options) { Guard(options.Item); GuardFolder(options.DestinationDirectory); base.MoveItem(options); }
+            public override void CopyItem(FileSystemCopyItemOptions options) { Guard(options.Item); GuardFolder(options.DestinationDirectory); base.CopyItem(options); }
             public override void DeleteItem(FileSystemDeleteItemOptions options) { Guard(options.Item); base.DeleteItem(options); }
-            public override void UploadFile(FileSystemUploadFileOptions options) { Guard(options.FileName); base.UploadFile(options); }
-            public override void CreateDirectory(FileSystemCreateDirectoryOptions options) { Guard(options.DirectoryName); base.CreateDirectory(options); }
+            public override void UploadFile(FileSystemUploadFileOptions options) { Guard(options.FileName); GuardFolder(options.DestinationDirectory); base.UploadFile(options); }
+            public override void CreateDirectory(FileSystemCreateDirectoryOptions options) { Guard(options.DirectoryName); GuardFolder(options.ParentDirectory); base.CreateDirectory(options); }
             public override Stream GetFileContent(FileSystemLoadFileContentOptions options) { Guard(options.File); return base.GetFileContent(options); }
         }
 

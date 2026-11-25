@@ -2,6 +2,21 @@
 
 Ghi chú theo từng đợt, chuyển từ DEV-SETUP.md. Hướng dẫn cài đặt và chạy nằm ở DEV-SETUP.md.
 
+## Giao diện admin 25/11: hoàn thiện (nhóm 3)
+
+- Bỏ nút "Remove" (X) của khung AdminLTE ở 87 trang (bấm vào làm biến mất cả bảng); tooltip nút thu gọn tiếng Việt. Ô tìm kiếm không còn `highlightCaseSensitive` (tô sáng không phân biệt hoa thường).
+- Menu và tiêu đề trang: bỏ tiền tố "QL"/"DS", viết đầy đủ ("Văn bản quy phạm pháp luật", "Sao lưu dữ liệu", "Vai trò và phân quyền"...); "Trang tổng quan" lên đầu menu. Lưu ý: một số file nguồn (Aside.js, CauHinh.js, TinTuc.js...) lưu tiếng Việt dạng Unicode tổ hợp (NFD); tìm kiếm chuỗi tiếng Việt trong các file này có thể không khớp.
+- Danh mục lĩnh vực, hình thức, lớp văn bản, cơ quan ban hành sắp theo "Số thứ tự" (cột ID trước đây được ưu tiên).
+- Trang tổng quan: trạng thái đang tải, báo lỗi kèm "Thử lại", ô số liệu bấm được để mở danh sách, nhãn đầy đủ, bài trên cổng mở tab mới.
+- Đường dẫn không tồn tại hiện trang "Không tìm thấy trang" thay vì âm thầm về trang chủ. Tài khoản đang phải đổi mật khẩu mặc định (`setup_required`) chỉ vào được trang Hồ sơ, menu chỉ còn mục đó.
+- Hồ sơ: mã QR, khóa thiết lập và hướng dẫn 3 bước chỉ hiện khi vừa bật 2FA; đã bật sẵn thì hiện dòng xác nhận (trước đây là ảnh vỡ); ô "Mã xác nhận" chỉ hiện khi bật/tắt 2FA.
+- Vai trò: cột "Quyền được cấp" liệt kê tên quyền, chọn quyền có hiệu lực ngay, có "Chọn tất cả", vai trò hệ thống có biểu tượng khóa.
+- Thư viện file: xem trước ảnh, video, âm thanh, PDF (`components/FilePreview.js`); bỏ popup "Chọn kích cỡ ảnh" không dùng; "Sao chép đường dẫn" có dự phòng khi trình duyệt chặn clipboard. Thư mục `BackUp` và `Thumb` bị ẩn và chặn mọi thao tác (`GuardedFileSystemProvider` trong `FileManagerController`).
+- Cửa sổ chọn file của CKEditor: nút "Chọn", chỉ hiện ảnh khi chèn ảnh, không cho xóa/di chuyển/đổi tên.
+- Tiếng Việt cho FileManager, HtmlEditor, phân trang... mà gói `vi.json` của DevExtreme 22.2 còn bỏ sót (`utils/viMessagesExtra.js`).
+- Lãnh đạo phụ trách đơn vị (`DonVi_LanhDao`): chọn lãnh đạo/đơn vị theo tên thay vì gõ ID, nhãn tiếng Việt. Cấu hình hệ thống: không sửa được ID.
+- Lưu ý khi dùng `Popup` của devextreme-react: phải có phần tử con ngay lần render đầu (không để `{cond && ...}` là con duy nhất), nếu không nội dung không bao giờ hiện.
+
 ## Giao diện admin 24/11: lỗi dữ liệu và bất tiện thường gặp
 
 Sửa sau đợt rà soát giao diện admin (nhóm 1: lỗi làm sai dữ liệu hoặc chặn thao tác; nhóm 2: bất tiện lớn).
@@ -35,6 +50,11 @@ Sửa sau đợt rà soát giao diện admin (nhóm 1: lỗi làm sai dữ liệ
 
 - Portal: ảnh chèn bằng plugin `image2` của CKEditor (`<figure><img><figcaption>`) có chú thích dài làm khung xám rộng hơn ảnh, ảnh lệch trái, chú thích không xuống dòng. `frontend/stylenoivufromSP.css` cho `figcaption` không góp vào bề rộng của `figure` (`width: 0; min-width: 100%`), nên khung ôm theo ảnh và chú thích tự xuống dòng.
 - Admin, Tin tức: ô Sapo (`MoTa`) cao 150px thay vì 300px; ô Nội dung (CKEditor) cao 500px thay vì 200px, kéo góc dưới để giãn thêm theo chiều dọc.
+
+## Đồng bộ văn bản từ SharePoint (bản thử, chưa kiểm tra trên farm thật)
+
+- `api/Services/SharePoint/` (`SharePointClient`, `SharePointVanBanSync`) và `SharePointSyncController` (`api/SharePointSync/Status`, `Run`, quyền `manage-vanban`): đọc thư viện `VanBan` qua REST, ghi một chiều vào `VanBan`/`Files` (khoá `Migrate_Source = sharepoint:<UniqueId>`), chỉ mục `TrangThai = Published`; mục bị gỡ công bố thì ẩn, không xoá. Portal vẫn đọc từ SQL nên không phụ thuộc SharePoint lúc chạy. Tắt khi `SharePointSiteUrl` để trống.
+- `scripts/sharepoint-mock/`: SharePoint giả lập để thử trên máy dev, kèm hướng dẫn (README.md). Đã thử với giả lập: tạo, cập nhật, ẩn, đồng bộ lại không trùng, SharePoint tắt thì API trả 502 và portal vẫn hiện dữ liệu cũ.
 
 ## Máy chủ API production không gọi ra ngoài được (nguyên nhân thật của danh sách trống và ảnh không thu nhỏ)
 

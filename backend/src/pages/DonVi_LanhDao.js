@@ -1,5 +1,6 @@
 import DataGrid, {
   Column,
+  Lookup,
   Pager,
   Paging,
   SearchPanel,
@@ -9,31 +10,25 @@ import DataGrid, {
   FilterRow, HeaderFilter,
 } from 'devextreme-react/data-grid';
 import { Item } from 'devextreme-react/form';
-import { createCustomStore } from '../utils/api';
+import { createCustomStore, createLookupStore } from '../utils/api';
 
 const dataSourceOptions = createCustomStore("DonVi_LanhDao");
+const dataSourceLanhDaoOptions = createLookupStore("ThongTinLanhDaos");
+const dataSourceDonViOptions = createLookupStore("CoCauToChucs");
 
 export default function DonVi_LanhDao() {
   return (
     <div className="card">
       <div className="card-header">
-        <h3 className="card-title">Quản lý DonVi_LanhDao</h3>
+        <h3 className="card-title">Lãnh đạo phụ trách đơn vị</h3>
         <div className="card-tools">
           <button
             type="button"
             className="btn btn-tool"
             data-card-widget="collapse"
-            title="Collapse"
+            title="Thu gọn"
           >
             <i className="fas fa-minus" />
-          </button>
-          <button
-            type="button"
-            className="btn btn-tool"
-            data-card-widget="remove"
-            title="Remove"
-          >
-            <i className="fas fa-times" />
           </button>
         </div>
       </div>
@@ -49,7 +44,7 @@ export default function DonVi_LanhDao() {
         >
           <FilterRow visible={true} />
           <HeaderFilter visible={true} />
-          <SearchPanel visible={true} highlightCaseSensitive={true} />
+          <SearchPanel visible={true} />
           <Editing
             mode="popup"
             useIcons={true}
@@ -57,34 +52,37 @@ export default function DonVi_LanhDao() {
             allowAdding={true}
             allowDeleting={true}
           >
-            <Popup title="Thông tin" showTitle={true} />
+            <Popup title="Lãnh đạo phụ trách đơn vị" showTitle={true} />
             <Form>
-              <Item dataField="IDLanhDao" />
-              <Item dataField="IDDonVi" />
-              <Item dataField="Hang" />
-              <Item dataField="Cot" />
+              <Item dataField="IDLanhDao" isRequired={true} />
+              <Item dataField="IDDonVi" isRequired={true} />
               <Item dataField="ChucVu" />
               <Item dataField="PhuTrach" />
-              <Item dataField="ChucNangNhiemVu" />
+              <Item dataField="Hang" helpText="Vị trí hiển thị trên sơ đồ: hàng thứ mấy." />
+              <Item dataField="Cot" helpText="Vị trí hiển thị trên sơ đồ: cột thứ mấy." />
+              <Item dataField="ChucNangNhiemVu" colSpan={2} editorType="dxTextArea" editorOptions={{ height: 120 }} />
             </Form>
           </Editing>
 
-          <Column dataField="IDLanhDao" dataType="string" caption="IDLanhDao" />
-          <Column dataField="IDDonVi" dataType="string" caption="IDDonVi" />
-          <Column dataField="Hang" dataType="string" caption="Hang" />
-          <Column dataField="Cot" dataType="string" caption="Cot" />
-          <Column dataField="ChucVu" dataType="string" caption="ChucVu" />
-          <Column dataField="PhuTrach" dataType="string" caption="PhuTrach" />
+          <Column dataField="IDLanhDao" caption="Lãnh đạo">
+            <Lookup allowClearing={true} searchEnabled={true} dataSource={dataSourceLanhDaoOptions} valueExpr="ID" displayExpr="HoTenLanhDao" />
+          </Column>
+          <Column dataField="IDDonVi" caption="Đơn vị">
+            <Lookup allowClearing={true} searchEnabled={true} dataSource={dataSourceDonViOptions} valueExpr="ID" displayExpr="TenDonVi" />
+          </Column>
+          <Column dataField="ChucVu" dataType="string" caption="Chức vụ" />
+          <Column dataField="PhuTrach" dataType="string" caption="Phụ trách" />
+          <Column dataField="Hang" dataType="string" caption="Hàng" width={70} />
+          <Column dataField="Cot" dataType="string" caption="Cột" width={70} />
           <Column
             dataField="ChucNangNhiemVu"
             dataType="string"
-            caption="ChucNangNhiemVu"
+            caption="Chức năng nhiệm vụ"
           />
           <Pager allowedPageSizes={[20, 50, 100]} showPageSizeSelector={true} />
           <Paging defaultPageSize={20} />
         </DataGrid>
       </div>
-      <div className="card-footer"></div>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { Children, isValidElement, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/auth";
 import { request } from "../utils/api";
+import { isSetupRequired } from "../utils/token";
 
 // Man hinh nho hon muc nay thi sidebar AdminLTE la lop phu (sidebar-open), can dong sau khi chon trang.
 const SMALL_SCREEN = 992;
@@ -154,6 +155,28 @@ export default function Aside() {
       cancelled = true;
     };
   }, [auth.user]);
+  // Tai khoan phai doi mat khau mac dinh: moi chuc nang khac deu bi API chan, chi hien muc Ho so.
+  if (isSetupRequired()) {
+    return (
+      <aside className="main-sidebar sidebar-light-light elevation-4">
+        <div className="navbar-brand d-flex justify-content-center">
+          <a href="/" className="app-logo brand-link">
+            <img src="/logo.png" alt="App Logo" className="img-fluid" />
+          </a>
+        </div>
+        <div className="sidebar">
+          <p className="text-muted small px-2 mt-3">
+            Hãy đổi mật khẩu và bật xác thực 2 lớp ở trang Thông tin tài khoản để mở các chức năng khác.
+          </p>
+          <nav className="mt-2">
+            <ul className="nav nav-pills nav-sidebar flex-column">
+              <MenuItem icon="fas fa-user nav-icon" title={"Thông tin tài khoản"} path={"/Profile"} />
+            </ul>
+          </nav>
+        </div>
+      </aside>
+    );
+  }
   // Dong/mo nhom menu do React quan ly (menu-open), khong dung Treeview cua AdminLTE de tranh hai ben
   // cung doi class / style cua cung mot phan tu.
   return (
@@ -198,65 +221,65 @@ export default function Aside() {
             className="nav nav-pills nav-sidebar flex-column"
           >
             <MenuItem
-              icon="fas fa-file-excel nav-icon"
-              permission={"manage-hoiquy"}
-              title={"Hội và Quỹ - Import Excel"}
-              path={"/HoiQuy/Import"}
-            />
-            <MenuItem
               icon="fas fa-chart-line nav-icon"
               title={"Trang tổng quan"}
               path={"/"}
             />
             <MenuItem
+              icon="fas fa-file-excel nav-icon"
+              permission={"manage-hoiquy"}
+              title={"Nhập Excel Hội và Quỹ"}
+              path={"/HoiQuy/Import"}
+            />
+            <MenuItem
               icon="fas fa-newspaper nav-icon"
               permission={"manage-tintuc"}
-              title={"QL tin tức"}
+              title={"Tin tức"}
             >
               <MenuItem
                 linkClass="nav-link pl-2"
                 hidden={!canViewAllNews}
-                title={"Tin tức"}
+                title={"Tất cả tin"}
                 path={"/News/TinTucAll"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"DS tin của tôi"}
+                title={"Tin của tôi"}
                 path={"/News/TinTuc/owner"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"DS tin xuất bản của tôi"}
+                title={"Tin đã xuất bản của tôi"}
                 path={"/News/TinTuc/publish"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"DS tin gửi duyệt của tôi"}
+                title={"Tin đã gửi duyệt của tôi"}
                 path={"/News/TinTuc/wait"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"DS tin bị trả về của tôi"}
+                title={"Tin bị trả về"}
                 path={"/News/TinTuc/cancel"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"DS tin lưu nháp của tôi"}
+                title={"Tin lưu nháp"}
                 path={"/News/TinTuc/draft"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"DS tin đang kiểm duyệt"}
+                title={"Tin đang kiểm duyệt"}
                 path={"/News/TinTuc/approving"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"DS tin chờ tôi xuất bản"}
+                title={"Tin chờ tôi xuất bản"}
                 path={"/News/TinTuc/ownerApproving"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"DS tin xuất bản / hủy xuất bản"}
+                title={"Xuất bản / gỡ xuất bản"}
                 path={"/News/TinTuc/publishUnPublish"}
               />
               <MenuItem
@@ -266,7 +289,7 @@ export default function Aside() {
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"DS chuyên mục"}
+                title={"Chuyên mục"}
                 path={"/ListNews/ChuyenMuc"}
               />
             </MenuItem>
@@ -316,43 +339,43 @@ export default function Aside() {
             <MenuItem
               icon="fas fa fa-history nav-icon"
               permission={"manage-thoiky"}
-              title={"QL thời kì phát triển"}
+              title={"Thời kỳ phát triển"}
               path={"/ThoiKyPhatTrien"}
             />
             <MenuItem
               icon="fas fa-sitemap nav-icon"
               permission={"manage-cocautochuc"}
-              title={"QL cơ cấu tổ chức"}
+              title={"Cơ cấu tổ chức"}
             >
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"QL cơ cấu tổ chức"}
+                title={"Cơ cấu tổ chức"}
                 path={"/CoCauToChuc"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"QL lãnh đạo bộ"}
+                title={"Lãnh đạo Bộ"}
                 path={"/ThongTinLanhDao"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"QL Chức danh"}
+                title={"Chức danh"}
                 path={"/System/ChucDanh"}
               />
             </MenuItem>
             <MenuItem
               icon="fas fa fa-ad nav-icon"
               permission={"manage-banner"}
-              title={"QL banner"}
+              title={"Banner"}
             >
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"QL banner"}
+                title={"Banner"}
                 path={"/Banner/Banner"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"QL vị trí"}
+                title={"Vị trí quảng cáo"}
                 path={"/Banner/QuangCao_ViTri"}
               />
             </MenuItem>
@@ -375,16 +398,16 @@ export default function Aside() {
             <MenuItem
               icon="fas fa-book nav-icon"
               permission={"manage-vanban"}
-              title={"QL văn bản"}
+              title={"Văn bản"}
             >
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"QL văn bản QPPL"}
+                title={"Văn bản quy phạm pháp luật"}
                 path={"/VanBan/VanBan/101"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"QL văn bản CĐĐH"}
+                title={"Văn bản chỉ đạo điều hành"}
                 path={"/VanBan/VanBan/104"}
               />
               {/* <MenuItem linkClass="nav-link pl-2" title={'DS văn bản Hợp tác quốc tế'} path={"/VanBan/VanBan/2125"} /> */}
@@ -405,38 +428,38 @@ export default function Aside() {
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"DS lĩnh vực văn bản"}
+                title={"Lĩnh vực văn bản"}
                 path={"/VanBan/LinhVuc"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"DS hình thức văn bản"}
+                title={"Hình thức văn bản"}
                 path={"/VanBan/HinhThucVanBan"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"DS lớp văn bản"}
+                title={"Lớp văn bản"}
                 path={"/VanBan/LopVanBan"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"DS Cơ quan ban hành"}
+                title={"Cơ quan ban hành"}
                 path={"/VanBan/CoQuanBanHanh"}
               />
             </MenuItem>
             <MenuItem
               icon="fas fa-video nav-icon"
               permission={"manage-tintuc"}
-              title={"QL Media"}
+              title={"Media"}
             >
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"DS tin infographic"}
+                title={"Tin infographic"}
                 path={"/News/TinTuc/infographic"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"DS tin Emagazine"}
+                title={"Tin eMagazine"}
                 path={"/News/TinTuc/emagazine"}
               />
               <MenuItem
@@ -479,7 +502,7 @@ export default function Aside() {
             <MenuItem
               icon="fas fa-calendar nav-icon"
               permission={"manage-sukien"}
-              title={"QL Hội nghị, Sự kiện"}
+              title={"Hội nghị, sự kiện"}
               path={"/HoiNghiSuKien"}
             />
             <MenuItem
@@ -490,25 +513,25 @@ export default function Aside() {
               <MenuItem
                 icon="fas fa-users nav-icon"
                 permission={"manage-user"}
-                title={"QL người dùng"}
+                title={"Người dùng"}
                 path={"/System/User_Account"}
               />
               <MenuItem
                 icon="fas fa-user-tag nav-icon"
                 permission={"manage-role"}
-                title={"QL vai trò"}
+                title={"Vai trò và phân quyền"}
                 path={"/System/Role"}
               />
               <MenuItem
                 icon="fas fa-list nav-icon"
                 permission={"manage-menu"}
-                title={"QL menu frontend"}
+                title={"Menu cổng thông tin"}
                 path={"/System/Menu_FrontEnd"}
               />
               <MenuItem
                 icon="fas fa-list nav-icon"
                 permission={"manage-backup"}
-                title={"QL backup"}
+                title={"Sao lưu dữ liệu"}
                 path={"/System/Backup"}
               />
               <MenuItem
@@ -520,37 +543,37 @@ export default function Aside() {
               <MenuItem
                 icon="fas fa-list nav-icon"
                 permission={"manage-setting"}
-                title={"QL kích cỡ ảnh"}
+                title={"Kích cỡ ảnh"}
                 path={"/System/ImageSize"}
               />
               <MenuItem
                 icon="fas fa-list nav-icon"
                 permission={"manage-setting"}
-                title={"QL chuỗi AD"}
+                title={"Cấu hình đăng nhập AD"}
                 path={"/System/ADConfig"}
               />
               <MenuItem
                 icon="fas fa-list nav-icon"
                 permission={"manage-block"}
-                title={"QL khối hiển thị"}
+                title={"Khối hiển thị"}
                 path={"/Block"}
               />
               <MenuItem
                 icon="fas fa-list nav-icon"
                 permission={"manage-block"}
-                title={"QL cấu hình hiển thị"}
+                title={"Bố cục hiển thị"}
                 path={"/BlockConfig"}
               />
               <MenuItem
                 icon="fas fa-photo-video nav-icon"
                 permission={"manage-library"}
-                title={"QL thư viện"}
+                title={"Thư viện file"}
                 path={"/MediaFileManager"}
               />
               <MenuItem
                 icon="fas fa-stream nav-icon"
                 permission={"manage-quytrinh"}
-                title={"QL quy trình kiểm duyệt"}
+                title={"Quy trình kiểm duyệt"}
                 path={"/QuyTrinhKiemDuyet"}
               />
             </MenuItem>

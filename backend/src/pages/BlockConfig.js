@@ -136,17 +136,9 @@ export default function BlockConfig() {
               type="button"
               className="btn btn-tool"
               data-card-widget="collapse"
-              title="Collapse"
+              title="Thu gọn"
             >
               <i className="fas fa-minus" />
-            </button>
-            <button
-              type="button"
-              className="btn btn-tool"
-              data-card-widget="remove"
-              title="Remove"
-            >
-              <i className="fas fa-times" />
             </button>
           </div>
         </div>
@@ -221,7 +213,7 @@ export default function BlockConfig() {
           >
             <FilterRow visible={true} />
             <HeaderFilter visible={true} />
-            <SearchPanel visible={true} highlightCaseSensitive={true} />
+            <SearchPanel visible={true} />
             <Editing
               mode="popup"
               useIcons={true}

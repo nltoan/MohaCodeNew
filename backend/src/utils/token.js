@@ -81,6 +81,15 @@ export function loginUrlForCurrentPage(reason) {
   return qs ? `/Login?${qs}` : "/Login";
 }
 
+// Tai khoan dang phai doi mat khau mac dinh / bat 2FA truoc khi dung chuc nang khac (API dat setup_required).
+export function isSetupRequired() {
+  try {
+    return localStorage.getItem("setup_required") === "1";
+  } catch {
+    return false;
+  }
+}
+
 export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(EXPIRY_KEY);

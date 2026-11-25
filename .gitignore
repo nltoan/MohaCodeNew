@@ -385,3 +385,4 @@ FodyWeavers.xsd
 # Cau hinh bi mat cuc bo
 /api/appSettings.local.config
 /api/connectionStrings.local.config
+/api/App_Data/sharepoint-sync.json

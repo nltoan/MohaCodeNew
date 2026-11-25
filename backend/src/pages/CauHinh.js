@@ -18,23 +18,15 @@ export default function CauHinh() {
   return (
     <div className="card">
       <div className="card-header">
-        <h3 className="card-title">Quản lý CauHinh</h3>
+        <h3 className="card-title">Cấu hình hệ thống</h3>
         <div className="card-tools">
           <button
             type="button"
             className="btn btn-tool"
             data-card-widget="collapse"
-            title="Collapse"
+            title="Thu gọn"
           >
             <i className="fas fa-minus" />
-          </button>
-          <button
-            type="button"
-            className="btn btn-tool"
-            data-card-widget="remove"
-            title="Remove"
-          >
-            <i className="fas fa-times" />
           </button>
         </div>
       </div>
@@ -47,7 +39,7 @@ export default function CauHinh() {
         >
           <FilterRow visible={true} />
           <HeaderFilter visible={true} />
-          <SearchPanel visible={true} highlightCaseSensitive={true} />
+          <SearchPanel visible={true} />
           <Editing
             mode="popup"
             useIcons={true}
@@ -55,9 +47,9 @@ export default function CauHinh() {
             allowAdding={false}
             allowDeleting={false}
           >
-            <Popup title="Quản lý CauHinh" showTitle={true} />
+            <Popup title="Sửa cấu hình" showTitle={true} />
             <Form>
-              <Item dataField="ID" colSpan={2} />
+              <Item dataField="ID" colSpan={2} editorOptions={{ readOnly: true }} />
               <Item dataField="Ten" colSpan={2} isRequired={true} />
               <Item
                 dataField="Ma"
