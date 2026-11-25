@@ -37,8 +37,10 @@ const CKEditor4Wrapper = ({
         return () => cancelAnimationFrame(frame);
     }, []);
 
-    const urlCkfider = `/FilePicker?type=Images&s1=${encodeBase64Url(window.env.REACT_APP_API_UPLOAD_URL)}`;
-    const urlCkfiderVideo = `/FilePicker?type=Videos&s1=${encodeBase64Url(window.env.REACT_APP_API_UPLOAD_URL)}`;
+    // FileManager tra URL tu host API, nhung HTML luu trong CMS phai tro toi host media
+    // de hien thi duoc ca trong admin va portal (khong thanh /Upload/... tuong doi cua admin).
+    const urlCkfider = `/FilePicker?type=Images&s1=${encodeBase64Url(window.env.REACT_APP_UPLOAD_URL)}`;
+    const urlCkfiderVideo = `/FilePicker?type=Videos&s1=${encodeBase64Url(window.env.REACT_APP_UPLOAD_URL)}`;
     const urlUpload = `${window.env.REACT_APP_API_URL}/FileManager/CKEditorImageUpload`;
     let access_token = getToken();
 

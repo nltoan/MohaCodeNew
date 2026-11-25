@@ -13,8 +13,10 @@ using System.Net.Http.Formatting;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.ModelBinding;
+using Microsoft.AspNet.Identity;
 using API.OAuth.Providers;
 using API.Models;
+using API.Services;
 
 namespace API.Controllers
 {
@@ -24,10 +26,27 @@ namespace API.Controllers
     {
         private CongTTDT_MOHAEntities _context = new CongTTDT_MOHAEntities();
 
+        int CurrentUserId()
+        {
+            int userId;
+            return int.TryParse(User.Identity.GetUserId(), out userId) ? userId : 0;
+        }
+        string CurrentLoginName() { return User?.Identity?.Name ?? ""; }
+        bool CanViewAll() { return MediaAccess.CanViewAll(_context, CurrentUserId()); }
+        IQueryable<API.Models.File> VisibleFiles()
+        {
+            var files = _context.Files.AsQueryable();
+            return CanViewAll() ? files : files.Where(f => f.LoginName == CurrentLoginName());
+        }
+        bool CanManage(API.Models.File file)
+        {
+            return CanViewAll() || (file != null && string.Equals(file.LoginName, CurrentLoginName(), StringComparison.OrdinalIgnoreCase));
+        }
+
         [HttpGet]
         public async Task<HttpResponseMessage> GetLookUp(DataSourceLoadOptions loadOptions)
         {
-            var files = _context.Files.Select(i => new {
+            var files = VisibleFiles().Select(i => new {
                 i.ID,
                 i.Ten,
             });
@@ -44,7 +63,7 @@ namespace API.Controllers
         [HttpGet]
         public async Task<HttpResponseMessage> GetFilePath(DataSourceLoadOptions loadOptions)
         {
-            var files = _context.Files.Select(i => new {
+            var files = VisibleFiles().Select(i => new {
                 i.ID,
                 i.LinkLuuTru,
             });
@@ -60,7 +79,7 @@ namespace API.Controllers
 
         [HttpGet]
         public async Task<HttpResponseMessage> Get(DataSourceLoadOptions loadOptions) {
-            var files = _context.Files.Select(i => new {
+            var files = VisibleFiles().Select(i => new {
                 i.ID,
                 i.Ten,
                 i.MoTa,
@@ -90,6 +109,8 @@ namespace API.Controllers
             var model = new File();
             var values = JsonConvert.DeserializeObject<IDictionary>(form.Get("values"));
             PopulateModel(model, values);
+            // Owner luon gan tu token, khong nhan LoginName do client gui.
+            model.LoginName = CurrentLoginName();
 
             Validate(model);
             if (!ModelState.IsValid)
@@ -108,9 +129,11 @@ namespace API.Controllers
             var model = await _context.Files.FirstOrDefaultAsync(item => item.ID == key);
             if(model == null)
                 return Request.CreateResponse(HttpStatusCode.Conflict, "Object not found");
+            if (!CanManage(model)) return Request.CreateResponse(HttpStatusCode.Forbidden);
 
             var values = JsonConvert.DeserializeObject<IDictionary>(form.Get("values"));
             PopulateModel(model, values);
+            if (!CanViewAll()) model.LoginName = CurrentLoginName();
 
             Validate(model);
             if (!ModelState.IsValid)
@@ -127,6 +150,7 @@ namespace API.Controllers
             var key = Convert.ToInt32(form.Get("key"));
             var model = await _context.Files.FirstOrDefaultAsync(item => item.ID == key);
             if (model == null) throw new HttpResponseException(HttpStatusCode.NotFound);
+            if (!CanManage(model)) throw new HttpResponseException(HttpStatusCode.Forbidden);
 
             _context.Files.Remove(model);
             await _context.SaveChangesAsync();

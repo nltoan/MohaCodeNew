@@ -245,6 +245,7 @@
     <Compile Include="Services\TwoFactorCode.cs" />
     <Compile Include="Services\HoiQuy\HoiQuyModels.cs" />
     <Compile Include="Services\NewsAccess.cs" />
+    <Compile Include="Services\MediaAccess.cs" />
     <Compile Include="Services\ImageOptimizer.cs" />
     <Compile Include="Services\ImageProcessing.cs" />
     <Compile Include="Services\HoiQuy\HoiQuyStore.cs" />

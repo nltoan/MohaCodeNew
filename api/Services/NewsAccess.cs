@@ -4,14 +4,16 @@ using API.Models;
 
 namespace API
 {
-    // Quyen xem tin: admin (manage-user) hoac nguoi phe duyet xem duoc moi tin; nguoi khac chi xem tin do chinh ho tao.
+    // Quyen xem tin: chi role co quyen view-all-tintuc duoc xem toan bo.
+    // Nguoi phe duyet van xem duoc cac tin dang cho duyet duoc giao qua danh sach ownerApproving,
+    // nhung khong duoc mo toan bo kho tin cua nguoi khac.
     // Dung chung cho TinTucsController va cac controller bang con (TinTuc_Files, _BinhLuan, _History, _QuyTrinh, ...).
     internal static class NewsAccess
     {
         public static bool CanViewAll(CongTTDT_MOHAEntities context, int userId)
         {
-            if (context.UserBuocQuyTrinhs.Any(u => u.UserID == userId)) return true;
-            return context.User_Account.Any(u => u.UserID == userId && u.Role.RolePermissions.Any(p => p.Permission.Name == "manage-user"));
+            return context.User_Account.Any(u => u.UserID == userId && u.Role.RolePermissions.Any(p =>
+                p.Permission.Name == "view-all-tintuc"));
         }
 
         public static bool CanView(CongTTDT_MOHAEntities context, int userId, int? tinTucId)

@@ -188,7 +188,7 @@ namespace API.Controllers
             //};
             return Request.CreateResponse(ret);
         }
-        // Admin (quyen manage-user) hoac nguoi phe duyet (thuoc it nhat mot buoc quy trinh kiem duyet) moi duoc xem tin chung cua moi nguoi.
+        // Role co quyen xem toan bo tin (quan tri, pho giam doc, truong phong).
         private bool CanViewAllNews(int userId)
         {
             return NewsAccess.CanViewAll(_context, userId);
@@ -220,9 +220,7 @@ namespace API.Controllers
                 if (idQuyTrinh != null)
                     allowed = _context.UserBuocQuyTrinhs.Any(u => u.UserID == userId && u.BuocQuyTrinh.IDQuyTrinh == idQuyTrinh);
             }
-            // Nhom quan tri (co quyen manage-user) duoc xem truoc moi tin.
-            if (!allowed)
-                allowed = _context.User_Account.Any(u => u.UserID == userId && u.Role.RolePermissions.Any(p => p.Permission.Name == "manage-user"));
+            if (!allowed) allowed = CanViewAllNews(userId);
             if (!allowed) return Request.CreateResponse(HttpStatusCode.Forbidden);
             return Request.CreateResponse(HttpStatusCode.OK, new { post.ID, post.TieuDe, post.MoTa, post.NoiDung, post.NgayXuatBan, post.NgayTao, post.TenNguoiTao, post.TrangThai });
         }

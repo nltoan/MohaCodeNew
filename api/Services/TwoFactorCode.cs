@@ -8,8 +8,9 @@ namespace API.Services
     // Kiem tra ma Google Authenticator voi do lech dong ho ro rang (mac dinh thu vien la 5 phut).
     public static class TwoFactorCode
     {
-        // 60 giay ~ 2 buoc 30 giay moi phia.
-        public static readonly TimeSpan Tolerance = TimeSpan.FromSeconds(60);
+        // Tuong thich voi hanh vi cu cua thu vien: chap nhan ma lech toi da 5 phut.
+        // Van chan dung lai ma da dung thanh cong trong ReplayWindow ben duoi.
+        public static readonly TimeSpan Tolerance = TimeSpan.FromMinutes(5);
         // Giu dau ma da dung lau hon cua so hop le de chan dung lai.
         static readonly TimeSpan ReplayWindow = TimeSpan.FromMinutes(3);
 

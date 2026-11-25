@@ -81,6 +81,30 @@ namespace API.Controllers
         static readonly string RelativePath = "~/Upload";
         //static string UploadURL = "https://molisa.tefli.vn//Uploads/";
         static string UploadURL = "/Upload/";
+        int CurrentUserId()
+        {
+            int userId;
+            var value = ((System.Security.Claims.ClaimsPrincipal)User).FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(value, out userId) ? userId : 0;
+        }
+        string CurrentLoginName() { return User?.Identity?.Name ?? ""; }
+        string CurrentUploadDirectory()
+        {
+            var userId = CurrentUserId();
+            if (userId <= 0) throw new HttpResponseException(HttpStatusCode.Unauthorized);
+            var root = HttpContext.Current.Server.MapPath(RelativePath);
+            // Role xem tat ca van upload vao goc chung de khong thay doi quy trinh media cua cap quan ly.
+            if (!MediaAccess.CanViewAll(_context, userId)) root = Path.Combine(root, MediaAccess.OwnerFolder(userId));
+            Directory.CreateDirectory(root);
+            return root;
+        }
+        string CurrentUploadUrl(string fileName)
+        {
+            var userId = CurrentUserId();
+            if (userId <= 0) throw new HttpResponseException(HttpStatusCode.Unauthorized);
+            return UploadURL + (MediaAccess.CanViewAll(_context, userId) ? "" : MediaAccess.OwnerFolder(userId) + "/") + fileName;
+        }
+        void SetOwner(Models.File file) { file.LoginName = CurrentLoginName(); }
         static int ClampImageSize(int value)
         {
             return Math.Max(1, Math.Min(4000, value));
@@ -109,6 +133,7 @@ namespace API.Controllers
             try
             {
                 var httpRequest = HttpContext.Current.Request;
+                var uploadDirectory = CurrentUploadDirectory();
                 if (httpRequest.Files.Count > 0)
                 {
                     var docfiles = new List<API.Models.File>();
@@ -116,7 +141,7 @@ namespace API.Controllers
                     {
                         var postedFile = httpRequest.Files[file];
                         var newName = System.Guid.NewGuid();
-                        var filePath = Path.Combine(HttpContext.Current.Server.MapPath(RelativePath), newName + postedFile.FileName);
+                        var filePath = Path.Combine(uploadDirectory, newName + postedFile.FileName);
                         postedFile.SaveAs(filePath);
 
                         UploadImageOptimizer.OptimizeInPlace(filePath);
@@ -126,7 +151,7 @@ namespace API.Controllers
                             var targetWidth = ClampImageSize(Width.Value);
                             var targetHeight = ClampImageSize(Height.Value);
                             var sizePrefix = string.Format("{0}x{1}", targetWidth, targetHeight);
-                            var resizeFilePath = Path.Combine(HttpContext.Current.Server.MapPath(RelativePath), sizePrefix + newName + postedFile.FileName);
+                            var resizeFilePath = Path.Combine(uploadDirectory, sizePrefix + newName + postedFile.FileName);
                             SaveResizedJpeg(filePath, resizeFilePath, targetWidth, targetHeight);
 
                             Models.File tmpFile = _context.Files.Add(new Models.File
@@ -135,9 +160,10 @@ namespace API.Controllers
                                 MoTa = postedFile.FileName,
                                 KichThuoc = sizePrefix,
                                 NgayTao = DateTime.Now,
-                                LinkLuuTru = UploadURL + sizePrefix + newName + postedFile.FileName,
+                                LinkLuuTru = CurrentUploadUrl(sizePrefix + newName + postedFile.FileName),
                                 TrangThai = "active"
                             });
+                            SetOwner(tmpFile);
                             _context.SaveChanges();
                             docfiles.Add(tmpFile);
                         }
@@ -149,9 +175,10 @@ namespace API.Controllers
                                 Ten = postedFile.FileName,
                                 MoTa = postedFile.FileName,
                                 NgayTao = DateTime.Now,
-                                LinkLuuTru = UploadURL + newName + postedFile.FileName,
+                                LinkLuuTru = CurrentUploadUrl(newName + postedFile.FileName),
                                 TrangThai = "active"
                             });
+                            SetOwner(tmpFile);
                             _context.SaveChanges();
                             docfiles.Add(tmpFile);
                             //docfiles.Add("/Uploads/" + postedFile.FileName);
@@ -170,6 +197,7 @@ namespace API.Controllers
         public async Task<HttpResponseMessage> FileVideoUpload()
         {
             var httpRequest = HttpContext.Current.Request;
+            var uploadDirectory = CurrentUploadDirectory();
             if (httpRequest.Files.Count > 0)
             {
                 var docfiles = new List<API.Models.File>();
@@ -177,7 +205,7 @@ namespace API.Controllers
                 {
                     var postedFile = httpRequest.Files[file];
                     var newName = System.Guid.NewGuid();
-                    var filePath = Path.Combine(HttpContext.Current.Server.MapPath(RelativePath), newName + postedFile.FileName);
+                    var filePath = Path.Combine(uploadDirectory, newName + postedFile.FileName);
                     postedFile.SaveAs(filePath);
 
                     Models.File tmpFile = _context.Files.Add(new Models.File
@@ -185,9 +213,10 @@ namespace API.Controllers
                         Ten = postedFile.FileName,
                         MoTa = postedFile.FileName,
                         NgayTao = DateTime.Now,
-                        LinkLuuTru = UploadURL + newName + postedFile.FileName,
+                        LinkLuuTru = CurrentUploadUrl(newName + postedFile.FileName),
                         TrangThai = "active"
                     });
+                    SetOwner(tmpFile);
                     _context.SaveChanges();
                     docfiles.Add(tmpFile);
                 }
@@ -199,6 +228,7 @@ namespace API.Controllers
         public async Task<HttpResponseMessage> ImageUpload(int? Width = null, int? Height = null)
         {
             var httpRequest = HttpContext.Current.Request;
+            var uploadDirectory = CurrentUploadDirectory();
             if (httpRequest.Files.Count > 0)
             {
                 var docfiles = new List<string>();
@@ -206,7 +236,7 @@ namespace API.Controllers
                 {
                     var postedFile = httpRequest.Files[file];
                     var newName = System.Guid.NewGuid();
-                    var filePath = Path.Combine(HttpContext.Current.Server.MapPath(RelativePath), newName + postedFile.FileName);
+                    var filePath = Path.Combine(uploadDirectory, newName + postedFile.FileName);
                     postedFile.SaveAs(filePath);
 
                     UploadImageOptimizer.OptimizeInPlace(filePath);
@@ -216,14 +246,14 @@ namespace API.Controllers
                         var targetWidth = ClampImageSize(Width.Value);
                         var targetHeight = ClampImageSize(Height.Value);
                         var sizePrefix = string.Format("{0}x{1}", targetWidth, targetHeight);
-                        var resizeFilePath = Path.Combine(HttpContext.Current.Server.MapPath(RelativePath), sizePrefix + newName + postedFile.FileName);
+                        var resizeFilePath = Path.Combine(uploadDirectory, sizePrefix + newName + postedFile.FileName);
                         SaveResizedJpeg(filePath, resizeFilePath, targetWidth, targetHeight);
-                        docfiles.Add(UploadURL + sizePrefix + newName + postedFile.FileName);
+                        docfiles.Add(CurrentUploadUrl(sizePrefix + newName + postedFile.FileName));
                     }
                     else
                     {
 
-                        docfiles.Add(UploadURL + newName + postedFile.FileName);
+                        docfiles.Add(CurrentUploadUrl(newName + postedFile.FileName));
                     }
                 }
                 return Request.CreateResponse(HttpStatusCode.Created, new { docfiles });
@@ -234,6 +264,7 @@ namespace API.Controllers
         public async Task<HttpResponseMessage> VideoUpload()
         {
             var httpRequest = HttpContext.Current.Request;
+            var uploadDirectory = CurrentUploadDirectory();
             if (httpRequest.Files.Count > 0)
             {
                 var docfiles = new List<string>();
@@ -241,9 +272,9 @@ namespace API.Controllers
                 {
                     var postedFile = httpRequest.Files[file];
                     var newName = System.Guid.NewGuid();
-                    var filePath = Path.Combine(HttpContext.Current.Server.MapPath(RelativePath), newName + postedFile.FileName);
+                    var filePath = Path.Combine(uploadDirectory, newName + postedFile.FileName);
                     postedFile.SaveAs(filePath);
-                    docfiles.Add(UploadURL + newName + postedFile.FileName);
+                    docfiles.Add(CurrentUploadUrl(newName + postedFile.FileName));
                 }
                 return Request.CreateResponse(HttpStatusCode.Created, new { docfiles });
             }
@@ -275,6 +306,8 @@ namespace API.Controllers
             if (!link.StartsWith(UploadURL, StringComparison.OrdinalIgnoreCase) || link.Contains("//") ||
                 link.Substring(UploadURL.Length).Split('/').Any(s => s == "." || s == ".." || s.EndsWith(".") || s.EndsWith(" ") || s.IndexOf(':') >= 0))
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Chỉ chọn được file trong thư viện.");
+            if (!MediaAccess.CanAccessUploadPath(_context, CurrentUserId(), link))
+                return Request.CreateResponse(HttpStatusCode.Forbidden);
             var name = System.IO.Path.GetFileName(link);
             if (!SafeUploadName(name))
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Tên hoặc định dạng file không được phép.");
@@ -308,6 +341,7 @@ namespace API.Controllers
                     KichThuoc = info.Length.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     TrangThai = "active"
                 });
+                SetOwner(existing);
                 await _context.SaveChangesAsync();
             }
             return Request.CreateResponse(HttpStatusCode.OK, new { existing.ID, existing.Ten, existing.LinkLuuTru });
@@ -321,7 +355,7 @@ namespace API.Controllers
             var files = new List<Models.File>();
             string tempFileLocation = HttpContext.Current.Server.MapPath("~/UploadTemp");
             HttpPostedFile file = request.Files["files[]"];
-            var targetLocation = HttpContext.Current.Server.MapPath(RelativePath);
+            var targetLocation = CurrentUploadDirectory();
             try
             {
                 if (!string.IsNullOrEmpty(chunkMetadata))
@@ -364,9 +398,10 @@ namespace API.Controllers
                             Ten = metaDataObject.FileName,
                             MoTa = metaDataObject.FileName,
                             NgayTao = DateTime.Now,
-                            LinkLuuTru = UploadURL + newFileName,
+                            LinkLuuTru = CurrentUploadUrl(newFileName),
                             TrangThai = "active"
                         });
+                        SetOwner(tmpFile);
                         _context.SaveChanges();
                         files.Add(tmpFile);
                         return Request.CreateResponse(HttpStatusCode.Created, new { files });
@@ -385,7 +420,7 @@ namespace API.Controllers
         {
             var request = HttpContext.Current.Request;
             HttpPostedFile file = request.Files["upload"];
-            var targetLocation = HttpContext.Current.Server.MapPath(RelativePath);
+            var targetLocation = CurrentUploadDirectory();
             string jsonResponse = "";
             try
             {
@@ -404,7 +439,8 @@ namespace API.Controllers
                     var newFileName = fileGuid + file.FileName;
                     file.SaveAs(Path.Combine(targetLocation, newFileName));
                     UploadImageOptimizer.OptimizeInPlace(Path.Combine(targetLocation, newFileName));
-                    string fileUrlInFrontEnd = RelativePath.Replace("~", "") + "/" + newFileName;
+                    // URL tuyet doi cua API de CKEditor trong host admin hien anh ngay sau khi upload.
+                    string fileUrlInFrontEnd = new Uri(Request.RequestUri, CurrentUploadUrl(newFileName)).AbsoluteUri;
                     jsonResponse = "{\"fileName\": \"" + newFileName +"\",\"uploaded\": 1,\"url\": \"" + fileUrlInFrontEnd + "\"}";
                 }
             }
@@ -536,6 +572,11 @@ namespace API.Controllers
         [AcceptVerbs("GET", "POST")]
         public object FileSystem()
         {
+            var userId = CurrentUserId();
+            if (userId <= 0) return Request.CreateResponse(HttpStatusCode.Unauthorized);
+            var uploadRoot = HttpContext.Current.Server.MapPath(RelativePath);
+            if (!MediaAccess.CanViewAll(_context, userId)) uploadRoot = Path.Combine(uploadRoot, MediaAccess.OwnerFolder(userId));
+            Directory.CreateDirectory(uploadRoot);
             var request = new HttpContextWrapper(HttpContext.Current).Request;
             FileSystemCommand command;
             Enum.TryParse(request["command"], out command);
@@ -565,7 +606,7 @@ namespace API.Controllers
             {
                 Request = request,
                 FileSystemProvider = new GuardedFileSystemProvider(
-                    HttpContext.Current.Server.MapPath(RelativePath),
+                    uploadRoot,
                     (fileSystemItem, clientItem) =>
                     {
                         if (!clientItem.IsDirectory)

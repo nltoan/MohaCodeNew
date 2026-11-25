@@ -6,6 +6,7 @@ import config from '../config';
 import { notify, pathFile } from '../utils/api';
 import FilePreview from '../components/FilePreview';
 import { CHUNKED_MAX_MB, FILE_MANAGER_UPLOAD_HINT, MB, onFileManagerError } from '../utils/upload';
+import { useAuth } from '../contexts/auth';
 
 // Sao chep duong dan; trinh duyet chan clipboard (http, khong cap quyen) thi dung cach cu, cuoi cung hien de chep tay.
 export async function copyText(text) {
@@ -31,12 +32,16 @@ export async function copyText(text) {
 }
 
 export default function MediaFileManager() {
+  const auth = useAuth();
   const [currentPath, setCurrentPath] = useState("");
   const [popupVisible, setPopupVisible] = useState(false);
   const [itemToDisplay, setItemToDisplay] = useState({});
   const [copyFallback, setCopyFallback] = useState('');
   // plyr-react tim video bang selector toan trang: chi tao Plyr khi popup da gan vao DOM (onShown).
   const [popupShown, setPopupShown] = useState(false);
+  const canViewAll = (auth.user?.Role?.RolePermissions || []).some((x) =>
+    x?.Permission?.Name === 'view-all-media',
+  );
 
   function displayPreview(e) {
     setPopupVisible(true);
@@ -80,7 +85,10 @@ export default function MediaFileManager() {
         </div>
       </div>
       <div className="card-body">
-        <p className="text-muted mb-2"><small>{FILE_MANAGER_UPLOAD_HINT} Bấm đúp vào file để xem trước.</small></p>
+        <p className="text-muted mb-2"><small>
+          {canViewAll ? 'Bạn được xem toàn bộ thư viện media.' : 'Bạn chỉ xem và quản lý các file do chính mình tải lên.'}
+          {' '}{FILE_MANAGER_UPLOAD_HINT} Bấm đúp vào file để xem trước.
+        </small></p>
         <FileManager
           currentPath={currentPath}
           onContextMenuItemClick={onContextMenuItemClick}

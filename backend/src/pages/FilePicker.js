@@ -15,13 +15,26 @@ export default function FilePicker() {
   const [selected, setSelected] = useState(null);
   const [searchParams] = useSearchParams();
   const s1 = searchParams.get('s1');
-  const siteUrl1 = s1 ? decodeBase64Url(s1) : '';
+  // Host media dich. FileManager phuc vu qua API va tra URL tuyet doi cua API,
+  // nhung URL chen vao CKEditor can dung host media de co the hien trong admin
+  // va sau khi noi dung duoc xuat ra portal.
+  const mediaUrl = s1 ? decodeBase64Url(s1).replace(/\/+$/, '') : '';
   const imagesOnly = (searchParams.get('type') || '').toLowerCase() === 'images';
   // CKEditor appends CKEditorFuncNum to the browse URL; fall back to 1 when absent/invalid.
   const parsedFuncNum = parseInt(searchParams.get('CKEditorFuncNum'), 10);
   const funcNum = Number.isNaN(parsedFuncNum) ? 1 : parsedFuncNum;
 
-  const fileUrl = (item) => (siteUrl1 ? item.dataItem.url.replace(siteUrl1, '') : item.dataItem.url);
+  const fileUrl = (item) => {
+    const sourceUrl = String(item?.dataItem?.url || '');
+    if (!mediaUrl || !sourceUrl) return sourceUrl;
+    try {
+      const path = new URL(sourceUrl, window.location.origin).pathname;
+      const uploadIndex = path.toLowerCase().indexOf('/upload/');
+      return uploadIndex >= 0 ? `${mediaUrl}${path.slice(uploadIndex)}` : sourceUrl;
+    } catch {
+      return sourceUrl;
+    }
+  };
 
   function choose(item) {
     const it = item || selected;
