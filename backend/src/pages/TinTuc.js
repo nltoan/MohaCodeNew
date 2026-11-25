@@ -570,6 +570,17 @@ export default function TinTuc() {
   function rowActionItems(d) {
     const open = (actionType) => () => setAction({ type: actionType, data: d.ID, title: d.TieuDe });
     const items = [];
+    // Sua tin ngay tu menu (nut but chi la icon nho o cot cuoi, de bi bo qua): cung dieu kien voi nut Sua.
+    if (Number(d.CanEdit) === 1 || Number(d.CanSendNext) === 1) {
+      items.push({
+        text: "Sửa tin",
+        icon: "fas fa-pen",
+        run: () => {
+          const g = gridRef.current ? gridRef.current.instance : null;
+          if (g) reopenRow(g, d.ID);
+        },
+      });
+    }
     if (Number(d.CanSendApprove) === 1) items.push({ text: "Gửi duyệt", icon: "fas fa-paper-plane", run: open("sendapprove") });
     if (Number(d.CanApprove) === 1) items.push({ text: "Duyệt và xuất bản", icon: "fas fa-check-circle", run: open("approve") });
     if (Number(d.CanSendNext) === 1) items.push({ text: "Duyệt, chuyển bước tiếp", icon: "fas fa-share", run: open("approve") });
@@ -1534,7 +1545,18 @@ export default function TinTuc() {
               allowReordering={false}
               cellRender={rowActionsCellRender}
             />
-            <Column type="buttons" width={100}>
+            <Column type="buttons" width={130}>
+              {/* Duyet ngay tren dong (khong phai mo menu "Thao tac"): cung hanh dong "approve" voi muc
+                  "Duyet va xuat ban" / "Duyet, chuyen buoc tiep" trong menu. */}
+              <DataGridButton
+                hint={"Duyệt"}
+                cssClass={"fas fa-check-circle text-success"}
+                visible={(e) => Number(e.row.data.CanApprove) === 1 || Number(e.row.data.CanSendNext) === 1}
+                onClick={(e) => {
+                  const d = e.row.data;
+                  setAction({ type: "approve", data: d.ID, title: d.TieuDe });
+                }}
+              />
               <DataGridButton
                 hint={"Sửa tin"}
                 name="edit"
