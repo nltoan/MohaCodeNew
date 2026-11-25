@@ -272,16 +272,20 @@ namespace API.Controllers
             try { decoded = Uri.UnescapeDataString(raw.Trim()); }
             catch { return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Đường dẫn file không hợp lệ."); }
             var link = decoded.Replace('\\', '/');
-            if (!link.StartsWith(UploadURL, StringComparison.OrdinalIgnoreCase) || link.Contains("..") || link.Contains("//") ||
-                link.StartsWith(UploadURL + "Thumb/", StringComparison.OrdinalIgnoreCase))
+            if (!link.StartsWith(UploadURL, StringComparison.OrdinalIgnoreCase) || link.Contains("//") ||
+                link.Substring(UploadURL.Length).Split('/').Any(s => s == "." || s == ".." || s.EndsWith(".") || s.EndsWith(" ") || s.IndexOf(':') >= 0))
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Chỉ chọn được file trong thư viện.");
             var name = System.IO.Path.GetFileName(link);
             if (!SafeUploadName(name))
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Tên hoặc định dạng file không được phép.");
 
             var root = System.IO.Path.GetFullPath(HttpContext.Current.Server.MapPath(RelativePath)).TrimEnd('\\') + "\\";
-            var full = System.IO.Path.GetFullPath(System.IO.Path.Combine(root, link.Substring(UploadURL.Length).Replace('/', '\\')));
-            if (!full.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+            string full;
+            try { full = System.IO.Path.GetFullPath(System.IO.Path.Combine(root, link.Substring(UploadURL.Length).Replace('/', '\\'))); }
+            catch (Exception) { return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Đường dẫn file không hợp lệ."); }
+            // Khong nhan file trong thu muc he thong (Thumb, BackUp), kiem tra tren duong dan that.
+            if (!full.StartsWith(root, StringComparison.OrdinalIgnoreCase) ||
+                full.StartsWith(root + "Thumb\\", StringComparison.OrdinalIgnoreCase) || full.StartsWith(root + "BackUp\\", StringComparison.OrdinalIgnoreCase))
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Chỉ chọn được file trong thư viện.");
             var info = new FileInfo(full);
             if (!info.Exists)
@@ -431,62 +435,102 @@ namespace API.Controllers
         // The upload root holds a web.config that blocks script execution; a CMS user must not be able to delete, move,
         // rename, overwrite or download it. Throwing FileSystemException makes the command processor return its normal
         // failure result (success=false + errorText) to the file manager client.
+        // Thu muc he thong o goc ~/Upload (BackUp: ban sao luu CSDL, Thumb: anh thu nho tu sinh) bi an va chan moi thao tac.
+        // Kiem tra tren DUONG DAN THAT (GetFullPath tu goc), khong tren chuoi client gui: ten "..", "." hay "BackUp." (Windows bo
+        // dau cham cuoi) tung vuot qua duoc phep so doan dau tien.
         sealed class GuardedFileSystemProvider : PhysicalFileSystemProvider
         {
-            public GuardedFileSystemProvider(string rootDirectoryPath, Action<FileSystemInfo, FileSystemItem> prepareFileSystemItemCallback)
-                : base(rootDirectoryPath, prepareFileSystemItemCallback) { }
-
-            static bool IsProtectedName(string value)
-            {
-                if (string.IsNullOrEmpty(value)) return false;
-                var name = value.Substring(value.LastIndexOfAny(new[] { '/', '\\' }) + 1).Trim();
-                return name.Equals("web.config", StringComparison.OrdinalIgnoreCase);
-            }
-
-            // Thu muc he thong o goc ~/Upload: ban sao luu CSDL (BackUps) va anh thu nho tu sinh. An khoi thu vien,
-            // khong cho mo, tai ve, xoa, di chuyen, chep hay tai file vao.
             static readonly string[] HiddenRootFolders = { "BackUp", "Thumb" };
+            readonly string root;
 
-            static bool IsHiddenPath(string value)
+            public GuardedFileSystemProvider(string rootDirectoryPath, Action<FileSystemInfo, FileSystemItem> prepareFileSystemItemCallback)
+                : base(rootDirectoryPath, prepareFileSystemItemCallback)
             {
-                if (string.IsNullOrEmpty(value)) return false;
-                var first = value.Replace('\\', '/').TrimStart('/').Split('/')[0].Trim();
-                return HiddenRootFolders.Any(h => h.Equals(first, StringComparison.OrdinalIgnoreCase));
+                root = Path.GetFullPath(rootDirectoryPath).TrimEnd('\\', '/') + Path.DirectorySeparatorChar;
             }
 
-            static void Guard(FileSystemItemInfo item)
+            static FileSystemException Denied(string message) { return new FileSystemException(FileSystemErrorCode.NoAccess, message); }
+
+            static bool BadSegment(string s)
             {
-                if (item != null && (IsProtectedName(item.Name) || IsProtectedName(item.Path) || IsProtectedName(item.Key)))
-                    throw new FileSystemException(FileSystemErrorCode.NoAccess, "This file is protected.");
-                GuardFolder(item);
+                return s == "." || s == ".." || s.EndsWith(".") || s.EndsWith(" ") || s.IndexOf(':') >= 0;
             }
 
-            static void GuardFolder(FileSystemItemInfo item)
+            // Duong dan tuyet doi cua mot muc (Path tuong doi so voi goc). Tu choi doan "."/".."/ket thuc bang dau cham, va moi
+            // duong dan ra ngoai goc.
+            string Resolve(string relative)
             {
-                if (item != null && (IsHiddenPath(item.Path) || IsHiddenPath(item.Key)))
-                    throw new FileSystemException(FileSystemErrorCode.NoAccess, "Thư mục hệ thống, không thể thao tác.");
+                if (string.IsNullOrEmpty(relative)) return root;
+                foreach (var seg in relative.Split('\\', '/'))
+                    if (seg.Length > 0 && BadSegment(seg)) throw Denied("Đường dẫn không hợp lệ.");
+                string full;
+                try { full = Path.GetFullPath(Path.Combine(root, relative.TrimStart('\\', '/'))); }
+                catch (Exception) { throw Denied("Đường dẫn không hợp lệ."); }
+                if (!(full + Path.DirectorySeparatorChar).StartsWith(root, StringComparison.OrdinalIgnoreCase))
+                    throw Denied("Đường dẫn không hợp lệ.");
+                return full;
             }
 
-            static void Guard(string name)
+            bool IsRoot(string full) { return string.Equals(full.TrimEnd('\\', '/') + Path.DirectorySeparatorChar, root, StringComparison.OrdinalIgnoreCase); }
+
+            bool IsHidden(string full)
             {
-                if (IsProtectedName(name)) throw new FileSystemException(FileSystemErrorCode.NoAccess, "This file is protected.");
+                var f = full.TrimEnd('\\', '/') + Path.DirectorySeparatorChar;
+                return HiddenRootFolders.Any(h => f.StartsWith(root + h + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase));
+            }
+
+            static bool IsProtectedFile(string full) { return string.Equals(Path.GetFileName(full.TrimEnd('\\', '/')), "web.config", StringComparison.OrdinalIgnoreCase); }
+
+            void Check(string full)
+            {
+                if (IsProtectedFile(full)) throw Denied("This file is protected.");
+                if (IsHidden(full)) throw Denied("Thư mục hệ thống, không thể thao tác.");
+            }
+
+            // Muc bi thao tac (xoa, doi ten, chep, di chuyen, tai ve): khong duoc la chinh thu muc goc.
+            string GuardItem(FileSystemItemInfo item)
+            {
+                if (item == null) throw Denied("Đường dẫn không hợp lệ.");
+                var full = Resolve(item.Path);
+                if (IsRoot(full)) throw Denied("Không thể thao tác trên thư mục gốc.");
+                Check(full);
+                return full;
+            }
+
+            string GuardDirectory(FileSystemItemInfo dir)
+            {
+                var full = Resolve(dir == null ? null : dir.Path);
+                Check(full);
+                return full;
+            }
+
+            // Ten moi (doi ten, tao thu muc, tai file len) trong thu muc parentFull.
+            void GuardNewName(string parentFull, string name)
+            {
+                if (string.IsNullOrWhiteSpace(name) || name.IndexOfAny(new[] { '\\', '/' }) >= 0 || BadSegment(name.Trim()) || BadSegment(name))
+                    throw Denied("Tên không hợp lệ.");
+                Check(Path.Combine(parentFull, name));
             }
 
             public override IEnumerable<FileSystemItem> GetItems(FileSystemLoadItemOptions options)
             {
-                GuardFolder(options.Directory);
+                var dir = GuardDirectory(options.Directory);
                 var items = base.GetItems(options);
-                var atRoot = options.Directory == null || string.IsNullOrEmpty(options.Directory.Path);
-                return atRoot ? items.Where(i => !(i.IsDirectory && HiddenRootFolders.Any(h => h.Equals(i.Name, StringComparison.OrdinalIgnoreCase)))).ToList() : items;
+                return IsRoot(dir) ? items.Where(i => !(i.IsDirectory && HiddenRootFolders.Any(h => h.Equals(i.Name, StringComparison.OrdinalIgnoreCase)))).ToList() : items;
             }
 
-            public override void RenameItem(FileSystemRenameItemOptions options) { Guard(options.Item); Guard(options.ItemNewName); base.RenameItem(options); }
-            public override void MoveItem(FileSystemMoveItemOptions options) { Guard(options.Item); GuardFolder(options.DestinationDirectory); base.MoveItem(options); }
-            public override void CopyItem(FileSystemCopyItemOptions options) { Guard(options.Item); GuardFolder(options.DestinationDirectory); base.CopyItem(options); }
-            public override void DeleteItem(FileSystemDeleteItemOptions options) { Guard(options.Item); base.DeleteItem(options); }
-            public override void UploadFile(FileSystemUploadFileOptions options) { Guard(options.FileName); GuardFolder(options.DestinationDirectory); base.UploadFile(options); }
-            public override void CreateDirectory(FileSystemCreateDirectoryOptions options) { Guard(options.DirectoryName); GuardFolder(options.ParentDirectory); base.CreateDirectory(options); }
-            public override Stream GetFileContent(FileSystemLoadFileContentOptions options) { Guard(options.File); return base.GetFileContent(options); }
+            public override void RenameItem(FileSystemRenameItemOptions options)
+            {
+                var full = GuardItem(options.Item);
+                GuardNewName(Path.GetDirectoryName(full.TrimEnd('\\', '/')), options.ItemNewName);
+                base.RenameItem(options);
+            }
+            public override void MoveItem(FileSystemMoveItemOptions options) { GuardItem(options.Item); GuardDirectory(options.DestinationDirectory); base.MoveItem(options); }
+            public override void CopyItem(FileSystemCopyItemOptions options) { GuardItem(options.Item); GuardDirectory(options.DestinationDirectory); base.CopyItem(options); }
+            public override void DeleteItem(FileSystemDeleteItemOptions options) { GuardItem(options.Item); base.DeleteItem(options); }
+            public override void UploadFile(FileSystemUploadFileOptions options) { GuardNewName(GuardDirectory(options.DestinationDirectory), options.FileName); base.UploadFile(options); }
+            public override void CreateDirectory(FileSystemCreateDirectoryOptions options) { GuardNewName(GuardDirectory(options.ParentDirectory), options.DirectoryName); base.CreateDirectory(options); }
+            public override Stream GetFileContent(FileSystemLoadFileContentOptions options) { GuardItem(options.File); return base.GetFileContent(options); }
         }
 
         [AcceptVerbs("GET", "POST")]

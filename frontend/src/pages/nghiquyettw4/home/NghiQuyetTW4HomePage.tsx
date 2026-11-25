@@ -9,7 +9,7 @@ import { NghiQuyetTW4TopNews, type NghiQuyetTW4TopNewsProps } from './components
 import { NghiQuyetTW4TopCategory, type NghiQuyetTW4TopCategoryProps } from './components/top-category/TopCategory';
 
 // Services & Utils
-import { getPostsByCategory } from '@/services/news';
+import { getPostsByCategory, getTopPostNews } from '@/services/news';
 import { getLang } from '@/services';
 import { getUrlImage } from '@/utils/image';
 import { getNewURL } from '@/utils/getSlugKey';
@@ -64,6 +64,11 @@ export const NghiQuyetTW4HomePage = () => {
     const load = async (key: Section, config: { VI: string; EN: string }, count: number, label: string, setter: (value: any) => void) => {
       try {
         const id = getConfigId(config, getLang());
+        // Tieu de khoi = ten chuyen muc trong CSDL (doi ten o admin thi doi theo); khong lay duoc thi dung chuoi dich.
+        const namePromise = getTopPostNews(id, 0).then(
+          (detail) => (typeof detail?.data?.TenChuyenMuc === 'string' ? detail.data.TenChuyenMuc.trim() : ''),
+          () => '',
+        );
         let response;
         try { response = await getPostsByCategory(id, 1, count); }
         catch {
@@ -71,8 +76,9 @@ export const NghiQuyetTW4HomePage = () => {
           response = await getPostsByCategory(id, 1, count);
         }
         if (!Array.isArray(response?.data)) throw new Error('Invalid news response');
+        const name = await namePromise;
         if (!active) return;
-        setter({ id, title: t(label), items: response.data.map(mapResponseToItem) });
+        setter({ id, title: name || t(label), items: response.data.map(mapResponseToItem) });
         setStatusState(previous => ({ key: requestKey, value: { ...(previous.key === requestKey ? previous.value : {}), [key]: 'ready' } }));
       } catch {
         if (active) setStatusState(previous => ({ key: requestKey, value: { ...(previous.key === requestKey ? previous.value : {}), [key]: 'error' } }));

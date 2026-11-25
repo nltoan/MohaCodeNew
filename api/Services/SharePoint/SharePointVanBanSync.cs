@@ -155,13 +155,28 @@ namespace API.Services.SharePoint
             }
         }
 
+        // Viet Nam UTC+7, khong co gio mua he.
+        static readonly TimeSpan VietNamOffset = TimeSpan.FromHours(7);
+
+        // SharePoint REST tra cot ngay theo UTC: ngay 20/11 nhap o gio Viet Nam ve thanh "2026-11-19T17:00:00Z".
+        // Doi sang gio Viet Nam roi moi lay phan ngay, neu khong ngay ban hanh bi lui mot ngay.
         static DateTime? ParseDate(JToken t)
         {
-            var s = t == null ? null : (string)t;
-            if (string.IsNullOrWhiteSpace(s)) return null;
-            DateTime d;
-            if (!DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out d)) return null;
-            return DateTime.SpecifyKind(d.Date, DateTimeKind.Unspecified);
+            if (t == null || t.Type == JTokenType.Null) return null;
+            DateTimeOffset d;
+            if (t.Type == JTokenType.Date)
+            {
+                // Json.NET co the da tu doi chuoi ISO thanh DateTime.
+                var v = (DateTime)t;
+                d = v.Kind == DateTimeKind.Unspecified ? new DateTimeOffset(v, TimeSpan.Zero) : new DateTimeOffset(v.ToUniversalTime(), TimeSpan.Zero);
+            }
+            else
+            {
+                var s = (string)t;
+                if (string.IsNullOrWhiteSpace(s)) return null;
+                if (!DateTimeOffset.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out d)) return null;
+            }
+            return DateTime.SpecifyKind(d.ToOffset(VietNamOffset).Date, DateTimeKind.Unspecified);
         }
 
         static string Cut(string s, int max) { return s == null ? null : (s.Length <= max ? s : s.Substring(0, max)); }

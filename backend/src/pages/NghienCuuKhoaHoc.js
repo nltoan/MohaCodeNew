@@ -22,7 +22,7 @@ export default function NghienCuuKhoaHoc() {
   return (
     <div className="card">
       <div className="card-header">
-        <h3 className="card-title">Nghiên Cứu Khoa học</h3>
+        <h3 className="card-title">Nghiên Cứu Khoa học</h3>
         <div className="card-tools">
           <button
             type="button"
@@ -57,7 +57,7 @@ export default function NghienCuuKhoaHoc() {
             allowDeleting={true}
           >
             <Popup
-              title="Nghiên Cứu Khoa học"
+              title="Nghiên Cứu Khoa học"
               showTitle={true}
               width={900}
               height={700}
@@ -107,16 +107,16 @@ export default function NghienCuuKhoaHoc() {
               editorOptions={config.htmlEditorLargeOptions}
             />
           </Column>
-          <Column dataField="NguoiTao" caption="Người Tạo" visible={false} />
-          <Column dataField="NgayTao" caption="Ngày Tạo" visible={false} />
+          <Column dataField="NguoiTao" caption="Người Tạo" visible={false} />
+          <Column dataField="NgayTao" caption="Ngày Tạo" visible={false} />
           <Column
             dataField="NguoiCapNhat"
-            caption="Người Cập nhật"
+            caption="Người Cập nhật"
             visible={false}
           />
           <Column
             dataField="NgayCapNhat"
-            caption="Ngày Cập nhật"
+            caption="Ngày Cập nhật"
             visible={false}
           />
           <Pager allowedPageSizes={[20, 50, 100]} showPageSizeSelector={true} />

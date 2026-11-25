@@ -20,7 +20,7 @@ export default function ChiTieu() {
   return (
     <div className="card">
       <div className="card-header">
-        <h3 className="card-title">Danh sách Chỉ tiêu</h3>
+        <h3 className="card-title">Danh sách Chỉ tiêu</h3>
         <div className="card-tools">
           <button
             type="button"
@@ -50,7 +50,7 @@ export default function ChiTieu() {
             allowAdding={true}
             allowDeleting={true}
           >
-            <Popup title="Chỉ tiêu" showTitle={true} />
+            <Popup title="Chỉ tiêu" showTitle={true} />
             <Form>
               <Item dataField="DanhMucId" colSpan={2} />
               <Item dataField="TieuDe" colSpan={2} />

@@ -37,7 +37,10 @@ function formatValue(column, row) {
 }
 
 function csvCell(text) {
-  const s = String(text);
+  let s = String(text);
+  // Chong chen cong thuc (CSV injection): du lieu do nguoi dan gui (ho ten, noi dung gop y...) bat dau bang
+  // = + - @ tab CR thi Excel hieu la cong thuc; them dau ' de Excel coi la chu.
+  if (/^[=+\-@\t\r]/.test(s) && !/^-\d+([.,]\d+)?$/.test(s)) s = "'" + s;
   return /[",\r\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 

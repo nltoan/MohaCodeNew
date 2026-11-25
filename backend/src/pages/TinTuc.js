@@ -45,30 +45,74 @@ const DRAFT_PREFIX = "tintuc-draft:";
 const DRAFT_FIELDS = ["TieuDe", "MoTa", "NoiDung"];
 const DRAFT_INTERVAL_MS = 30000;
 
-function draftStorageKey(key) {
-  return DRAFT_PREFIX + (key == null ? "new" : String(key));
-}
-function readDraft(key) {
+const DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Nhap gan voi tai khoan dang dang nhap: may dung chung thi nguoi khac khong thay / khoi phuc duoc nhap cua minh.
+// Khong xoa khi het phien (muc dich chinh cua nhap la cuu bai khi bi dang xuat giua chung).
+function currentUserId() {
   try {
-    const raw = window.localStorage.getItem(draftStorageKey(key));
+    const u = JSON.parse(window.localStorage.getItem("user") || "null");
+    return u && u.UserID != null ? String(u.UserID) : null;
+  } catch {
+    return null;
+  }
+}
+function draftStorageKey(key) {
+  const uid = currentUserId();
+  if (!uid) return null;
+  return DRAFT_PREFIX + uid + ":" + (key == null ? "new" : String(key));
+}
+// Bo nhap dang cu (khoa khong co UserID, ai cung doc duoc) va nhap qua han.
+(function cleanupDrafts() {
+  try {
+    const ls = window.localStorage;
+    for (let i = ls.length - 1; i >= 0; i -= 1) {
+      const k = ls.key(i);
+      if (!k || k.indexOf(DRAFT_PREFIX) !== 0) continue;
+      if (/^tintuc-draft:(new|[^:]+)$/.test(k)) { ls.removeItem(k); continue; }
+      try {
+        const d = JSON.parse(ls.getItem(k));
+        if (!d || !(Date.now() - d.savedAt < DRAFT_MAX_AGE_MS)) ls.removeItem(k);
+      } catch {
+        ls.removeItem(k);
+      }
+    }
+  } catch {
+    // bo qua: trinh duyet chan localStorage
+  }
+})();
+function readDraft(key) {
+  const sk = draftStorageKey(key);
+  if (!sk) return null;
+  try {
+    const raw = window.localStorage.getItem(sk);
     if (!raw) return null;
     const d = JSON.parse(raw);
-    return d && typeof d === "object" ? d : null;
+    if (!d || typeof d !== "object") return null;
+    if (!(Date.now() - d.savedAt < DRAFT_MAX_AGE_MS)) {
+      window.localStorage.removeItem(sk);
+      return null;
+    }
+    return d;
   } catch {
     return null;
   }
 }
 function writeDraft(key, draft) {
+  const sk = draftStorageKey(key);
+  if (!sk) return false;
   try {
-    window.localStorage.setItem(draftStorageKey(key), JSON.stringify(draft));
+    window.localStorage.setItem(sk, JSON.stringify(draft));
     return true;
   } catch {
     return false;
   }
 }
 function removeDraft(key) {
+  const sk = draftStorageKey(key);
+  if (!sk) return;
   try {
-    window.localStorage.removeItem(draftStorageKey(key));
+    window.localStorage.removeItem(sk);
   } catch {
     // bo qua: trinh duyet chan localStorage
   }
@@ -121,6 +165,13 @@ function sameValue(a, b) {
     return ta === tb;
   }
   return comparable(a) === comparable(b);
+}
+// Dau van tay noi dung goc (tren may chu) cua tin luc mo form: biet ban tren may chu da bi sua sau khi luu nhap chua.
+function baseSignature(base) {
+  const s = DRAFT_FIELDS.map((f) => comparable(base ? base[f] : "")).join("\u0001");
+  let h = 5381;
+  for (let i = 0; i < s.length; i += 1) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return h.toString(36) + ":" + s.length;
 }
 function notifyLong(message, type = "info") {
   Notify(
@@ -275,7 +326,7 @@ export default function TinTuc() {
     if (!st) return;
     const differs = DRAFT_FIELDS.some((f) => !sameValue(st.values[f], st.base[f]));
     if (!differs) return;
-    const draft = { key: st.isNew ? "new" : st.key, savedAt: Date.now() };
+    const draft = { key: st.isNew ? "new" : st.key, savedAt: Date.now(), baseSig: baseSignature(st.base) };
     DRAFT_FIELDS.forEach((f) => {
       draft[f] = st.values[f] == null ? "" : st.values[f];
     });
@@ -340,8 +391,13 @@ export default function TinTuc() {
       removeDraft(st.isNew ? null : st.key);
       return;
     }
+    // Ban tren may chu da bi sua (nguoi khac / nguoi duyet) sau luc luu nhap: khoi phuc se ghi de nhung thay doi do.
+    const serverChanged = !st.isNew && !!d.baseSig && d.baseSig !== baseSignature(st.base);
+    const warn = serverChanged
+      ? `<p style="color:#b00020;margin-top:8px"><b>Lưu ý:</b> tin này đã được sửa trên hệ thống sau lúc lưu nháp. Nếu khôi phục rồi lưu, các thay đổi đó sẽ bị ghi đè.</p>`
+      : "";
     confirm(
-      `<div style="max-width:420px">Có bản đang soạn dở chưa lưu của tin này. Khôi phục bản đang soạn dở lúc ${formatDraftTime(d.savedAt)}?</div>`,
+      `<div style="max-width:420px">Có bản đang soạn dở chưa lưu của tin này. Khôi phục bản đang soạn dở lúc ${formatDraftTime(d.savedAt)}?${warn}</div>`,
       "Khôi phục bản nháp",
     ).then((ok) => {
       if (ok) {
@@ -1248,7 +1304,7 @@ export default function TinTuc() {
               dataField="ChuyenMucHienThiThem"
               allowSearch={false}
               dataType="string"
-              caption="Chuyên mục hiển thị thêm"
+              caption="Chuyên mục hiển thị thêm"
               visible={false}
               editCellRender={treeviewChuyenMucThemEditCellRender}
             >

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import FileManager, { Item, Permissions, ContextMenu, Upload, Toolbar } from 'devextreme-react/file-manager';
+import FileManager, { Item, FileSelectionItem, Permissions, ContextMenu, Upload, Toolbar } from 'devextreme-react/file-manager';
 import { CHUNKED_MAX_MB, FILE_MANAGER_UPLOAD_HINT, MB, getUploadKind, onFileManagerError } from '../utils/upload';
 import config from '../config';
 import { notify, pathFile } from '../utils/api';
@@ -91,12 +91,16 @@ export default function FilePicker() {
             <Item name="create" />
             <Item name="upload" />
             <Item name="refresh" />
-            <Item
-              location="after"
-              widget="dxButton"
-              options={{ text: "Chọn", type: "default", stylingMode: "contained", disabled: !selected, onClick: () => choose() }}
-            />
             <Item name="switchView" location="after" />
+            {/* Khi da chon file, FileManager doi sang bo nut fileSelectionItems: nut "Chon" phai nam o day. */}
+            <FileSelectionItem
+              location="before"
+              widget="dxButton"
+              options={{ text: "Chọn", icon: "check", type: "default", stylingMode: "contained", onClick: () => choose() }}
+            />
+            <FileSelectionItem name="download" />
+            <FileSelectionItem name="refresh" />
+            <FileSelectionItem name="clearSelection" />
           </Toolbar>
           <ContextMenu>
             <Item text="Chọn file này" icon="check" name="choose" />

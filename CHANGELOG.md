@@ -2,10 +2,23 @@
 
 Ghi chú theo từng đợt, chuyển từ DEV-SETUP.md. Hướng dẫn cài đặt và chạy nằm ở DEV-SETUP.md.
 
+## Rà soát lại đợt sửa admin 24–25/11
+
+- **Bảo mật, thư viện file:** chặn `BackUp`/`Thumb` (25/11) chỉ xét đoạn đầu đường dẫn do client gửi, nên `a/../BackUp`, `./BackUp`, `BackUp.` lọt qua, tải được bản sao lưu CSDL. `GuardedFileSystemProvider` nay kiểm tra trên đường dẫn thật (`GetFullPath` từ gốc `~/Upload`), từ chối đoạn `.`/`..`/kết thúc bằng dấu chấm hoặc khoảng trắng, không cho thao tác trên chính thư mục gốc (Copy gốc từng chép cả `BackUp` ra ngoài). `FileFromLibrary` kiểm tra tương tự và trả 400 thay vì 500 khi đường dẫn có `:`.
+- Tin tức, quy trình: "Trả về" ở bước ≥ 3 nay về bước liền trước (trước đây luôn về bước 1, `GetBuocQuyTrinh` sắp tăng dần cho cả `prev`). Cột "Người xử lý" hiện tên đăng ký thay vì tên đăng nhập, bỏ tài khoản đã xóa.
+- Tin tức, nháp cục bộ: gắn với tài khoản (`tintuc-draft:<UserID>:<ID>`), người khác trên cùng máy không thấy; tự bỏ nháp quá 7 ngày và nháp kiểu cũ; cảnh báo khi bản trên hệ thống đã bị sửa sau lúc lưu nháp.
+- Xuất CSV: ô bắt đầu bằng `= + - @` (trừ số âm) được thêm `'` để Excel không chạy công thức (họ tên/nội dung góp ý do người dân nhập).
+- Popup "Chi tiết góp ý" luôn có phần tử con (trước đây có thể mở ra trống). Cửa sổ chọn file của CKEditor: nút "Chọn" hiện khi đã chọn file (`FileSelectionItem`). Hồ sơ: bỏ tích rồi tích lại 2FA không còn báo lỗi giả.
+- SharePoint: chế độ `Windows` không đặt `SharePointUser` thì dùng danh tính app pool. Còn mở: file của văn bản bị gỡ công bố vẫn nằm trong `Upload/SharePoint/` (tải được nếu biết URL).
+
+## Portal 25/11: tiêu đề khối trang Nghị quyết TW4 theo tên chuyên mục
+
+- Trang chủ `/nghi-quyet-tw4`: tiêu đề 6 khối (Tin tức - Sự kiện, Báo cáo, Bảo vệ nền tảng tư tưởng, Văn bản chỉ đạo, khối chuyên mục 389, Tư liệu hình ảnh) lấy tên chuyên mục trong CSDL (`ChuyenMucDetail`), trước đây lấy chuỗi dịch cố định `nghiquyettw4.home_page.*` trong cấu hình `i18nVietnamese` nên đổi tên chuyên mục ở admin (ví dụ "Đại hội thi đua yêu nước" thành "Dân vận khéo") không có tác dụng. Chuỗi dịch chỉ còn dùng khi không lấy được tên. API gửi `Cache-Control: max-age=300`, nên tên mới có thể chậm tới 5 phút.
+
 ## Giao diện admin 25/11: hoàn thiện (nhóm 3)
 
 - Bỏ nút "Remove" (X) của khung AdminLTE ở 87 trang (bấm vào làm biến mất cả bảng); tooltip nút thu gọn tiếng Việt. Ô tìm kiếm không còn `highlightCaseSensitive` (tô sáng không phân biệt hoa thường).
-- Menu và tiêu đề trang: bỏ tiền tố "QL"/"DS", viết đầy đủ ("Văn bản quy phạm pháp luật", "Sao lưu dữ liệu", "Vai trò và phân quyền"...); "Trang tổng quan" lên đầu menu. Lưu ý: một số file nguồn (Aside.js, CauHinh.js, TinTuc.js...) lưu tiếng Việt dạng Unicode tổ hợp (NFD); tìm kiếm chuỗi tiếng Việt trong các file này có thể không khớp.
+- Menu và tiêu đề trang: bỏ tiền tố "QL"/"DS", viết đầy đủ ("Văn bản quy phạm pháp luật", "Sao lưu dữ liệu", "Vai trò và phân quyền"...); "Trang tổng quan" lên đầu menu. 8 file admin (Aside.js, CauHinh.js, TinTuc.js...) có chữ tiếng Việt dạng Unicode tổ hợp (NFD) làm ô "Tìm chức năng" không khớp với chữ người dùng gõ; đã chuyển về NFC.
 - Danh mục lĩnh vực, hình thức, lớp văn bản, cơ quan ban hành sắp theo "Số thứ tự" (cột ID trước đây được ưu tiên).
 - Trang tổng quan: trạng thái đang tải, báo lỗi kèm "Thử lại", ô số liệu bấm được để mở danh sách, nhãn đầy đủ, bài trên cổng mở tab mới.
 - Đường dẫn không tồn tại hiện trang "Không tìm thấy trang" thay vì âm thầm về trang chủ. Tài khoản đang phải đổi mật khẩu mặc định (`setup_required`) chỉ vào được trang Hồ sơ, menu chỉ còn mục đó.
@@ -53,7 +66,7 @@ Sửa sau đợt rà soát giao diện admin (nhóm 1: lỗi làm sai dữ liệ
 
 ## Đồng bộ văn bản từ SharePoint (bản thử, chưa kiểm tra trên farm thật)
 
-- `api/Services/SharePoint/` (`SharePointClient`, `SharePointVanBanSync`) và `SharePointSyncController` (`api/SharePointSync/Status`, `Run`, quyền `manage-vanban`): đọc thư viện `VanBan` qua REST, ghi một chiều vào `VanBan`/`Files` (khoá `Migrate_Source = sharepoint:<UniqueId>`), chỉ mục `TrangThai = Published`; mục bị gỡ công bố thì ẩn, không xoá. Portal vẫn đọc từ SQL nên không phụ thuộc SharePoint lúc chạy. Tắt khi `SharePointSiteUrl` để trống.
+- `api/Services/SharePoint/` (`SharePointClient`, `SharePointVanBanSync`) và `SharePointSyncController` (`api/SharePointSync/Status`, `Run`, quyền `manage-vanban`): đọc thư viện `VanBan` qua REST, ghi một chiều vào `VanBan`/`Files` (khoá `Migrate_Source = sharepoint:<UniqueId>`), chỉ mục `TrangThai = Published`; mục bị gỡ công bố thì ẩn, không xoá. Portal vẫn đọc từ SQL nên không phụ thuộc SharePoint lúc chạy. Tắt khi `SharePointSiteUrl` để trống. Cột ngày (SharePoint trả theo UTC) được đổi sang giờ Việt Nam trước khi lấy ngày, nếu không ngày ban hành lùi một ngày; dữ liệu mẫu của giả lập trả ngày theo đúng kiểu này.
 - `scripts/sharepoint-mock/`: SharePoint giả lập để thử trên máy dev, kèm hướng dẫn (README.md). Đã thử với giả lập: tạo, cập nhật, ẩn, đồng bộ lại không trùng, SharePoint tắt thì API trả 502 và portal vẫn hiện dữ liệu cũ.
 
 ## Máy chủ API production không gọi ra ngoài được (nguyên nhân thật của danh sách trống và ảnh không thu nhỏ)

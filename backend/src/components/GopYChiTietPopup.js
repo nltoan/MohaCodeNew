@@ -60,6 +60,8 @@ const GopYChiTietPopup = forwardRef(function GopYChiTietPopup(props, ref) {
         },
       ]}
     >
+      {/* Luon co phan tu con: devextreme-react chi tao noi dung khi Popup co children ngay lan render dau. */}
+      <div>
       {state.visible && (
         <div style={{ overflowY: 'auto', maxHeight: '70vh' }}>
           <table style={{ width: '100%', marginBottom: 12 }}>
@@ -80,6 +82,7 @@ const GopYChiTietPopup = forwardRef(function GopYChiTietPopup(props, ref) {
           </div>
         </div>
       )}
+      </div>
     </Popup>
   );
 });

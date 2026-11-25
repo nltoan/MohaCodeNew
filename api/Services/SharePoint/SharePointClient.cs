@@ -66,7 +66,11 @@ namespace API.Services.SharePoint
             siteUri = new Uri(settings.SiteUrl + "/");
             var handler = new HttpClientHandler();
             if (settings.AuthMode == "Windows")
-                handler.Credentials = new NetworkCredential(settings.User, settings.Password, settings.Domain);
+            {
+                // Khong dat SharePointUser: chay bang danh tinh app pool (tai khoan dich vu cua IIS).
+                if (string.IsNullOrWhiteSpace(settings.User)) handler.UseDefaultCredentials = true;
+                else handler.Credentials = new NetworkCredential(settings.User, settings.Password, settings.Domain);
+            }
             http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(60) };
             http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             http.DefaultRequestHeaders.Accept.ParseAdd("application/json;odata=nometadata");

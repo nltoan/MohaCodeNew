@@ -73,11 +73,11 @@ export default function CauHinh() {
             width={60}
           ></Column>
           <Column dataField="Ten" dataType="string" caption="Tên"></Column>
-          <Column dataField="Ma" dataType="string" caption="Mã"></Column>
+          <Column dataField="Ma" dataType="string" caption="Mã"></Column>
           <Column
             dataField="GiaTri"
             dataType="string"
-            caption="Giá trị"
+            caption="Giá trị"
             visible={false}
           ></Column>
           <Pager allowedPageSizes={[20, 50, 100]} showPageSizeSelector={true} />

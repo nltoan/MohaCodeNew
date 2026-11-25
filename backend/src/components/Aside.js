@@ -296,7 +296,7 @@ export default function Aside() {
             <MenuItem
               icon="fas fa-store nav-icon"
               permission={"manage-nckh"}
-              title={"Nghiên cứu khoa học"}
+              title={"Nghiên cứu khoa học"}
               path={"/NghienCuuKhoaHoc"}
             />
             <MenuItem
@@ -413,12 +413,12 @@ export default function Aside() {
               {/* <MenuItem linkClass="nav-link pl-2" title={'DS văn bản Hợp tác quốc tế'} path={"/VanBan/VanBan/2125"} /> */}
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"Văn bản dự thảo"}
+                title={"Văn bản dự thảo"}
                 path={"/VanBan/DuThao"}
               />
               <MenuItem
                 linkClass="nav-link pl-2"
-                title={"Góp ý Văn bản dự thảo"}
+                title={"Góp ý Văn bản dự thảo"}
                 path={"/VanBan/GopYDuThao"}
               />
               <MenuItem

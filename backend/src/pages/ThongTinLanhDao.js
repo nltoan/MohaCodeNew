@@ -356,33 +356,33 @@ export default function ThongTinLanhDao() {
           <Column
             dataField="DanToc"
             dataType="string"
-            caption="Dân tộc"
+            caption="Dân tộc"
             visible={false}
           />
           <Column
             dataField="TonGiao"
             dataType="string"
-            caption="Tôn giáo"
+            caption="Tôn giáo"
             visible={false}
           />
           <Column
             dataField="ChucVuDang"
             dataType="string"
-            caption="Chức vụ Đảng"
+            caption="Chức vụ Đảng"
             visible={false}
           />
           <Column
             dataField="NgayVaoDang"
             dataType="date"
             format={"dd/MM/yyyy"}
-            caption="Ngày vào Đảng"
+            caption="Ngày vào Đảng"
             visible={false}
           />
           <Column
             dataField="NgayVaoDangChinhThuc"
             dataType="date"
             format={"dd/MM/yyyy"}
-            caption="Ngày vào Đảng chính thức"
+            caption="Ngày vào Đảng chính thức"
             visible={false}
           />
 

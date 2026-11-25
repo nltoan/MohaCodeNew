@@ -133,7 +133,11 @@ export default function Profile() {
                       value: !!formData.IsTwoFA,
                       enableThreeStateBehavior: false,
                       onValueChanged: async (e) => {
-                        if (e.value == true) {
+                        if (e.value == true && !!auth.user.IsTwoFA) {
+                          // Da bat 2FA tu truoc (bo tich roi tich lai): khong tao khoa moi (API tra 409), chi tra lai trang thai.
+                          setAuthenSetupImg('');
+                          setFormData({ ...formData, EntryKey: '', IsTwoFA: true });
+                        } else if (e.value == true) {
                           const vbs = await request(
                             `Home/GenerateAuthenticateSecret`,
                           );

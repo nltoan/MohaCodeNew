@@ -157,7 +157,7 @@ export default function ChuyenMuc() {
           />
           <Column
             dataField="IsVisible"
-            caption="Hiển thị chuyên mục"
+            caption="Hiển thị chuyên mục"
             visible={false}
           />
           <Column

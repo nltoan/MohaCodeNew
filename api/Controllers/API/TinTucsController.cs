@@ -117,11 +117,11 @@ namespace API.Controllers
                 CASE WHEN bq.ID IS NULL THEN NULL ELSE (select count(*) from BuocQuyTrinh bqa where bqa.IDQuyTrinh = bq.IDQuyTrinh and bqa.SoThuTu <= bq.SoThuTu) END AS BuocThu,
                 CASE WHEN bq.ID IS NULL THEN NULL ELSE (select count(*) from BuocQuyTrinh bqb where bqb.IDQuyTrinh = bq.IDQuyTrinh) END AS TongSoBuoc,
                 CASE WHEN t.TrangThai = 'waitapprove' and bq.ID IS NOT NULL THEN STUFF((
-                    select N', ' + ISNULL(NULLIF(uax.TenTruyCap, N''), uax.TenDangKy)
+                    select N', ' + ISNULL(NULLIF(uax.TenDangKy, N''), uax.TenTruyCap)
                     from UserBuocQuyTrinh ubx
                     join User_Account uax on uax.UserID = ubx.UserID
-                    where ubx.BuocQuyTrinhId = bq.ID
-                    order by uax.TenTruyCap
+                    where ubx.BuocQuyTrinhId = bq.ID and ISNULL(uax.TrangThai, N'') <> N'deleted'
+                    order by uax.TenDangKy
                     FOR XML PATH(''), TYPE).value('.', 'nvarchar(max)'), 1, 2, N'')
                     ELSE NULL
                 END AS NguoiXuLyHienTai
@@ -339,8 +339,9 @@ namespace API.Controllers
                 ) tmp 
                 join BuocQuyTrinh b on b.IDQuyTrinh = tmp.ID
                 where 1=1 {0}
-                ORDER BY b.SoThuTu asc
-            ", condition);
+                ORDER BY b.SoThuTu {1}
+            ", condition, action == "prev" ? "desc" : "asc");
+            // "prev": buoc LIEN TRUOC (SoThuTu lon nhat con nho hon buoc hien tai); truoc day sap asc nen luon ve buoc 1.
             var step = _context.CollectionFromSql(sql, new Dictionary<string, object> { { "@IDChuyenMuc", IDChuyenMuc} }).FirstOrDefault();
             return step;
         }

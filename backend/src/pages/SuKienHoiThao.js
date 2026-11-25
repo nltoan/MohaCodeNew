@@ -33,7 +33,7 @@ export default function SuKienHoiThao() {
   return (
     <div className="card">
       <div className="card-header">
-        <h3 className="card-title">Quản lý Hội nghị, Sự kiện</h3>
+        <h3 className="card-title">Quản lý Hội nghị, Sự kiện</h3>
         <div className="card-tools">
           <button
             type="button"
@@ -78,7 +78,7 @@ export default function SuKienHoiThao() {
             allowDeleting={true}
           >
             <DataGridPopup
-              title="Thông tin Hội nghị, Sự kiện"
+              title="Thông tin Hội nghị, Sự kiện"
               showTitle={true}
               fullScreen={true}
             />
