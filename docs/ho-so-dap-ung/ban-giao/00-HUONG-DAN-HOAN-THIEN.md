@@ -11,6 +11,25 @@ Bản hoàn thiện ngày 30/10/2026 cho Gói thầu số 01 Nâng cấp Cổng 
 - Biểu mẫu: tiến độ 30 ngày; thêm Mẫu 08A/08B/08C (nhân sự chủ chốt theo Bảng số 03), cam kết khả năng bảo hành (tiêu chí 5 Bảng số 01), bảng kê sai khác, thông tin phần mềm và vật tư thay thế (Mục 8 Chương I).
 - Thuyết minh có thêm đoạn nên số trang lệch so với bảng dưới; mở bằng Word và cập nhật mục lục (chọn mục lục, nhấn F9) trước khi xuất PDF.
 
+## Sửa sau rà soát độc lập (26/11/2026)
+
+- Xác thực hai bước: bắt buộc với mọi tài khoản ở mỗi lần đăng nhập (Hạng mục 25); người dùng không tự tắt được, chỉ quản trị viên reset để đăng ký lại.
+- Bổ sung các chức năng HSYC nêu rõ mà thuyết minh còn thiếu hoặc chỉ làm có điều kiện: tin xem nhiều, bình luận (duyệt trước khi hiển thị), lịch công tác Bộ trưởng, sắp xếp khi tra cứu văn bản, danh sách ý kiến tiếp nhận, trang riêng cho infographic và clip, video YouTube/Vimeo kèm mã nhúng, tự trích xuất ảnh đại diện, tăng dung lượng tải lên, video trong sự kiện, QR theo từng trang hiển thị, Chuyên trang tiếng Anh do Nhà thầu xây dựng và duy trì.
+- Chuyển đổi dữ liệu: cam kết 100%, không áp dụng ngưỡng sai khác, không loại trừ dữ liệu (Hạng mục 10–14).
+- Các chỉ tiêu HSYC v7 không có (99,9%, RPO/RTO, 500 phiên, cấu hình hạ tầng, kết nối AD/LGSP/EMC) được ghi là mục tiêu Nhà thầu đề xuất, không phải điều kiện nghiệm thu bổ sung.
+- Mốc bảo hành: 12 tháng kể từ khi nghiệm thu và thanh lý hợp đồng (Mục 1.2.8 Chương IV, ĐKCT 23.3), không ngắn hơn 12 tháng kể từ ngày nghiệm thu đưa vào sử dụng.
+- Thuyết minh III.3: thêm cơ cấu tổ chức và bảng ánh xạ 06 nhân sự chủ chốt theo Bảng số 03. Mục II.2.8 bổ sung các yêu cầu phi chức năng tại Mục 1.2.5 Chương IV.
+- Bảng đáp ứng: cột kiểm tra viết riêng cho từng hạng mục, có tham chiếu mục thuyết minh; thêm 2 dòng phi chức năng; nêu thuật toán PBKDF2-HMAC-SHA256; thêm mục D đối chiếu Thông tư 22/2023/TT-BTTTT theo nhóm yêu cầu.
+- Biểu mẫu: cam kết bảo hành nêu đủ cụm "phụ tùng thay thế, dịch vụ sau bán hàng"; thêm chứng từ thuế TNDN (tiêu chí 2); kê thành phần bên thứ ba; thêm mục N về Mẫu 11A, 11B và 02.
+
+**Cần Tefli xác nhận trước khi nộp:**
+
+- Sản phẩm thực tế có dùng SharePoint làm nền tảng portal không. Thuyết minh đang mô tả SharePoint là nền tảng portal kế thừa, trong khi mã nguồn hiện tại dùng React + .NET API + SQL Server và chỉ dùng SharePoint để đồng bộ văn bản. Nếu không dùng, cần viết lại phần kiến trúc (II.1.4, II.2.1–II.2.3, II.3.1) và bỏ 2 máy ảo Portal Core/SharePoint.
+- Giấy phép DevExtreme 22.2 và CKEditor 4 LTS (đều là giấy phép thương mại) mà phân hệ quản trị đang dùng.
+- Chủ đầu tư có sẵn bản quyền Windows Server, SharePoint Server, SQL Server hay không.
+- Phạm vi "duy trì nội dung Chuyên trang tiếng Anh": hồ sơ cam kết nhập, cập nhật, xuất bản nội dung tiếng Anh; chưa cam kết tự dịch.
+- Các ô [CẦN XÁC NHẬN] ở mục M, N của file biểu mẫu.
+
 ## Tài liệu bàn giao
 
 1. **01-HSĐX-Ky-thuat-TEFLI.docx**: thuyết minh khoảng 111 trang, 33 hình và sơ đồ, 65 bảng. Các sơ đồ triển khai, kiến trúc và phân vùng mạng đã bổ sung hình minh họa máy chủ rack, thiết bị mạng, lưu trữ và máy trạm (trang 13, 28, 29). Bố cục theo tài liệu mẫu GPKT_Vi nguoi ngheo: phương pháp luận; giải pháp kỹ thuật; nhân sự và triển khai; đào tạo chuyển giao; bảo hành bảo trì. Nội dung viết theo vai nhà thầu đề xuất giải pháp sẽ xây dựng.
