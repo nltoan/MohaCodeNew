@@ -26,7 +26,7 @@ Bản hoàn thiện ngày 30/10/2026 cho Gói thầu số 01 Nâng cấp Cổng 
 
 **Cần Tefli xác nhận trước khi nộp:**
 
-- Sản phẩm thực tế có dùng SharePoint làm nền tảng portal không. Thuyết minh đang mô tả SharePoint là nền tảng portal kế thừa, trong khi mã nguồn hiện tại dùng React + .NET API + SQL Server và chỉ dùng SharePoint để đồng bộ văn bản. Nếu không dùng, cần viết lại phần kiến trúc (II.1.4, II.2.1–II.2.3, II.3.1) và bỏ 2 máy ảo Portal Core/SharePoint.
+- SharePoint: giữ trong giải pháp, thể hiện là nền tảng cài đặt của Cổng (cùng Windows Server, SQL Server do Chủ đầu tư bố trí). HSYC chính thức và v7 không có thông tin máy chủ hay mô hình triển khai vật lý; bảng 13 VM/76 vCPU/216 GB RAM lấy từ bản HSYC nháp cũ (`nguon/HSYC-trich-xuat.txt`, B0813) và được trình bày là cấu hình tham chiếu Nhà thầu đề xuất.
 - Giấy phép DevExtreme 22.2 và CKEditor 4 LTS (đều là giấy phép thương mại) mà phân hệ quản trị đang dùng.
 - Chủ đầu tư có sẵn bản quyền Windows Server, SharePoint Server, SQL Server hay không.
 - Phạm vi "duy trì nội dung Chuyên trang tiếng Anh": hồ sơ cam kết nhập, cập nhật, xuất bản nội dung tiếng Anh; chưa cam kết tự dịch.
