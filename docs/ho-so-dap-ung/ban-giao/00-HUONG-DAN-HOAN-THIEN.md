@@ -2,6 +2,8 @@
 
 Bản hoàn thiện ngày 30/10/2026 cho Gói thầu số 01 Nâng cấp Cổng thông tin điện tử Bộ Nội vụ. Cập nhật ngày 25/11/2026 theo HSYC bản v7 (`nguon/HSYC-v7-trich-xuat.txt`).
 
+**Đối chiếu HSYC chính thức (bản scan có dấu, 102 trang, 26/11/2026):** nội dung trùng bản v7 trừ Bảng số 03 (trang 34): vị trí 2 là "Nhân sự chủ chốt về lập trình" **02** người (v7 ghi 03); vị trí 3 là "Nhân sự chủ chốt triển khai, hỗ trợ" 02 người. Hồ sơ đã sửa theo bản chính thức: tổng 05 nhân sự chủ chốt. Khi trích dẫn HSYC, căn cứ bản chính thức; bản text v7 chỉ dùng để tra cứu.
+
 ## Cập nhật theo HSYC v7 (25/11/2026)
 
 - Thời hạn khắc phục lỗi: 08 giờ (đơn giản) và 40 giờ (phức tạp) tính liên tục từ khi Chủ đầu tư thông báo, không còn tính theo giờ hành chính.
@@ -18,7 +20,7 @@ Bản hoàn thiện ngày 30/10/2026 cho Gói thầu số 01 Nâng cấp Cổng 
 - Chuyển đổi dữ liệu: cam kết 100%, không áp dụng ngưỡng sai khác, không loại trừ dữ liệu (Hạng mục 10–14).
 - Các chỉ tiêu HSYC v7 không có (99,9%, RPO/RTO, 500 phiên, cấu hình hạ tầng, kết nối AD/LGSP/EMC) được ghi là mục tiêu Nhà thầu đề xuất, không phải điều kiện nghiệm thu bổ sung.
 - Mốc bảo hành: 12 tháng kể từ khi nghiệm thu và thanh lý hợp đồng (Mục 1.2.8 Chương IV, ĐKCT 23.3), không ngắn hơn 12 tháng kể từ ngày nghiệm thu đưa vào sử dụng.
-- Thuyết minh III.3: thêm cơ cấu tổ chức và bảng ánh xạ 06 nhân sự chủ chốt theo Bảng số 03. Mục II.2.8 bổ sung các yêu cầu phi chức năng tại Mục 1.2.5 Chương IV.
+- Thuyết minh III.3: thêm cơ cấu tổ chức và bảng ánh xạ 05 nhân sự chủ chốt theo Bảng số 03. Mục II.2.8 bổ sung các yêu cầu phi chức năng tại Mục 1.2.5 Chương IV.
 - Bảng đáp ứng: cột kiểm tra viết riêng cho từng hạng mục, có tham chiếu mục thuyết minh; thêm 2 dòng phi chức năng; nêu thuật toán PBKDF2-HMAC-SHA256; thêm mục D đối chiếu Thông tư 22/2023/TT-BTTTT theo nhóm yêu cầu.
 - Biểu mẫu: cam kết bảo hành nêu đủ cụm "phụ tùng thay thế, dịch vụ sau bán hàng"; thêm chứng từ thuế TNDN (tiêu chí 2); kê thành phần bên thứ ba; thêm mục N về Mẫu 11A, 11B và 02.
 
@@ -60,7 +62,7 @@ Số trang tính theo bản kết xuất kiểm tra, có thể thay đổi khi c
 - Điền ngày đóng thầu, ngày ký, hiệu lực hồ sơ và các văn bản sửa đổi HSYC nếu có. Dự thảo sử dụng hiệu lực 60 ngày.
 - Bổ sung báo cáo tài chính, chứng từ thuế và số liệu tương ứng; đối chiếu yêu cầu tài sản ròng dương, doanh thu bình quân ba năm tối thiểu 1,2 tỷ đồng theo nhánh đánh giá áp dụng.
 - Kê khai hợp đồng tương tự, chứng từ nghiệm thu và giá trị hoàn thành. HSYC nêu tiêu chí hợp đồng từ ngày 01/01/2023 với giá trị hoàn thành tối thiểu 400 triệu đồng theo nhánh áp dụng.
-- Điền nhân sự chủ chốt vào Mẫu 08A/08B/08C: 01 phụ trách kỹ thuật và quản lý triển khai (≥05 năm hoặc ≥02 hợp đồng), 03 lập trình (≥03 năm hoặc ≥01 hợp đồng), 02 triển khai (≥02 năm hoặc ≥01 hợp đồng); bằng đại học CNTT hoặc ngành gần theo Thông tư 08/2022/TT-BTTTT; kèm hợp đồng phần mềm nội bộ và biên bản nghiệm thu/thanh lý thể hiện vị trí của từng người. Thiếu nhân sự thay thế đạt yêu cầu thì hồ sơ bị loại.
+- Điền nhân sự chủ chốt vào Mẫu 08A/08B/08C: 01 phụ trách kỹ thuật và quản lý triển khai (≥05 năm hoặc ≥02 hợp đồng), 02 nhân sự chủ chốt về lập trình (≥03 năm hoặc ≥01 hợp đồng), 02 nhân sự chủ chốt triển khai, hỗ trợ (≥02 năm hoặc ≥01 hợp đồng); bằng đại học CNTT hoặc ngành gần theo Thông tư 08/2022/TT-BTTTT; kèm hợp đồng phần mềm nội bộ và biên bản nghiệm thu/thanh lý thể hiện vị trí của từng người. Thiếu nhân sự thay thế đạt yêu cầu thì hồ sơ bị loại.
 - Ký cam kết khả năng bảo hành (mục L của file biểu mẫu) và điền đầu mối trực 24/7; điền thành phần bên thứ ba trong bảng kê phần mềm (mục M).
 - Hoàn thiện đơn giá, thuế, phí và tổng giá chào; kiểm tra thống nhất giữa bảng giá và đơn dự thầu. Giá gói thầu 800 triệu đồng không được coi là giá chào của Tefli.
 - Xác minh các cam kết trong biểu mẫu trước khi ký; bổ sung giấy tờ pháp lý và các tài liệu chứng minh. Đăng ký đầu mối bảo hành và lịch trực thực tế.

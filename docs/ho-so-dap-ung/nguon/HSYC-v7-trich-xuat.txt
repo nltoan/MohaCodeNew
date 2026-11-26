@@ -953,7 +953,7 @@ các vị trí chủ chốt đáp ứng những yêu cầu sau đây:
                                              08/2022/TT-BTTTT ngày
                               tối thiểu 03   30/6/2022 của Bộ trưởng Bộ
                                năm hoặc      Thông tin và Truyền thông.
-2   Nhân sự lập trình    03
+2   Nhân sự chủ chốt về lập trình    02   [bản chính thức: 02 người; v7 ghi 03]
                               tối thiểu 01   Đã hoặc đang đảm nhận vị trí
                                hợp đồng      lập trình trong xây dựng/nâng
                                              cấp/phát triển phần mềm nội
