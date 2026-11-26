@@ -22,7 +22,7 @@ import 'devextreme-react/html-editor';
 import {getFrontEndURL} from '../utils/helpers';
 import { Item } from 'devextreme-react/form';
 import config from '../config';
-import { createCustomStore, createFilterLookupStore, createLookupStore } from '../utils/api';
+import { createCustomStore, createFilterLookupStore, createLookupStore, notify, requestAction } from '../utils/api';
 import { Popup } from 'devextreme-react';
 import MyImageFileUploader from '../components/MyImageFileUploader';
 import MyFileFileUploader from '../components/MyFileFileUploader';
@@ -448,7 +448,7 @@ export default function TinTuc() {
     } else if (after === "preview") {
       setAction({ type: "preview", data: key });
     } else if (after === "sendapprove") {
-      setAction({ type: "sendapprove", data: key });
+      quickAction(key, "sendapprove");
     }
   }
 
@@ -566,37 +566,45 @@ export default function TinTuc() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), []);
 
-  // Cac thao tac quy trinh cua mot dong (cung dieu kien hien nut nhu truoc).
-  function rowActionItems(d) {
-    const open = (actionType) => () => setAction({ type: actionType, data: d.ID, title: d.TieuDe });
-    const items = [];
-    // Sua tin ngay tu menu (nut but chi la icon nho o cot cuoi, de bi bo qua): cung dieu kien voi nut Sua.
-    if (Number(d.CanEdit) === 1 || Number(d.CanSendNext) === 1) {
-      items.push({
-        text: "Sửa tin",
-        icon: "fas fa-pen",
-        run: () => {
-          const g = gridRef.current ? gridRef.current.instance : null;
-          if (g) reopenRow(g, d.ID);
-        },
-      });
+  // Gui duyet / chuyen buoc mot cham (khong mo popup): tin nhap cua nguoi viet va tin o buoc 1 cua quy trinh.
+  const quickBusyRef = useRef(new Set());
+  async function quickAction(id, act) {
+    if (id == null || quickBusyRef.current.has(id)) return; // chan bam lien tiep
+    quickBusyRef.current.add(id);
+    try {
+      const result = await requestAction(`/TinTucs/Action?ID=${id}&action=${act}&comment=`, { method: "POST" });
+      if (!result.ok) {
+        notify(result.message || "Gửi duyệt thất bại!", "error");
+        return;
+      }
+      notify(act === "sendapprove" ? "Đã gửi tin lên người duyệt." : "Đã gửi duyệt, tin được chuyển sang bước tiếp theo.");
+      if (gridRef.current) gridRef.current.instance.refresh();
+    } finally {
+      quickBusyRef.current.delete(id);
     }
-    if (Number(d.CanSendApprove) === 1) items.push({ text: "Gửi duyệt", icon: "fas fa-paper-plane", run: open("sendapprove") });
-    if (Number(d.CanApprove) === 1) items.push({ text: "Duyệt và xuất bản", icon: "fas fa-check-circle", run: open("approve") });
-    if (Number(d.CanSendNext) === 1) items.push({ text: "Duyệt, chuyển bước tiếp", icon: "fas fa-share", run: open("approve") });
-    if (Number(d.CanPublish) === 1) items.push({ text: "Xuất bản lên cổng", icon: "fas fa-globe", run: open("public") });
-    if (Number(d.CanUnPublish) === 1) items.push({ text: "Gỡ khỏi cổng (hủy xuất bản)", icon: "fas fa-ban", run: open("cancelpublic") });
-    if (Number(d.CanUnPublish) === 1 && Number(d.NoiBat) !== 1) items.push({ text: "Đánh dấu nổi bật chuyên mục", icon: "fas fa-star", run: open("star") });
-    if (Number(d.CanUnPublish) === 1 && Number(d.NoiBat) === 1) items.push({ text: "Bỏ đánh dấu nổi bật", icon: "far fa-star", run: open("unstar") });
-    items.push({
-      text: "Xem trên cổng thông tin",
-      icon: "fas fa-external-link-alt",
-      run: () => {
-        const w = window.open(`${getFrontEndURL("tin-tuc", d.TieuDe, d.ID)}`, "_blank");
-        if (w) w.focus();
-      },
-    });
-    items.push({ text: "Xem lịch sử", icon: "fas fa-history", run: () => setAction({ type: "view", data: d }) });
+  }
+
+  // Buoc 1 cua quy trinh: chi "Gui duyet" (chuyen buoc tiep, mot cham), khong tra ve.
+  const isFirstStep = (d) => Number(d.CanSendNext) === 1 && d.BuocThu != null && Number(d.BuocThu) <= 1;
+  const canQuickSend = (d) => Number(d.CanSendApprove) === 1 || isFirstStep(d);
+  // Mo popup phe duyet (duyet / tra ve, co ghi chu): buoc cuoi hoac buoc giua tu buoc 2.
+  const canReview = (d) => Number(d.CanApprove) === 1 || (Number(d.CanSendNext) === 1 && !isFirstStep(d));
+
+  function deleteRow(d) {
+    const g = gridRef.current ? gridRef.current.instance : null;
+    if (!g) return;
+    const idx = g.getRowIndexByKey(d.ID);
+    if (idx >= 0) g.deleteRow(idx); // DataGrid tu hoi xac nhan truoc khi xoa
+  }
+
+  // Menu "Thao tac khac": chi xem lich su va xoa (xoa dat trong menu de tranh bam nham).
+  function rowActionItems(d) {
+    const items = [
+      { text: "Xem lịch sử xử lý", icon: "fas fa-history", run: () => setAction({ type: "view", data: d }) },
+    ];
+    if (Number(d.CanEdit) === 1) {
+      items.push({ text: "Xóa bài viết", icon: "fas fa-trash-alt text-danger", run: () => deleteRow(d) });
+    }
     return items;
   }
 
@@ -604,12 +612,12 @@ export default function TinTuc() {
     if (!cell.data || cell.rowType !== "data") return null;
     return (
       <DropDownButton
-        text="Thao tác"
+        text="Thao tác khác"
         stylingMode="outlined"
         useSelectMode={false}
         displayExpr="text"
         items={rowActionItems(cell.data)}
-        dropDownOptions={{ width: 260 }}
+        dropDownOptions={{ width: 200 }}
         onItemClick={(e) => e.itemData && e.itemData.run && e.itemData.run()}
       />
     );
@@ -799,7 +807,7 @@ export default function TinTuc() {
               removeDraft(null);
               setBeforeUnload(false);
               if (after === "sendapprove") {
-                setAction({ type: "sendapprove", data: e.key });
+                quickAction(e.key, "sendapprove");
                 return;
               }
               notifyLong("Đã lưu nháp. Bấm Gửi duyệt để chuyển lên người duyệt.");
@@ -1536,8 +1544,10 @@ export default function TinTuc() {
             {/* Thao tac quy trinh (gui duyet, duyet, xuat ban, go xuat ban, noi bat, lich su...) gom vao menu "Thao tac",
                 chi hien cac muc hop le voi tung tin (cung dieu kien CanSendApprove/CanApprove/CanSendNext/CanPublish/CanUnPublish nhu truoc). */}
             <Column
-              caption="Thao tác"
-              width={125}
+              caption="Thao tác khác"
+              width={140}
+              fixed={true}
+              fixedPosition="right"
               allowFiltering={false}
               allowSorting={false}
               allowSearch={false}
@@ -1545,40 +1555,64 @@ export default function TinTuc() {
               allowReordering={false}
               cellRender={rowActionsCellRender}
             />
-            <Column type="buttons" width={130}>
-              {/* Duyet ngay tren dong (khong phai mo menu "Thao tac"): cung hanh dong "approve" voi muc
-                  "Duyet va xuat ban" / "Duyet, chuyen buoc tiep" trong menu. */}
-              <DataGridButton
-                hint={"Duyệt"}
-                cssClass={"fas fa-check-circle text-success"}
-                visible={(e) => Number(e.row.data.CanApprove) === 1 || Number(e.row.data.CanSendNext) === 1}
-                onClick={(e) => {
-                  const d = e.row.data;
-                  setAction({ type: "approve", data: d.ID, title: d.TieuDe });
-                }}
-              />
+            {/* Ghim ben phai: man hinh hep thi cot nay bi day ra ngoai, nguoi dung khong thay nut sua/duyet. */}
+            <Column type="buttons" width={170} fixed={true} fixedPosition="right">
+              {/* Thao tac quy trinh hien thanh icon tren dong (cung dieu kien CanSendApprove/CanApprove/CanSendNext/
+                  CanPublish/CanUnPublish nhu menu cu); xem lich su va xoa nam trong menu "Thao tac khac". */}
               <DataGridButton
                 hint={"Sửa tin"}
                 name="edit"
-                visible={(e) => {
-                  return e.row.data.CanEdit == 1 || e.row.data.CanSendNext == 1;
-                }}
+                visible={(e) => e.row.data.CanEdit == 1 || e.row.data.CanSendNext == 1}
+              />
+              <DataGridButton
+                hint={"Gửi duyệt (bấm là gửi ngay)"}
+                cssClass={"fas fa-paper-plane text-primary"}
+                visible={(e) => canQuickSend(e.row.data)}
+                onClick={(e) => { const d = e.row.data; quickAction(d.ID, Number(d.CanSendApprove) === 1 ? "sendapprove" : "approve"); }}
+              />
+              <DataGridButton
+                hint={"Duyệt / trả về"}
+                cssClass={"fas fa-check-circle text-success"}
+                visible={(e) => canReview(e.row.data)}
+                onClick={(e) => setAction({ type: "approve", data: e.row.data.ID, title: e.row.data.TieuDe })}
+              />
+              <DataGridButton
+                hint={"Xuất bản lên cổng"}
+                cssClass={"fas fa-globe text-success"}
+                visible={(e) => Number(e.row.data.CanPublish) === 1}
+                onClick={(e) => setAction({ type: "public", data: e.row.data.ID, title: e.row.data.TieuDe })}
+              />
+              <DataGridButton
+                hint={"Gỡ khỏi cổng (hủy xuất bản)"}
+                cssClass={"fas fa-ban text-danger"}
+                visible={(e) => Number(e.row.data.CanUnPublish) === 1}
+                onClick={(e) => setAction({ type: "cancelpublic", data: e.row.data.ID, title: e.row.data.TieuDe })}
+              />
+              <DataGridButton
+                hint={"Đánh dấu nổi bật chuyên mục"}
+                cssClass={"far fa-star text-warning"}
+                visible={(e) => Number(e.row.data.CanUnPublish) === 1 && Number(e.row.data.NoiBat) !== 1}
+                onClick={(e) => setAction({ type: "star", data: e.row.data.ID, title: e.row.data.TieuDe })}
+              />
+              <DataGridButton
+                hint={"Bỏ đánh dấu nổi bật"}
+                cssClass={"fas fa-star text-warning"}
+                visible={(e) => Number(e.row.data.CanUnPublish) === 1 && Number(e.row.data.NoiBat) === 1}
+                onClick={(e) => setAction({ type: "unstar", data: e.row.data.ID, title: e.row.data.TieuDe })}
               />
               <DataGridButton
                 hint={"Xem trước (kể cả tin nháp)"}
                 cssClass={"fas fa-eye"}
-                onClick={(e) => {
-                  setAction({
-                    type: "preview",
-                    data: e.row.data.ID,
-                  });
-                }}
+                onClick={(e) => setAction({ type: "preview", data: e.row.data.ID })}
               />
               <DataGridButton
-                hint={"Xóa tin"}
-                name="delete"
-                visible={(e) => {
-                  return e.row.data.CanEdit == 1;
+                hint={"Xem trên cổng thông tin"}
+                cssClass={"fas fa-external-link-alt"}
+                visible={(e) => e.row.data.TrangThai === "public"}
+                onClick={(e) => {
+                  const d = e.row.data;
+                  const w = window.open(`${getFrontEndURL("tin-tuc", d.TieuDe, d.ID)}`, "_blank");
+                  if (w) w.focus();
                 }}
               />
             </Column>

@@ -113,12 +113,44 @@ namespace API.Controllers
 
         [PermissionAuthorize("manage-quytrinh")]
         [HttpDelete]
-        public async Task Delete(FormDataCollection form) {
+        public async Task<HttpResponseMessage> Delete(FormDataCollection form) {
             var key = Convert.ToInt32(form.Get("key"));
             var model = await _context.BuocQuyTrinhs.FirstOrDefaultAsync(item => item.ID == key);
             if (model == null) throw new HttpResponseException(HttpStatusCode.NotFound);
-            _context.BuocQuyTrinhs.Remove(model);
-            await _context.SaveChangesAsync();
+
+            // Truoc day xoa thang nen vuong khoa ngoai (nguoi xu ly, tin dang o buoc, lich su duyet) va chi bao
+            // "An error has occurred". Nay "gop" buoc bi xoa vao buoc lien ke de rut gon quy trinh:
+            //  - tin dang cho duyet o buoc nay chuyen sang buoc KE TIEP (bo qua buoc da xoa), het buoc sau thi ve buoc truoc;
+            //  - tin khac (xuat ban, bi tra ve...) va lich su duyet tro sang buoc TRUOC (xoa buoc cuoi thi buoc truoc thanh
+            //    buoc cuoi, nguoi o do go xuat ban duoc), khong co buoc truoc thi sang buoc sau.
+            var others = await _context.BuocQuyTrinhs
+                .Where(b => b.IDQuyTrinh == model.IDQuyTrinh && b.ID != key)
+                .Select(b => new { b.ID, b.SoThuTu })
+                .ToListAsync();
+            if (others.Count == 0)
+                return Request.CreateErrorResponse(HttpStatusCode.Conflict,
+                    "Quy trình phải còn ít nhất một bước. Muốn bỏ hẳn quy trình thì xóa hoặc ngừng hoạt động quy trình.");
+            int so = model.SoThuTu ?? 0;
+            var prev = others.Where(b => (b.SoThuTu ?? 0) < so || ((b.SoThuTu ?? 0) == so && b.ID < key))
+                .OrderByDescending(b => b.SoThuTu).ThenByDescending(b => b.ID).FirstOrDefault();
+            var next = others.Where(b => (b.SoThuTu ?? 0) > so || ((b.SoThuTu ?? 0) == so && b.ID > key))
+                .OrderBy(b => b.SoThuTu).ThenBy(b => b.ID).FirstOrDefault();
+            int waitTarget = (next ?? prev).ID;
+            int otherTarget = (prev ?? next).ID;
+
+            using (var tran = _context.Database.BeginTransaction())
+            {
+                _context.Database.ExecuteSqlCommand(
+                    "UPDATE TinTuc SET BuocQuyTrinhID = @p0 WHERE BuocQuyTrinhID = @p1 AND TrangThai = 'waitapprove'", waitTarget, key);
+                _context.Database.ExecuteSqlCommand(
+                    "UPDATE TinTuc SET BuocQuyTrinhID = @p0 WHERE BuocQuyTrinhID = @p1", otherTarget, key);
+                _context.Database.ExecuteSqlCommand(
+                    "UPDATE TinTuc_QuyTrinh SET BuocQuyTrinhID = @p0 WHERE BuocQuyTrinhID = @p1", otherTarget, key);
+                _context.Database.ExecuteSqlCommand("DELETE FROM UserBuocQuyTrinh WHERE BuocQuyTrinhId = @p0", key);
+                _context.Database.ExecuteSqlCommand("DELETE FROM BuocQuyTrinh WHERE ID = @p0", key);
+                tran.Commit();
+            }
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
 

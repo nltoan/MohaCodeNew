@@ -2,6 +2,18 @@
 
 Ghi chú theo từng đợt, chuyển từ DEV-SETUP.md. Hướng dẫn cài đặt và chạy nằm ở DEV-SETUP.md.
 
+## Admin 26/11: thao tác tin bằng icon, rút gọn quy trình duyệt
+
+- Tin tức: các thao tác quy trình thành icon trên dòng tin, gồm sửa, gửi duyệt, duyệt/trả về, xuất bản, gỡ xuất bản, nổi bật, xem trước và xem trên cổng. Menu "Thao tác khác" chỉ còn xem lịch sử và xóa.
+  - Gửi duyệt (người viết) và chuyển tiếp ở Bước 1 chỉ cần bấm một lần, không mở hộp thoại.
+  - Ở Bước 1, giao diện không còn "Trả về". API vẫn cho phép.
+  - Cột thao tác ghim bên phải, nên màn hình hẹp vẫn thấy nút sửa và nút duyệt.
+- Quy trình kiểm duyệt: xóa bước trước đây vướng khoá ngoại và chỉ báo "An error has occurred". Nay bước bị xóa được gộp vào bước liền kề:
+  - Tin đang chờ duyệt ở bước đó chuyển sang bước kế tiếp (không còn bước sau thì về bước trước).
+  - Tin khác và lịch sử duyệt (`TinTuc_QuyTrinh`) chuyển sang bước liền trước (không còn bước trước thì sang bước sau).
+  - Người xử lý của bước bị gỡ.
+  - Quy trình phải còn ít nhất một bước.
+
 ## Admin 25/11: ảnh chèn vào nội dung không hiện (sau khi tách media theo người tạo)
 
 - Nguyên nhân: sau commit `cf28603`, ảnh tải lên qua tab "Tải lên" của CKEditor có URL `https://api-portal.moha.gov.vn/Upload/...`. CSP admin trên production không có `img-src`; `default-src` chỉ cho `'self'` và `https://moha.gov.vn`, nên trình duyệt chặn ảnh. Kết quả là khung ảnh trắng, và chiều rộng/cao không tự điền. Xem trước trong "Quản lý file" cũng bị chặn vì cùng lý do.

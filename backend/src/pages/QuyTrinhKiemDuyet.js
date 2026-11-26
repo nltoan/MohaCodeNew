@@ -123,6 +123,7 @@ export default function QuyTrinhKiemDuyet() {
                         allowUpdating={true}
                         allowAdding={true}
                         allowDeleting={true}
+                        texts={{ confirmDeleteMessage: "Xóa bước này? Tin đang chờ duyệt ở bước này sẽ chuyển sang bước kế tiếp; lịch sử duyệt được gộp vào bước liền trước." }}
                       >
                         <DataGridPopup
                           title="Thông tin chi tiết bước quy trình"
